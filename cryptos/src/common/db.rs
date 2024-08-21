@@ -11,7 +11,6 @@ pub struct Db {}
 impl Db {
   pub fn new(i: u8) -> Result<Pool<ConnectionManager<PgConnection>>, R2d2Error> {
     let dsn = Env::var(format!("DB_{:02}_DSN", i));
-    println!("dsn {}", dsn);
     let manager = ConnectionManager::<PgConnection>::new(dsn);
     Pool::builder()
       .min_idle(Some(0))
