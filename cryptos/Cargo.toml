@@ -7,10 +7,11 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }
-diesel = { version = "2.2.2", features = ["postgres"] }
+diesel = { version = "2.2.2", features = ["postgres", "r2d2"] }
 dotenv = "0.15.0"
 redis = { version = "0.26.1", features = ["tokio-comp"] }
 rsmq_async = "12.0.0"
 rust_decimal = "1.35.0"
+serde = { version = "1.0.208", features = ["derive"] }
 tokio = { version = "1.39.3", features = ["full"] }
 xid = "1.1.1"

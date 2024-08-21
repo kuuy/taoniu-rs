@@ -16,6 +16,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
   let mut rdb = Rdb::new(1).await.expect("redis connect failed");
   redis::cmd("SET").arg(&["key2", "bar"]).exec_async(&mut rdb).await?;
 
+  let db = Db::new(1).expect("db connect failed");
+  //let num_users: i64 = symbol::table.count().get_result_async(&db).await?;
+  //println!("now there are {:?} users", num_users);
+
   let vars = Env::vars("ASYNQ_BINANCE_SPOT_QUEUE".to_string());
   for var in &vars {
     println!("redis queue {}", var);
