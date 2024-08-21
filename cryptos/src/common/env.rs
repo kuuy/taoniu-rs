@@ -24,6 +24,13 @@ impl Env {
     }
   }
 
+  pub fn u8(key: String) -> u8 {
+    match std::env::var(key) {
+      Ok(val) => val.parse::<u8>().unwrap_or(0),
+      Err(_) => 0,
+    }
+  }
+
   pub fn int(key: String) -> i32 {
     match std::env::var(key) {
       Ok(val) => val.parse::<i32>().unwrap_or(0),

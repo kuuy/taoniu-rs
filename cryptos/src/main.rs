@@ -9,10 +9,14 @@ use config::binance::spot::config as Config;
 use commands::*;
 use common::*;
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
   Env::load();
 
-  let vars: Vec<String> = Env::vars("ASYNQ_BINANCE_SPOT_QUEUE".to_string());
+  let mut rdb = Rdb::new(1).await.expect("redis connect failed");
+  redis::cmd("SET").arg(&["key2", "bar"]).exec_async(&mut rdb).await?;
+
+  let vars = Env::vars("ASYNQ_BINANCE_SPOT_QUEUE".to_string());
   for var in &vars {
     println!("redis queue {}", var);
   }
@@ -30,6 +34,8 @@ fn main() {
   println!("{}", format!("REDIS_{:02}_ADDRESS", 1));
   //println!("{}", env::var("REDIS_01_ADDRESS").unwrap());
   Cli::parse();
+
+  Ok(())
 }
 
 #[derive(Parser)]
