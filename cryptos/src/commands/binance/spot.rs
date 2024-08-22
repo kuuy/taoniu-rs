@@ -17,3 +17,12 @@ enum Commands {
   Symbols(SymbolsCommands),
   Positions(PositionsCommands),
 }
+
+impl SpotCommands {
+  pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    match &self.commands {
+      Commands::Symbols(symbols) => symbols.run(),
+      Commands::Positions(positions) => positions.run(),
+    }
+  }
+}

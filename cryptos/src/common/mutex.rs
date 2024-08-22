@@ -38,7 +38,6 @@ impl<'a> Mutex<'a> {
         return 0
       end
     ");
-    println!("key {} val {}", self.key, self.id);
     let result: bool = script.key(self.key)
       .arg(self.id)
       .invoke_async(self.rdb)

@@ -15,23 +15,23 @@ use common::*;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
   Env::load();
 
-  let mut rdb = Rdb::new(1).await.expect("redis connect failed");
-  //redis::cmd("SET").arg(&["key2", "bar"]).exec_async(&mut rdb).await?;
+  // let mut rdb = Rdb::new(1).await.expect("redis connect failed");
+  // redis::cmd("SET").arg(&["key2", "bar"]).exec_async(&mut rdb).await?;
 
-  let mutex_key = "mutex:test:BTCUSDT";
-  let mutex_id = xid::new().to_string().to_owned();
-  let mut mutex = Mutex::new(
-    &mut rdb,
-    mutex_key,
-    &mutex_id[..],
-  );
-  if !mutex.lock(Duration::from_secs(600)).await? {
-    panic!("mutex failed");
-  }
+  // let mutex_key = "mutex:test:BTCUSDT";
+  // let mutex_id = xid::new().to_string().to_owned();
+  // let mut mutex = Mutex::new(
+  //   &mut rdb,
+  //   mutex_key,
+  //   &mutex_id[..],
+  // );
+  // if !mutex.lock(Duration::from_secs(600)).await? {
+  //   panic!("mutex failed {mutex_key:?}");
+  // }
 
   //mutex.unlock().await?;
 
-  let db = Db::new(1).expect("db connect failed");
+  // let db = Db::new(1).expect("db connect failed");
   //let num_users: i64 = symbol::table.count().get_result_async(&db).await?;
   //println!("now there are {:?} users", num_users);
 
@@ -52,13 +52,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
   println!("{}", format!("REDIS_{:02}_ADDRESS", 1));
   //println!("{}", env::var("REDIS_01_ADDRESS").unwrap());
-  Cli::parse();
+  App::parse().run();
 
   Ok(())
 }
 
 #[derive(Parser)]
-struct Cli {
+struct App {
   #[command(subcommand)]
   commands: Commands,
 }
@@ -66,4 +66,17 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
   Binance(BinanceCommands),
+}
+
+impl App {
+  pub fn run(&self) {
+    match &self.commands {
+      Commands::Binance(binance) => {
+        match binance.run() {
+          Ok(_) => (),
+          Err(e) => panic!("error {:?}", e),
+        }
+      }
+    }
+  }
 }

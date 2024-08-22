@@ -15,3 +15,10 @@ enum Commands {
     list: bool,
   },
 }
+
+impl SymbolsCommands {
+  pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    println!("binance futures symbols run");
+    Ok(())
+  }
+}

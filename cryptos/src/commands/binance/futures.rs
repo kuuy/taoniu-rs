@@ -7,7 +7,7 @@ pub use symbols::*;
 pub use positions::*;
 
 #[derive(Parser)]
-pub struct SpotCommands {
+pub struct FuturesCommands {
   #[command(subcommand)]
   commands: Commands,
 }
@@ -16,4 +16,13 @@ pub struct SpotCommands {
 enum Commands {
   Symbols(SymbolsCommands),
   Positions(PositionsCommands),
+}
+
+impl FuturesCommands {
+  pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    match &self.commands {
+      Commands::Symbols(symbols) => symbols.run(),
+      Commands::Positions(positions) => positions.run(),
+    }
+  }
 }
