@@ -12,8 +12,7 @@ use common::*;
 #[tokio::main]
 async fn main() {
   Env::load();
-  let mut rdb = Rdb::new(1).await.expect("redis connect failed");
-  match App::parse().run(&mut rdb).await {
+  match App::parse().run().await {
     Ok(_) => (),
     Err(e) => panic!("error {:?}", e),
   }

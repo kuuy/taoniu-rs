@@ -15,10 +15,10 @@ enum Commands {
   Binance(BinanceCommand),
 }
 
-impl<'a> App {
-  pub async fn run(&self, rdb: &'a mut MultiplexedConnection) -> Result<(), Box<dyn std::error::Error>> {
+impl App {
+  pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Binance(binance) => binance.run(rdb).await,
+      Commands::Binance(binance) => binance.run().await,
     }
   }
 }

@@ -15,16 +15,30 @@ pub struct SpotCommand {
   commands: Commands,
 }
 
+impl Default for SpotCommand {
+  fn default() -> Self {
+    Self::new()
+  }
+}
+
 #[derive(Subcommand)]
 enum Commands {
   Symbols(SymbolsCommand),
   Positions(PositionsCommand),
 }
 
-impl<'a> SpotCommand {
-  pub async fn run(&self, rdb: &'a mut MultiplexedConnection) -> Result<(), Box<dyn std::error::Error>> {
+impl SpotCommand {
+  pub fn new() -> Self {
+    println!("current node 1");
+    Self {
+      ..Default::default()
+    }
+  }
+
+  pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     match &self.commands {
-      Commands::Symbols(symbols) => symbols.run(rdb).await,
+      Commands::Symbols(symbols) => symbols.run(&mut rdb).await,
       Commands::Positions(positions) => positions.run(),
     }
   }

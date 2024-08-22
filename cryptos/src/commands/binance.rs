@@ -19,10 +19,10 @@ enum Commands {
   Futures(FuturesCommand),
 }
 
-impl<'a> BinanceCommand {
-  pub async fn run(&self, rdb: &'a mut MultiplexedConnection) -> Result<(), Box<dyn std::error::Error>> {
+impl BinanceCommand {
+  pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Spot(spot) => spot.run(rdb).await,
+      Commands::Spot(spot) => spot.run().await,
       Commands::Futures(futures) => futures.run(),
     }
   }
