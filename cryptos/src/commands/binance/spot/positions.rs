@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-pub struct PositionsCommands {
+pub struct PositionsCommand {
   #[command(subcommand)]
   commands: Commands,
 }
@@ -16,7 +16,7 @@ enum Commands {
   },
 }
 
-impl PositionsCommands {
+impl PositionsCommand {
   pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot positions run");
     Ok(())

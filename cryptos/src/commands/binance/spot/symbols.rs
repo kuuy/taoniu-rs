@@ -1,31 +1,43 @@
+use std::time::Duration;
+
+use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
-#[derive(Debug, Parser)]
-pub struct SymbolsCommands {
+use crate::config::binance::spot::config as Config;
+use crate::common::*;
+use crate::repositories::SymbolsRepository;
+
+#[derive(Parser)]
+pub struct SymbolsCommand {
   #[command(subcommand)]
   commands: Commands,
 }
 
-#[derive(Debug, Subcommand)]
+#[derive(Subcommand)]
 enum Commands {
   /// symbols flush
   Flush,
 }
 
-impl SymbolsCommands {
-  fn flush(&self) -> Result<(), Box<dyn std::error::Error>> {
+impl<'a> SymbolsCommand {
+  async fn flush(&self, rdb: &'a mut MultiplexedConnection) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols flush");
-    if 1 > 0 {
-      return Err(Box::from("symbols flush failed"))
+    let mutex_key = Config::LOCKS_TASKS_SYMBOLS_FLUSH;
+    let mutex_id = xid::new().to_string().to_owned();
+    let mut mutex = Mutex::new(
+      rdb,
+      mutex_key,
+      &mutex_id[..],
+    );
+    if !mutex.lock(Duration::from_secs(600)).await? {
+      panic!("mutex failed {mutex_key:?}");
     }
     Ok(())
   }
-}
 
-impl SymbolsCommands {
-  pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, rdb: &'a mut MultiplexedConnection) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Flush => self.flush(),
+      Commands::Flush => self.flush(rdb).await,
     }
   }
 }
