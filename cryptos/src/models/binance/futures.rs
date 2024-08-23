@@ -1,5 +1,5 @@
-pub mod symbols;
-pub mod positions;
+pub mod symbol;
+pub mod position;
 
-pub use symbols::*;
-pub use positions::*;
+pub use symbol::*;
+pub use position::*;

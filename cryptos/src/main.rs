@@ -4,6 +4,7 @@ mod app;
 mod config;
 mod common;
 mod commands;
+mod models;
 mod repositories;
 
 use app::App;
