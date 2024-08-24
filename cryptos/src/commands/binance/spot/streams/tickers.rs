@@ -1,5 +1,4 @@
 use rust_decimal::prelude::*;
-use rust_decimal_macros::dec;
 use redis::aio::MultiplexedConnection;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Deserializer};
