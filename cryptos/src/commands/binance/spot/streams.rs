@@ -3,28 +3,26 @@ use clap::{Parser, Subcommand};
 
 use crate::common::*;
 
-pub mod symbols;
-pub mod positions;
-pub mod streams;
+pub mod account;
+pub mod tickers;
+pub mod klines;
 
-pub use symbols::*;
-pub use positions::*;
-pub use streams::*;
+pub use account::*;
+pub use tickers::*;
+pub use klines::*;
 
 #[derive(Parser)]
-pub struct SpotCommand {
+pub struct StreamsCommand {
   #[command(subcommand)]
   commands: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-  Symbols(SymbolsCommand),
-  Positions(PositionsCommand),
-  Streams(StreamsCommand),
+  Tickers(TickersCommand),
 }
 
-impl SpotCommand {
+impl StreamsCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     let mut db = Db::new(1).expect("db connect failed");
@@ -33,9 +31,7 @@ impl SpotCommand {
       db: &mut db,
     };
     match &self.commands {
-      Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
-      Commands::Positions(positions) => positions.run(),
-      Commands::Streams(streams) => streams.run().await,
+      Commands::Tickers(tickers) => tickers.run(&mut ctx).await,
     }
   }
 }

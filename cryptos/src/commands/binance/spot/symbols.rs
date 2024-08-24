@@ -31,7 +31,6 @@ enum Commands {
 
 impl<'a> SymbolsCommand {
   pub fn new() -> Self {
-    println!("current node 1");
     Self {
       repository: SymbolsRepository{},
       ..Default::default()
