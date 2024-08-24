@@ -2,8 +2,8 @@ use redis::aio::MultiplexedConnection;
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::spot::symbols::*;
-use crate::models::binance::spot::symbols::dsl::symbols;
+use crate::models::binance::spot::symbol::*;
+use crate::models::binance::spot::symbol::schema::dsl::*;
 
 #[derive(Default)]
 pub struct SymbolsRepository {}
@@ -18,10 +18,9 @@ impl<'a> SymbolsRepository {
   }
 
   pub fn count(&self, ctx: &'a mut Ctx<'_>) -> Result<i64, Box<dyn std::error::Error>> {
-    println!("symbols count");
-    let pool = Db::new(1).expect("db connect failed");
-    let mut conn = pool.get().unwrap();
-    let count = symbols.filter(status.eq("TRADING"))
+    let mut conn = ctx.db.get().unwrap();
+    let count = schema
+      .filter(status.eq("TRADING"))
       .filter(is_spot.eq(true))
       .count()
       .get_result(&mut conn)?;

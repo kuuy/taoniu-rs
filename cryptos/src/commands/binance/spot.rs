@@ -6,10 +6,12 @@ use crate::common::*;
 pub mod symbols;
 pub mod positions;
 pub mod streams;
+pub mod scalping;
 
 pub use symbols::*;
 pub use positions::*;
 pub use streams::*;
+pub use scalping::*;
 
 #[derive(Parser)]
 pub struct SpotCommand {
@@ -21,6 +23,7 @@ pub struct SpotCommand {
 enum Commands {
   Symbols(SymbolsCommand),
   Positions(PositionsCommand),
+  Scalping(ScalpingCommand),
   Streams(StreamsCommand),
 }
 
@@ -35,6 +38,7 @@ impl SpotCommand {
     match &self.commands {
       Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
       Commands::Positions(positions) => positions.run(),
+      Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
       Commands::Streams(streams) => streams.run().await,
     }
   }
