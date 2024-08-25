@@ -2,7 +2,7 @@ use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::commands::binance::spot::streams::tickers::*;
+use crate::commands::binance::futures::streams::tickers::*;
 
 pub mod account;
 pub mod tickers;

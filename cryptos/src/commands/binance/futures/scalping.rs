@@ -4,8 +4,8 @@ use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
-use crate::repositories::binance::spot::scalping::*;
+use crate::config::binance::futures::config as Config;
+use crate::repositories::binance::futures::scalping::*;
 
 #[derive(Parser)]
 pub struct ScalpingCommand {

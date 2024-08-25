@@ -12,8 +12,8 @@ use tokio_tungstenite::{connect_async, tungstenite, tungstenite::protocol::Messa
 use clap::{Parser};
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
-use crate::repositories::binance::spot::scalping::*;
+use crate::config::binance::futures::config as Config;
+use crate::repositories::binance::futures::scalping::*;
 
 #[derive(Parser)]
 pub struct TickersCommand {
@@ -103,7 +103,7 @@ impl<'a> TickersCommand {
       return Err(Box::from("current less then 1"))
     }
 
-    let size = Env::usize("BINANCE_SPOT_STREAMS_TICKERS_SIZE".to_string());
+    let size = Env::usize("BINANCE_FUTURES_STREAMS_TICKERS_SIZE".to_string());
     let offset = (usize::from(self.current) - 1) * size;
     if offset >= symbols.len() {
       return Err(Box::from("symbols out of range"))

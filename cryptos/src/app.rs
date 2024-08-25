@@ -2,7 +2,7 @@ use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::Rdb;
-use crate::commands::*;
+use crate::commands::binance::*;
 
 #[derive(Parser)]
 pub struct App {

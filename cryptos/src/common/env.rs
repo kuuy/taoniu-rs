@@ -6,12 +6,10 @@ pub struct Env {}
 impl Env {
   pub fn load() {
     let invoke_path = env::args().nth(0).map(PathBuf::from).unwrap().parent().unwrap().to_path_buf();
-    if invoke_path.is_relative() {
-      match dotenv::from_path(invoke_path.canonicalize().unwrap().join(".env")) {
-        Ok(_) => (),
-        Err(_) => {
-          dotenv::dotenv().ok();
-        }
+    match dotenv::from_path(invoke_path.canonicalize().unwrap().join(".env")) {
+      Ok(_) => (),
+      Err(_) => {
+        dotenv::dotenv().ok();
       }
     }
   }
@@ -40,6 +38,13 @@ impl Env {
   pub fn int64(key: String) -> i64 {
     match std::env::var(key) {
       Ok(val) => val.parse::<i64>().unwrap_or(0),
+      Err(_) => 0,
+    }
+  }
+
+  pub fn usize(key: String) -> usize {
+    match std::env::var(key) {
+      Ok(val) => val.parse::<usize>().unwrap_or(0),
       Err(_) => 0,
     }
   }

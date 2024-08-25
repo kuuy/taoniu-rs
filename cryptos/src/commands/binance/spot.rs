@@ -2,16 +2,15 @@ use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
+use crate::commands::binance::spot::symbols::*;
+use crate::commands::binance::spot::positions::*;
+use crate::commands::binance::spot::streams::*;
+use crate::commands::binance::spot::scalping::*;
 
 pub mod symbols;
 pub mod positions;
 pub mod streams;
 pub mod scalping;
-
-pub use symbols::*;
-pub use positions::*;
-pub use streams::*;
-pub use scalping::*;
 
 #[derive(Parser)]
 pub struct SpotCommand {
@@ -39,7 +38,7 @@ impl SpotCommand {
       Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
       Commands::Positions(positions) => positions.run(),
       Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
-      Commands::Streams(streams) => streams.run().await,
+      Commands::Streams(streams) => streams.run(&mut ctx).await,
     }
   }
 }

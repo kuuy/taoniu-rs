@@ -2,8 +2,8 @@ use redis::aio::MultiplexedConnection;
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::spot::scalping::*;
-use crate::models::binance::spot::scalping::schema::dsl::*;
+use crate::models::binance::futures::scalping::*;
+use crate::models::binance::futures::scalping::schema::dsl::*;
 
 #[derive(Default)]
 pub struct ScalpingRepository {}

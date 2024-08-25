@@ -5,7 +5,7 @@ use clap::{Parser, Subcommand};
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;
-use crate::repositories::SymbolsRepository;
+use crate::repositories::binance::spot::symbols::*;
 
 #[derive(Parser)]
 pub struct SymbolsCommand {

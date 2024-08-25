@@ -3,7 +3,7 @@ use diesel::{Queryable, Selectable};
 use serde::{Deserialize, Serialize};
 
 diesel::table! {
-  #[sql_name = "binance_spot_scalping"]
+  #[sql_name = "binance_futures_scalping"]
   schema (id) {
     id -> Varchar,
     symbol -> Varchar,
