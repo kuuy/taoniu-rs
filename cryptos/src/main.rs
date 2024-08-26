@@ -6,6 +6,7 @@ mod common;
 mod commands;
 mod models;
 mod repositories;
+mod queue;
 
 use app::App;
 use common::Env;

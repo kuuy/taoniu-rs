@@ -1,25 +1,24 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::binance::*;
-use crate::commands::queue::*;
+use crate::commands::queue::nats::*;
+
+pub mod nats;
 
 #[derive(Parser)]
-pub struct App {
+pub struct QueueCommand {
   #[command(subcommand)]
   commands: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-  Binance(BinanceCommand),
-  Queue(QueueCommand),
+  Nats(NatsCommand),
 }
 
-impl App {
+impl QueueCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Binance(binance) => binance.run().await,
-      Commands::Queue(queue) => queue.run().await,
+      Commands::Nats(nats) => nats.run().await,
     }
   }
 }
