@@ -1,6 +1,5 @@
 use std::time::Duration;
 
-use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::*;

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use redis::{Value as RedisValue, RedisError};
-use redis::aio::{ConnectionLike, MultiplexedConnection};
+use redis::RedisError;
+use redis::aio::MultiplexedConnection;
 
 pub struct Mutex<'a> {
   rdb: &'a mut MultiplexedConnection,

@@ -1,4 +1,3 @@
-use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::commands::binance::spot::*;

@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 mod app;
 mod config;
@@ -8,7 +8,7 @@ mod models;
 mod repositories;
 
 use app::App;
-use common::*;
+use common::Env;
 
 #[tokio::main]
 async fn main() {

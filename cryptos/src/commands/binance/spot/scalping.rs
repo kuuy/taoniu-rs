@@ -1,10 +1,6 @@
-use std::time::Duration;
-
-use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
 use crate::repositories::binance::spot::scalping::*;
 
 #[derive(Parser)]

@@ -1,4 +1,3 @@
-use std::time::Duration;
 use std::sync::Arc;
 
 use chrono::prelude::Utc;
@@ -7,8 +6,7 @@ use redis::AsyncCommands;
 use redis::aio::MultiplexedConnection;
 use futures_util::stream::StreamExt;
 use serde::{Deserialize, Deserializer};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio_tungstenite::{connect_async, tungstenite, tungstenite::protocol::Message};
+use tokio_tungstenite::connect_async;
 use clap::{Parser};
 
 use crate::common::*;
@@ -18,7 +16,7 @@ use crate::repositories::binance::spot::scalping::*;
 #[derive(Parser)]
 pub struct TickersCommand {
   #[clap(skip)]
-  scalpingRepository: ScalpingRepository,
+  scalping_repository: ScalpingRepository,
   #[clap(default_value_t = 1)]
   current: u8,
 }
@@ -66,7 +64,7 @@ where
 impl<'a> TickersCommand {
   pub fn new() -> Self {
     Self {
-      scalpingRepository: ScalpingRepository{},
+      scalping_repository: ScalpingRepository{},
       ..Default::default()
     }
   }
@@ -97,7 +95,7 @@ impl<'a> TickersCommand {
 
   pub async fn run(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
     println!("streams tickres current {}", self.current);
-    let mut symbols = self.scalpingRepository.scan(ctx).expect("scalping scan failed");
+    let mut symbols = self.scalping_repository.scan(ctx).expect("scalping scan failed");
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))
@@ -109,7 +107,6 @@ impl<'a> TickersCommand {
       return Err(Box::from("symbols out of range"))
     }
 
-    let mut vars: Vec<String> = Vec::new();
     if offset > 1 {
       let (_, items) = symbols.split_at(offset);
       symbols = items.to_vec();
@@ -132,7 +129,7 @@ impl<'a> TickersCommand {
     let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
 
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
-    let (_,mut read) = stream.split();
+    let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
     let handle = tokio::spawn(async move {
@@ -145,10 +142,7 @@ impl<'a> TickersCommand {
             let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
             Self::process(&mut rdb, event.message).await;
           }
-          Err(err) => {
-            println!("error: {}", err)
-          }
-          _ => {}
+          Err(err) => println!("error: {}", err)
         }
       }
     });

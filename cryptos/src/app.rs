@@ -1,7 +1,5 @@
-use redis::aio::MultiplexedConnection;
 use clap::{Parser, Subcommand};
 
-use crate::common::Rdb;
 use crate::commands::binance::*;
 
 #[derive(Parser)]

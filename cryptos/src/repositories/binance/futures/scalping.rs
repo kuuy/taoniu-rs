@@ -1,8 +1,6 @@
-use redis::aio::MultiplexedConnection;
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::futures::scalping::*;
 use crate::models::binance::futures::scalping::schema::dsl::*;
 
 #[derive(Default)]

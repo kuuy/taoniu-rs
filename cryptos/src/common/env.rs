@@ -21,26 +21,26 @@ impl Env {
     }
   }
 
-  pub fn u8(key: String) -> u8 {
-    match std::env::var(key) {
-      Ok(val) => val.parse::<u8>().unwrap_or(0),
-      Err(_) => 0,
-    }
-  }
+  // pub fn u8(key: String) -> u8 {
+  //   match std::env::var(key) {
+  //     Ok(val) => val.parse::<u8>().unwrap_or(0),
+  //     Err(_) => 0,
+  //   }
+  // }
 
-  pub fn int(key: String) -> i32 {
-    match std::env::var(key) {
-      Ok(val) => val.parse::<i32>().unwrap_or(0),
-      Err(_) => 0,
-    }
-  }
+  // pub fn int(key: String) -> i32 {
+  //   match std::env::var(key) {
+  //     Ok(val) => val.parse::<i32>().unwrap_or(0),
+  //     Err(_) => 0,
+  //   }
+  // }
 
-  pub fn int64(key: String) -> i64 {
-    match std::env::var(key) {
-      Ok(val) => val.parse::<i64>().unwrap_or(0),
-      Err(_) => 0,
-    }
-  }
+  // pub fn int64(key: String) -> i64 {
+  //   match std::env::var(key) {
+  //     Ok(val) => val.parse::<i64>().unwrap_or(0),
+  //     Err(_) => 0,
+  //   }
+  // }
 
   pub fn usize(key: String) -> usize {
     match std::env::var(key) {
@@ -49,17 +49,17 @@ impl Env {
     }
   }
 
-  pub fn vars(key: String) -> Vec<String> {
-    let mut vars: Vec<String> = Vec::new();
-    let mut i: u32 = 1;
-    loop {
-      let var = Env::var(format!("{}_{}",key, i));
-      if "" == var {
-        break;
-      }
-      vars.push(var);
-      i += 1;
-    }
-    vars
-  }
+  // pub fn vars(key: String) -> Vec<String> {
+  //   let mut vars: Vec<String> = Vec::new();
+  //   let mut i: u32 = 1;
+  //   loop {
+  //     let var = Env::var(format!("{}_{}",key, i));
+  //     if "" == var {
+  //       break;
+  //     }
+  //     vars.push(var);
+  //     i += 1;
+  //   }
+  //   vars
+  // }
 }

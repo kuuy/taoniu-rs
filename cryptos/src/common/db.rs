@@ -2,7 +2,7 @@
 use std::time::Duration;
 
 use diesel::pg::PgConnection;
-use diesel::r2d2::{Builder, ConnectionManager, Pool, PoolError as R2d2Error, PooledConnection};
+use diesel::r2d2::{ConnectionManager, Pool, PoolError as R2d2Error};
 
 use crate::Env;
 
