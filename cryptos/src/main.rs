@@ -1,13 +1,14 @@
 use clap::Parser;
 
+mod api;
 mod app;
 mod config;
 mod common;
 mod commands;
 mod models;
 mod repositories;
-mod queue;
 mod tasks;
+mod queue;
 
 use app::App;
 use common::Env;

@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 async-nats = "0.35.1"
+axum = "0.7.5"
+axum-extra = "0.9.3"
 chrono = "0.4.38"
 clap = { version = "4.5.16", features = ["derive"] }
 diesel = { version = "2.2.2", features = ["postgres", "chrono", "r2d2"] }
