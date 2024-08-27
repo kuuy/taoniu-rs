@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::cron::binance::*;
+use crate::commands::queue::rsmq::binance::*;
 
 pub mod binance;
 
 #[derive(Parser)]
-pub struct CronCommand {
+pub struct RsmqCommand {
   #[command(subcommand)]
   commands: Commands,
 }
@@ -15,10 +15,10 @@ enum Commands {
   Binance(BinanceCommand),
 }
 
-impl CronCommand {
+impl RsmqCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Binance(spot) => spot.run().await,
+      Commands::Binance(binance) => binance.run().await,
     }
   }
 }

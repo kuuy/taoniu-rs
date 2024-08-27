@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 use crate::commands::binance::*;
 use crate::commands::queue::*;
+use crate::commands::cron::*;
 
 #[derive(Parser)]
 pub struct App {
@@ -13,6 +14,7 @@ pub struct App {
 enum Commands {
   Binance(BinanceCommand),
   Queue(QueueCommand),
+  Cron(CronCommand),
 }
 
 impl App {
@@ -20,6 +22,7 @@ impl App {
     match &self.commands {
       Commands::Binance(binance) => binance.run().await,
       Commands::Queue(queue) => queue.run().await,
+      Commands::Cron(cron) => cron.run().await,
     }
   }
 }

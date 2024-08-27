@@ -19,7 +19,7 @@ impl<'a> FuturesCommand {
   }
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("queue nats binance futures");
+    println!("queue rsmq binance futures");
     let mut rdb = Rdb::new(2).await.expect("redis connect failed");
     let mut db = Db::new(2).expect("db connect failed");
     let mut nats = Nats::new().await.expect("nats connect failed");

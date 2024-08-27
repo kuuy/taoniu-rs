@@ -19,14 +19,16 @@ impl<'a> SpotCommand {
   }
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("nats queue binance spot");
+    println!("queue nats binance spot");
     let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     let mut db = Db::new(1).expect("db connect failed");
     let mut nats = Nats::new().await.expect("nats connect failed");
+    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
     let mut ctx = Ctx{
       rdb: &mut rdb,
       db: &mut db,
       nats: &mut nats,
+      rsmq: &mut rsmq,
     };
     Ok(())
   }

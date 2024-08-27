@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::cron::binance::spot::*;
-use crate::commands::cron::binance::futures::*;
+use crate::commands::queue::rsmq::binance::spot::*;
+use crate::commands::queue::rsmq::binance::futures::*;
 
 pub mod spot;
 pub mod futures;

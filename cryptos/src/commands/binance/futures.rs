@@ -30,10 +30,12 @@ impl FuturesCommand {
     let mut rdb = Rdb::new(2).await.expect("redis connect failed");
     let mut db = Db::new(2).expect("db connect failed");
     let mut nats = Nats::new().await.expect("nats connect failed");
+    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
     let mut ctx = Ctx{
       rdb: &mut rdb,
       db: &mut db,
       nats: &mut nats,
+      rsmq: &mut rsmq,
     };
     match &self.commands {
       Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
