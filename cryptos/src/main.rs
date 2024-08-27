@@ -7,6 +7,7 @@ mod commands;
 mod models;
 mod repositories;
 mod queue;
+mod tasks;
 
 use app::App;
 use common::Env;
