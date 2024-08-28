@@ -38,17 +38,17 @@ impl<'a> SymbolsCommand {
 
   async fn flush(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols flush");
-    let mutex_key = Config::LOCKS_TASKS_SYMBOLS_FLUSH;
-    let mutex_id = xid::new().to_string().to_owned();
-    let mut mutex = Mutex::new(
-      ctx.rdb,
-      mutex_key,
-      &mutex_id[..],
-    );
-    if !mutex.lock(Duration::from_secs(600)).await? {
-      panic!("mutex failed {mutex_key:?}");
-    }
-    mutex.unlock().await?;
+    // let mutex_key = Config::LOCKS_TASKS_SYMBOLS_FLUSH;
+    // let mutex_id = xid::new().to_string().to_owned();
+    // let mut mutex = Mutex::new(
+    //   ctx.rdb,
+    //   mutex_key,
+    //   &mutex_id[..],
+    // );
+    // if !mutex.lock(Duration::from_secs(600)).await? {
+    //   panic!("mutex failed {mutex_key:?}");
+    // }
+    // mutex.unlock().await?;
     Ok(())
   }
 

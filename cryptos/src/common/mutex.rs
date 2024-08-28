@@ -1,16 +1,18 @@
 use std::time::Duration;
+use std::sync::Arc;
 
+use redis::AsyncCommands;
 use redis::RedisError;
 use redis::aio::MultiplexedConnection;
 
-pub struct Mutex<'a> {
-  rdb: &'a mut MultiplexedConnection,
-  key: &'a str,
-  id: &'a str, 
+pub struct Mutex<T: AsRef<str>> {
+  rdb: MultiplexedConnection,
+  key: T,
+  id: T,
 }
 
-impl<'a> Mutex<'a> {
-  pub fn new(rdb: &'a mut MultiplexedConnection, key: &'a str, id: &'a str) -> Self {
+impl <T: AsRef<str>> Mutex<T> {
+  pub fn new(rdb: MultiplexedConnection, key: T, id: T) -> Self {
     Self {
       rdb: rdb,
       key: key,
@@ -20,12 +22,12 @@ impl<'a> Mutex<'a> {
 
   pub async fn lock(&mut self, ttl: Duration) -> Result<bool, RedisError> {
     let result: bool = redis::cmd("SET")
-      .arg(self.key)
-      .arg(self.id)
+      .arg(self.key.as_ref())
+      .arg(self.id.as_ref())
       .arg("NX")
       .arg("EX")
       .arg(ttl.as_secs())
-      .query_async(self.rdb)
+      .query_async(&mut self.rdb)
       .await?;
     Ok(result)
   }
@@ -38,9 +40,9 @@ impl<'a> Mutex<'a> {
         return 0
       end
     ");
-    let result: bool = script.key(self.key)
-      .arg(self.id)
-      .invoke_async(self.rdb)
+    let result: bool = script.key(self.key.as_ref())
+      .arg(self.id.as_ref())
+      .invoke_async(&mut self.rdb)
       .await?;
     Ok(result)
   }

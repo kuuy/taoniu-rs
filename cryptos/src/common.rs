@@ -5,6 +5,7 @@ pub mod pool;
 pub mod nats;
 pub mod rsmq;
 pub mod ctx;
+pub mod context;
 pub mod mutex;
 
 pub use env::*;
@@ -14,4 +15,5 @@ pub use pool::*;
 pub use nats::*;
 pub use rsmq::*;
 pub use ctx::*;
+pub use context::*;
 pub use mutex::*;

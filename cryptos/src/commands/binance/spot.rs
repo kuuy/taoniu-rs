@@ -27,22 +27,14 @@ enum Commands {
 
 impl SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    let mut rdb = Rdb::new(1).await.expect("redis connect failed");
-    let mut db = Db::new(1).expect("db connect failed");
-    let mut pool = Pool::new(1).expect("pool connect failed");
-    let mut nats = Nats::new().await.expect("nats connect failed");
-    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
-    let mut ctx = Ctx{
-      rdb: &mut rdb,
-      db: &mut db,
-      nats: &mut nats,
-      rsmq: &mut rsmq,
-    };
+    let rdb = Rdb::new(1).await.expect("redis connect failed");
+    let pool = Pool::new(1).expect("pool connect failed");
+    let ctx = AppContext::new(rdb, pool);
     match &self.commands {
-      Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
-      Commands::Klines(klines) => klines.run(&mut ctx).await,
+      Commands::Symbols(symbols) => symbols.run(ctx).await,
+      Commands::Klines(klines) => klines.run(ctx).await,
       Commands::Positions(positions) => positions.run(),
-      Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
+      Commands::Scalping(scalping) => scalping.run(ctx).await,
     }
   }
 }

@@ -19,8 +19,9 @@ pub struct AppContext {
 }
 
 impl AppContext {
-  pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+  pub fn new(rdb: MultiplexedConnection, pool: Pool<ConnectionManager<PgConnection>>) -> Self {
     Self {
+      rdb: Arc::new(Mutex::new(rdb)),
       pool: Arc::new(RwLock::new(pool)),
     }
   }

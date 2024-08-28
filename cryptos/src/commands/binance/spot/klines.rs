@@ -47,7 +47,7 @@ impl<'a> KlinesCommand {
     Ok(())
   }
 
-  pub async fn run(&self, _: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, _: AppContext) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Timestamp(args) => self.timestamp(args.interval.clone()).await,
     }
