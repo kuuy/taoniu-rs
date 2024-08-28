@@ -2,10 +2,12 @@ use clap::{Parser, Subcommand};
 
 use crate::common::*;
 use crate::commands::binance::futures::symbols::*;
+use crate::commands::binance::futures::klines::*;
 use crate::commands::binance::futures::positions::*;
 use crate::commands::binance::futures::scalping::*;
 
 pub mod symbols;
+pub mod klines;
 pub mod positions;
 pub mod scalping;
 
@@ -18,26 +20,21 @@ pub struct FuturesCommand {
 #[derive(Subcommand)]
 enum Commands {
   Symbols(SymbolsCommand),
+  Klines(KlinesCommand),
   Positions(PositionsCommand),
   Scalping(ScalpingCommand),
 }
 
 impl FuturesCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    let mut rdb = Rdb::new(2).await.expect("redis connect failed");
-    let mut db = Db::new(2).expect("db connect failed");
-    let mut nats = Nats::new().await.expect("nats connect failed");
-    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
-    let mut ctx = Ctx{
-      rdb: &mut rdb,
-      db: &mut db,
-      nats: &mut nats,
-      rsmq: &mut rsmq,
-    };
+    let rdb = Rdb::new(2).await.unwrap();
+    let pool = Pool::new(2).unwrap();
+    let ctx = Ctx::new(rdb, pool);
     match &self.commands {
-      Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
+      Commands::Symbols(symbols) => symbols.run(ctx).await,
+      Commands::Klines(klines) => klines.run(ctx).await,
       Commands::Positions(positions) => positions.run(),
-      Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
+      Commands::Scalping(scalping) => scalping.run(ctx).await,
     }
   }
 }

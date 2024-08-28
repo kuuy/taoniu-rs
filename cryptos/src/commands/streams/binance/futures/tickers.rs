@@ -61,7 +61,7 @@ where
   s.parse::<f64>().map_err(serde::de::Error::custom)
 }
 
-impl<'a> TickersCommand {
+impl TickersCommand {
   pub fn new() -> Self {
     Self {
       scalping_repository: ScalpingRepository{},
@@ -69,13 +69,14 @@ impl<'a> TickersCommand {
     }
   }
 
-  async fn process(rdb: &mut tokio::sync::MutexGuard<'_, MultiplexedConnection>, message: TickerMessage) {
+  async fn process(ctx: Ctx, message: TickerMessage) {
     println!("process message {} {}", message.symbol, message.timestamp);
     let open = Decimal::from_f64(message.open).unwrap();
     let price = Decimal::from_f64(message.price).unwrap();
     let change = ((open - price) / open).round_dp(4).to_f32().unwrap();
     let timestamp = Utc::now().timestamp_millis();
 
+    let mut rdb = ctx.rdb.lock().await.clone();
     rdb.hset_multiple(
       format!("{}:{}", Config::REDIS_KEY_TICKERS, message.symbol), 
       &[
@@ -93,15 +94,15 @@ impl<'a> TickersCommand {
     ).await.unwrap()
   }
 
-  pub async fn run(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("streams tickres current {}", self.current);
-    let mut symbols = self.scalping_repository.scan(ctx).expect("scalping scan failed");
+    let mut symbols = self.scalping_repository.scan(ctx.clone()).unwrap();
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))
     }
 
-    let size = Env::usize("BINANCE_FUTURES_STREAMS_TICKERS_SIZE".to_string());
+    let size = Env::usize("BINANCE_FUTURES_STREAMS_TICKERS_SIZE");
     let offset = (usize::from(self.current) - 1) * size;
     if offset >= symbols.len() {
       return Err(Box::from("symbols out of range"))
@@ -119,33 +120,30 @@ impl<'a> TickersCommand {
 
     let endpoint = format!(
       "{}/stream?streams={}",
-      Env::var("BINANCE_SPOT_STREAMS_ENDPOINT".to_string()),
+      Env::var("BINANCE_SPOT_STREAMS_ENDPOINT"),
       symbols.iter().map(
         |symbol| format!("{}@miniTicker", symbol.to_lowercase())
       ).collect::<Vec<_>>().join("/"),
     );
     println!("endpoint {endpoint:}");
 
-    let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
-
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
     let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
-    let handle = tokio::spawn(async move {
+    let handle = tokio::spawn(Box::pin(async move {
       let mut read = read.lock_owned().await;
       while let Some(message) = read.next().await {
         let data = message.unwrap().into_data();
         // tokio::io::stdout().write(&data).await.unwrap();
         match serde_json::from_slice::<TickerEvent>(&data) {
           Ok(event) => {
-            let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
-            Self::process(&mut rdb, event.message).await;
+            Self::process(ctx.clone(), event.message).await;
           }
           Err(err) => println!("error: {}", err)
         }
       }
-    });
+    }));
     handle.await.expect("The read task failed.");
 
     Ok(())

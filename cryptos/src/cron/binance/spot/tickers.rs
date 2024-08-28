@@ -24,26 +24,21 @@ impl<'a> TickersScheduler<'a> {
     }
   }
 
-  pub fn flush(rdb: &mut tokio::sync::MutexGuard<'_, MultiplexedConnection>) -> Result<(), Box<dyn std::error::Error>> {
+  pub fn flush(&mut self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("tasks binance spot tickers flush");
     Ok(())
   }
 
-  pub fn dispatch(&mut self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub fn dispatch(&mut self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("tasks binance spot tickers dispatch");
-    let db = Arc::new(RwLock::new(ctx.db.clone()));
-    let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
-    let nats = Arc::new(ctx.nats.clone());
-    let rsmq = Arc::new(ctx.rsmq.clone());
     self.scheduler.add(Job::new("*/5 * * * * *", move || {
-      let rdb = rdb.clone();
       Box::pin(async move {
         // let mut db: tokio::sync::MutexGuard<'_, Pool<ConnectionManager<PgConnection>>> = db.lock().await;
-        let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
-        let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
+        // let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
+        // let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
         // let mut nats: tokio::sync::MutexGuard<'_, async_nats::Client> = nats.lock().await;
         // let mut rsmq: tokio::sync::MutexGuard<'_, rsmq_async::Rsmq> = rsmq.lock().await;
-        Self::flush(&mut rdb);
+        // Self::flush(&mut rdb);
       })
     }));
     Ok(())

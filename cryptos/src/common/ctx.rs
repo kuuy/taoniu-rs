@@ -1,13 +1,22 @@
+use std::sync::{RwLock, Arc};
+use tokio::sync::Mutex;
+
 use redis::aio::MultiplexedConnection;
 use async_nats::Client;
-use rsmq_async::Rsmq;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 
-pub struct Ctx<'a> {
-  pub rdb: &'a mut MultiplexedConnection,
-  pub db: &'a mut Pool<ConnectionManager<PgConnection>>,
-  // pub pool: Arc<RwLock<Pool<ConnectionManager<PgConnection>>>>,
-  pub nats: &'a mut Client,
-  pub rsmq: &'a mut Rsmq,
+#[derive(Clone)]
+pub struct Ctx {
+  pub rdb: Arc<Mutex<MultiplexedConnection>>,
+  pub pool: Arc<RwLock<Pool<ConnectionManager<PgConnection>>>>,
+}
+
+impl Ctx {
+  pub fn new(rdb: MultiplexedConnection, pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+    Self {
+      rdb: Arc::new(Mutex::new(rdb)),
+      pool: Arc::new(RwLock::new(pool)),
+    }
+  }
 }

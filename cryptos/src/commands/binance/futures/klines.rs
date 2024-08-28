@@ -1,7 +1,7 @@
 use clap::{Parser, Args, Subcommand};
 
 use crate::common::*;
-use crate::repositories::binance::spot::klines::*;
+use crate::repositories::binance::futures::klines::*;
 
 #[derive(Parser)]
 pub struct KlinesCommand {

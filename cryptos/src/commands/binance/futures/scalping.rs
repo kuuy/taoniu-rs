@@ -23,7 +23,7 @@ enum Commands {
   Scan,
 }
 
-impl<'a> ScalpingCommand {
+impl ScalpingCommand {
   pub fn new() -> Self {
     Self {
       repository: ScalpingRepository{},
@@ -31,14 +31,14 @@ impl<'a> ScalpingCommand {
     }
   }
 
-  async fn scan(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  async fn scan(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("scalping scan");
-    let symbols = self.repository.scan(ctx).expect("scalping scan failed");
-    println!("scalping scan success {:?}", symbols);
+    // let symbols = self.repository.scan(ctx).expect("scalping scan failed");
+    // println!("scalping scan success {:?}", symbols);
     Ok(())
   }
 
-  pub async fn run(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Scan => self.scan(ctx).await,
     }

@@ -28,7 +28,7 @@ enum Commands {
   Count,
 }
 
-impl<'a> SymbolsCommand {
+impl SymbolsCommand {
   pub fn new() -> Self {
     Self {
       repository: SymbolsRepository{},
@@ -36,30 +36,30 @@ impl<'a> SymbolsCommand {
     }
   }
 
-  async fn flush(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  async fn flush(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols flush");
-    // let mutex_key = Config::LOCKS_TASKS_SYMBOLS_FLUSH;
-    // let mutex_id = xid::new().to_string().to_owned();
-    // let mut mutex = Mutex::new(
-    //   ctx.rdb,
-    //   mutex_key,
-    //   &mutex_id[..],
-    // );
-    // if !mutex.lock(Duration::from_secs(600)).await? {
-    //   panic!("mutex failed {mutex_key:?}");
-    // }
-    // mutex.unlock().await?;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let mut mutex = Mutex::new(
+      rdb,
+      Config::LOCKS_TASKS_SYMBOLS_FLUSH,
+      &mutex_id[..],
+    );
+    if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
+      panic!("mutex failed {}", Config::LOCKS_TASKS_SYMBOLS_FLUSH);
+    }
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
-  async fn count(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  async fn count(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols count");
-    let count = self.repository.count(ctx).expect("symbols count failed");
+    let count = self.repository.count(ctx).await.unwrap();
     println!("symbols count {}", count);
     Ok(())
   }
 
-  pub async fn run(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Flush => self.flush(ctx).await,
       Commands::Count => self.count(ctx).await,

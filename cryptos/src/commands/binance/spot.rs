@@ -27,9 +27,9 @@ enum Commands {
 
 impl SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    let rdb = Rdb::new(1).await.expect("redis connect failed");
-    let pool = Pool::new(1).expect("pool connect failed");
-    let ctx = AppContext::new(rdb, pool);
+    let rdb = Rdb::new(1).await.unwrap();
+    let pool = Pool::new(1).unwrap();
+    let ctx = Ctx::new(rdb, pool);
     match &self.commands {
       Commands::Symbols(symbols) => symbols.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,

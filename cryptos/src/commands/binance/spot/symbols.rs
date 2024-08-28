@@ -36,30 +36,30 @@ impl SymbolsCommand {
     }
   }
 
-  async fn flush(&self, ctx: AppContext) -> Result<(), Box<dyn std::error::Error>> {
+  async fn flush(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols flush");
     let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string().to_owned();
+    let mutex_id = xid::new().to_string();
     let mut mutex = Mutex::new(
       rdb,
       Config::LOCKS_TASKS_SYMBOLS_FLUSH,
       &mutex_id[..],
     );
-    if !mutex.lock(Duration::from_secs(600)).await? {
+    if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
       panic!("mutex failed {}", Config::LOCKS_TASKS_SYMBOLS_FLUSH);
     }
-    mutex.unlock().await?;
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
-  async fn count(&self, ctx: AppContext) -> Result<(), Box<dyn std::error::Error>> {
+  async fn count(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols count");
     let count = self.repository.count(ctx).await.unwrap();
     println!("symbols count {}", count);
     Ok(())
   }
 
-  pub async fn run(&self, ctx: AppContext) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Flush => self.flush(ctx).await,
       Commands::Count => self.count(ctx).await,

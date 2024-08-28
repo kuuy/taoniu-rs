@@ -4,8 +4,8 @@ pub mod strategies;
 
 pub struct FuturesWorkers {}
 
-impl<'a> FuturesWorkers {
-  pub async fn subscribe(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+impl FuturesWorkers {
+  pub async fn subscribe(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
   }
 }

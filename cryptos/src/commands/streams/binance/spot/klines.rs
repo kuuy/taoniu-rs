@@ -70,7 +70,7 @@ where
   s.parse::<f64>().map_err(serde::de::Error::custom)
 }
 
-impl<'a> KlinesCommand {
+impl KlinesCommand {
   pub fn new() -> Self {
     Self {
       scalping_repository: ScalpingRepository{},
@@ -78,45 +78,46 @@ impl<'a> KlinesCommand {
     }
   }
 
-  async fn process(rdb: &mut tokio::sync::MutexGuard<'_, MultiplexedConnection>, message: KlineMessage) -> Result<(), Box<dyn std::error::Error>> {
+  async fn process(&self, ctx: Ctx, message: KlineMessage) -> Result<(), Box<dyn std::error::Error>> {
     println!("process message {} {}", message.symbol, message.timestamp);
-    let open = Decimal::from_f64(message.open).unwrap();
-    let price = Decimal::from_f64(message.price).unwrap();
-    let change = ((open - price) / open).round_dp(4).to_f32().unwrap();
-    let timestamp = Utc::now().timestamp_millis();
+    // let open = Decimal::from_f64(message.open).unwrap();
+    // let price = Decimal::from_f64(message.price).unwrap();
+    // let change = ((open - price) / open).round_dp(4).to_f32().unwrap();
+    // let timestamp = Utc::now().timestamp_millis();
 
-    let ttl = match message.interval.as_str() {
-      "1m" => 1440 * 60,
-      "15m" => 672 * 900,
-      "4h" => 126 * 14400,
-      "1d" => 100 * 86400,
-      _ => panic!("invalid interval {}", message.interval)
-    };
+    // let ttl = match message.interval.as_str() {
+    //   "1m" => 1440 * 60,
+    //   "15m" => 672 * 900,
+    //   "4h" => 126 * 14400,
+    //   "1d" => 100 * 86400,
+    //   _ => panic!("invalid interval {}", message.interval)
+    // };
 
-    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
-    let _: () = rdb
-      .hset_multiple(
-        &redis_key[..],
-        &[
-          ("symbol", message.symbol),
-          ("open", message.open.to_string()),
-          ("price", message.price.to_string()),
-          ("change", change.to_string()),
-          ("high", message.high.to_string()),
-          ("price", message.price.to_string()),
-          ("low", message.low.to_string()),
-          ("volume", message.volume.to_string()),
-          ("quota", message.quota.to_string()),
-          ("timestamp", timestamp.to_string()),
-        ],
-      )
-      .await
-      .unwrap();
-      let _: () = rdb.expire(&redis_key[..], ttl).await.unwrap();
+    // let mut rdb = ctx.rdb.lock().await;
+    // let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
+    // let _: () = rdb
+    //   .hset_multiple(
+    //     &redis_key[..],
+    //     &[
+    //       ("symbol", message.symbol),
+    //       ("open", message.open.to_string()),
+    //       ("price", message.price.to_string()),
+    //       ("change", change.to_string()),
+    //       ("high", message.high.to_string()),
+    //       ("price", message.price.to_string()),
+    //       ("low", message.low.to_string()),
+    //       ("volume", message.volume.to_string()),
+    //       ("quota", message.quota.to_string()),
+    //       ("timestamp", timestamp.to_string()),
+    //     ],
+    //   )
+    //   .await
+    //   .unwrap();
+    //   let _: () = rdb.expire(&redis_key[..], ttl).await.unwrap();
     Ok(())
   }
 
-  pub async fn run(&self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     if !["1m", "15m", "4h", "1d"].iter().any(|&s| s == self.interval) {
       return Err(Box::from("interval not valid"))
     }
@@ -153,7 +154,7 @@ impl<'a> KlinesCommand {
     );
     println!("endpoint {endpoint:}");
 
-    let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
+    // let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
 
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
     let (_, read) = stream.split();
@@ -166,8 +167,8 @@ impl<'a> KlinesCommand {
         //tokio::io::stdout().write(&data).await.unwrap();
         match serde_json::from_slice::<KlineEvent>(&data) {
           Ok(event) => {
-            let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
-            let _ = Self::process(&mut rdb, event.data.message).await;
+            // let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
+            // let _ = self.process(ctx, event.data.message).await;
           }
           Err(err) => println!("error: {}", err)
         }

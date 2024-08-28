@@ -11,7 +11,7 @@ impl Default for FuturesCommand {
   }
 }
 
-impl<'a> FuturesCommand {
+impl FuturesCommand {
   pub fn new() -> Self {
     Self {
       ..Default::default()
@@ -20,16 +20,9 @@ impl<'a> FuturesCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("queue rsmq binance futures");
-    let mut rdb = Rdb::new(2).await.expect("redis connect failed");
-    let mut db = Db::new(2).expect("db connect failed");
-    let mut nats = Nats::new().await.expect("nats connect failed");
-    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
-    let mut ctx = Ctx{
-      rdb: &mut rdb,
-      db: &mut db,
-      nats: &mut nats,
-      rsmq: &mut rsmq,
-    };
+    let rdb = Rdb::new(2).await.unwrap();
+    let pool = Pool::new(2).unwrap();
+    let ctx = Ctx::new(rdb, pool);
     Ok(())
   }
 }

@@ -31,14 +31,14 @@ impl ScalpingCommand {
     }
   }
 
-  async fn scan(&self, ctx: AppContext) -> Result<(), Box<dyn std::error::Error>> {
+  async fn scan(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("scalping scan");
     // let symbols = self.repository.scan(ctx).expect("scalping scan failed");
     // println!("scalping scan success {:?}", symbols);
     Ok(())
   }
 
-  pub async fn run(&self, ctx: AppContext) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Scan => self.scan(ctx).await,
     }

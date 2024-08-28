@@ -11,7 +11,7 @@ impl Default for SpotCommand {
   }
 }
 
-impl<'a> SpotCommand {
+impl SpotCommand {
   pub fn new() -> Self {
     Self {
       ..Default::default()
@@ -21,15 +21,9 @@ impl<'a> SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("queue rsmq binance spot");
     let mut rdb = Rdb::new(1).await.expect("redis connect failed");
-    let mut db = Db::new(1).expect("db connect failed");
-    let mut nats = Nats::new().await.expect("nats connect failed");
-    let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
-    let mut ctx = Ctx{
-      rdb: &mut rdb,
-      db: &mut db,
-      nats: &mut nats,
-      rsmq: &mut rsmq,
-    };
+    let rdb = Rdb::new(1).await.unwrap();
+    let pool = Pool::new(1).unwrap();
+    let ctx = Ctx::new(rdb, pool);
     Ok(())
   }
 }
