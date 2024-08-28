@@ -1,7 +1,6 @@
 use std::time::Duration;
 use std::sync::Arc;
 
-use redis::AsyncCommands;
 use redis::RedisError;
 use redis::aio::MultiplexedConnection;
 

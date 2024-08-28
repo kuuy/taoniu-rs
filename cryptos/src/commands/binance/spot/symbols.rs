@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use redis::aio::MultiplexedConnection;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;
