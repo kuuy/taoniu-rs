@@ -14,8 +14,8 @@ impl Env {
     }
   }
 
-  pub fn var(key: String) -> String {
-    match std::env::var(key) {
+  pub fn var<S: AsRef<str>>(key: S) -> String {
+    match std::env::var(key.as_ref()) {
       Ok(val) => val,
       Err(_) => "".to_string(),
     }
@@ -28,28 +28,28 @@ impl Env {
   //   }
   // }
 
-  // pub fn int(key: String) -> i32 {
-  //   match std::env::var(key) {
-  //     Ok(val) => val.parse::<i32>().unwrap_or(0),
-  //     Err(_) => 0,
-  //   }
-  // }
+  pub fn int<S: AsRef<str>>(key: S) -> i32 {
+    match std::env::var(key.as_ref()) {
+      Ok(val) => val.parse::<i32>().unwrap_or(0),
+      Err(_) => 0,
+    }
+  }
 
-  // pub fn int64(key: String) -> i64 {
-  //   match std::env::var(key) {
+  // pub fn int64<S: AsRef<str>>(key: S) -> i64 {
+  //   match std::env::var(key.as_ref()) {
   //     Ok(val) => val.parse::<i64>().unwrap_or(0),
   //     Err(_) => 0,
   //   }
   // }
 
-  pub fn usize(key: String) -> usize {
-    match std::env::var(key) {
+  pub fn usize<S: AsRef<str>>(key: S) -> usize {
+    match std::env::var(key.as_ref()) {
       Ok(val) => val.parse::<usize>().unwrap_or(0),
       Err(_) => 0,
     }
   }
 
-  // pub fn vars(key: String) -> Vec<String> {
+  // pub fn vars<S: AsRef<str>>(key: S) -> Vec<String> {
   //   let mut vars: Vec<String> = Vec::new();
   //   let mut i: u32 = 1;
   //   loop {

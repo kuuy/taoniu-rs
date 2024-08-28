@@ -1,3 +1,4 @@
+use axum::Router;
 use clap::{Parser};
 
 use crate::common::*;
@@ -20,6 +21,12 @@ impl FuturesCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("api binance futures");
+    let router = Router::new();
+    println!("127.0.0.1:{}", Env::int("CRYPTOS_API_BINANCE_FUTURES_PORT"));
+    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", Env::int("CRYPTOS_API_BINANCE_FUTURES_PORT")))
+      .await
+      .unwrap();
+    axum::serve(listener, router).await.unwrap();
     Ok(())
   }
 }

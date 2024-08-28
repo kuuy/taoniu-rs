@@ -1,3 +1,4 @@
+use axum::Router;
 use clap::{Parser};
 
 use crate::common::*;
@@ -20,6 +21,11 @@ impl SpotCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("api binance spot");
+    let router = Router::new();
+    let listener = tokio::net::TcpListener::bind(format!("127.0.0.1:{}", Env::int("CRYPTOS_API_BINANCE_SPOT_PORT")))
+      .await
+      .unwrap();
+    axum::serve(listener, router).await.unwrap();
     Ok(())
   }
 }

@@ -37,14 +37,14 @@ impl<'a> TickersTasks<'a> {
     let rsmq = Arc::new(ctx.rsmq.clone());
     self.scheduler.add(Job::new("*/5 * * * * *", move || {
       let rdb = rdb.clone();
-      async move {
+      Box::pin(async move {
         // let mut db: tokio::sync::MutexGuard<'_, Pool<ConnectionManager<PgConnection>>> = db.lock().await;
         let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
         let mut rsmq = Rsmq::new(&mut rdb).await.expect("rsmq connect failed");
         // let mut nats: tokio::sync::MutexGuard<'_, async_nats::Client> = nats.lock().await;
         // let mut rsmq: tokio::sync::MutexGuard<'_, rsmq_async::Rsmq> = rsmq.lock().await;
         Self::flush(&mut rdb);
-      }
+      })
     }));
     Ok(())
   }
