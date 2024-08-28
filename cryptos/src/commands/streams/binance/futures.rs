@@ -1,31 +1,24 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::commands::binance::spot::symbols::*;
-use crate::commands::binance::spot::klines::*;
-use crate::commands::binance::spot::positions::*;
-use crate::commands::binance::spot::scalping::*;
+use crate::commands::streams::binance::futures::tickers::*;
 
-pub mod symbols;
-pub mod klines;
-pub mod positions;
-pub mod scalping;
+mod account;
+mod tickers;
+mod klines;
 
 #[derive(Parser)]
-pub struct SpotCommand {
+pub struct FuturesCommand {
   #[command(subcommand)]
   commands: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-  Symbols(SymbolsCommand),
-  Klines(KlinesCommand),
-  Positions(PositionsCommand),
-  Scalping(ScalpingCommand),
+  Tickers(TickersCommand),
 }
 
-impl SpotCommand {
+impl<'a> FuturesCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     let mut db = Db::new(1).expect("db connect failed");
@@ -39,10 +32,7 @@ impl SpotCommand {
       rsmq: &mut rsmq,
     };
     match &self.commands {
-      Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
-      Commands::Klines(klines) => klines.run(&mut ctx).await,
-      Commands::Positions(positions) => positions.run(),
-      Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
+      Commands::Tickers(tickers) => tickers.run(&mut ctx).await,
     }
   }
 }

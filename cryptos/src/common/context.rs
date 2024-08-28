@@ -11,3 +11,17 @@ pub struct ApiContext {
   pub rdb: Arc<Mutex<MultiplexedConnection>>,
   pub db_pool: Arc<RwLock<Pool<ConnectionManager<PgConnection>>>>,
 }
+
+#[derive(Clone)]
+pub struct AppContext {
+  pub rdb: Arc<Mutex<MultiplexedConnection>>,
+  pub pool: Arc<RwLock<Pool<ConnectionManager<PgConnection>>>>,
+}
+
+impl AppContext {
+  pub fn new(pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+    Self {
+      pool: Arc::new(RwLock::new(pool)),
+    }
+  }
+}

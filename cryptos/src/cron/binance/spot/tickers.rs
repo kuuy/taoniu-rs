@@ -9,7 +9,7 @@ use diesel::r2d2::{ConnectionManager, Pool};
 
 use crate::common::*;
 
-pub struct TickersTasks<'a> {
+pub struct TickersScheduler<'a> {
   scheduler: &'a mut Scheduler<Local>,
 }
 
@@ -17,7 +17,7 @@ async fn simple_async_fn() {
   println!("Hello, world!");
 }
 
-impl<'a> TickersTasks<'a> {
+impl<'a> TickersScheduler<'a> {
   pub fn new(scheduler: &'a mut Scheduler<Local>) -> Self {
     Self {
       scheduler: scheduler,

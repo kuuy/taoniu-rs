@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 use crate::commands::api::*;
 use crate::commands::queue::*;
 use crate::commands::cron::*;
+use crate::commands::streams::*;
 use crate::commands::binance::*;
 
 #[derive(Parser)]
@@ -16,6 +17,7 @@ enum Commands {
   Api(ApiCommand),
   Queue(QueueCommand),
   Cron(CronCommand),
+  Streams(StreamsCommand),
   Binance(BinanceCommand),
 }
 
@@ -25,6 +27,7 @@ impl App {
       Commands::Api(api) => api.run().await,
       Commands::Queue(queue) => queue.run().await,
       Commands::Cron(cron) => cron.run().await,
+      Commands::Streams(streams) => streams.run().await,
       Commands::Binance(binance) => binance.run().await,
     }
   }

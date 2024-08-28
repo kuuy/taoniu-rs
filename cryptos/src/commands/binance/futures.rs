@@ -3,12 +3,10 @@ use clap::{Parser, Subcommand};
 use crate::common::*;
 use crate::commands::binance::futures::symbols::*;
 use crate::commands::binance::futures::positions::*;
-use crate::commands::binance::futures::streams::*;
 use crate::commands::binance::futures::scalping::*;
 
 pub mod symbols;
 pub mod positions;
-pub mod streams;
 pub mod scalping;
 
 #[derive(Parser)]
@@ -22,7 +20,6 @@ enum Commands {
   Symbols(SymbolsCommand),
   Positions(PositionsCommand),
   Scalping(ScalpingCommand),
-  Streams(StreamsCommand),
 }
 
 impl FuturesCommand {
@@ -41,7 +38,6 @@ impl FuturesCommand {
       Commands::Symbols(symbols) => symbols.run(&mut ctx).await,
       Commands::Positions(positions) => positions.run(),
       Commands::Scalping(scalping) => scalping.run(&mut ctx).await,
-      Commands::Streams(streams) => streams.run(&mut ctx).await,
     }
   }
 }

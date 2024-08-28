@@ -2,7 +2,7 @@ use tokio_cron::{Scheduler, Job};
 use clap::{Parser};
 
 use crate::common::*;
-use crate::tasks::binance::spot::*;
+use crate::cron::binance::spot::*;
 
 #[derive(Parser)]
 pub struct SpotCommand {}
@@ -34,7 +34,7 @@ impl<'a> SpotCommand {
     };
 
     let mut scheduler = Scheduler::local();
-    SpotTasks::new(&mut scheduler).dispatch(&mut ctx)?;
+    SpotScheduler::new(&mut scheduler).dispatch(&mut ctx)?;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;

@@ -3,9 +3,9 @@ use clap::{Parser, Subcommand};
 use crate::common::*;
 use crate::commands::binance::futures::streams::tickers::*;
 
-pub mod account;
-pub mod tickers;
-pub mod klines;
+mod account;
+mod tickers;
+mod klines;
 
 #[derive(Parser)]
 pub struct StreamsCommand {

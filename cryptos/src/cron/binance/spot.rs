@@ -2,15 +2,15 @@ use tokio_cron::{Scheduler, Job};
 use chrono::offset::Local;
 
 use crate::common::Ctx;
-use crate::tasks::binance::spot::tickers::*;
+use crate::cron::binance::spot::tickers::*;
 
 pub mod tickers;
 
-pub struct SpotTasks<'a> {
+pub struct SpotScheduler<'a> {
   scheduler: &'a mut Scheduler<Local>,
 }
 
-impl<'a> SpotTasks<'a> {
+impl<'a> SpotScheduler<'a> {
   pub fn new(scheduler: &'a mut Scheduler<Local>) -> Self {
     Self {
       scheduler: scheduler,
@@ -19,7 +19,7 @@ impl<'a> SpotTasks<'a> {
 
   pub fn dispatch(&mut self, ctx: &'a mut Ctx<'_>) -> Result<(), Box<dyn std::error::Error>> {
     println!("tasks binance spot dispatch");
-    TickersTasks::new(self.scheduler).dispatch(ctx);
+    TickersScheduler::new(self.scheduler).dispatch(ctx);
     Ok(())
   }
 }
