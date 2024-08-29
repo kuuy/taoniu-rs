@@ -21,9 +21,10 @@ enum Commands {
 impl FuturesCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     let rdb = Rdb::new(2).await.unwrap();
+    let rmq = Rmq::new(2).await.unwrap();
     let pool = Pool::new(2).unwrap();
     let nats = Nats::new().await.unwrap();
-    let ctx = Ctx::new(rdb, pool, nats);
+    let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
       Commands::Tickers(tickers) => tickers.run(ctx).await,
     }

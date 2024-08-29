@@ -18,7 +18,7 @@ impl StrategiesWorker {
     println!("binance spot strategies nats workers subscribe");
     let client = self.ctx.nats.clone();
     tokio::spawn(Box::pin({
-      let mut subscriber = client.subscribe(Config::NATS_INDICATORS_UPDATE).await?;
+      let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await?;
       async move {
         while let Some(message) = subscriber.next().await {
           println!("message received: {:?}", message);

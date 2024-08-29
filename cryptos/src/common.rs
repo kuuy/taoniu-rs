@@ -1,5 +1,6 @@
 pub mod env;
 pub mod rdb;
+pub mod rmq;
 pub mod db;
 pub mod pool;
 pub mod nats;
@@ -9,6 +10,7 @@ pub mod mutex;
 
 pub use env::*;
 pub use rdb::*;
+pub use rmq::*;
 pub use db::*;
 pub use pool::*;
 pub use nats::*;

@@ -15,9 +15,9 @@ impl IndicatorsJob {
   }
 
   pub async fn update(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance spot indicators nats job publish");
+    println!("binance spot indicators nats job update");
     let client = self.ctx.nats.clone();
-    client.publish(Config::NATS_INDICATORS_UPDATE, "binance spot incidateors update".into()).await?;
+    client.publish(Config::NATS_EVENTS_INDICATORS_UPDATE, "binance spot incidateors update".into()).await?;
     client.flush().await?;
     Ok(())
   }

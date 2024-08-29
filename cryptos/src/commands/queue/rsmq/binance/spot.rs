@@ -1,6 +1,7 @@
 use clap::{Parser};
 
 use crate::common::*;
+use crate::queue::rsmq::workers::binance::spot::*;
 
 #[derive(Parser)]
 pub struct SpotCommand {}
@@ -20,11 +21,18 @@ impl SpotCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("queue rsmq binance spot");
-    let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     let rdb = Rdb::new(1).await.unwrap();
+    let rmq = Rmq::new(1).await.unwrap();
     let pool = Pool::new(1).unwrap();
     let nats = Nats::new().await.unwrap();
-    let ctx = Ctx::new(rdb, pool, nats);
+    let ctx = Ctx::new(rdb, rmq, pool, nats);
+
+    SpotWorkers::new(ctx).subscribe().await;
+
+    loop {
+      tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    }
+
     Ok(())
   }
 }

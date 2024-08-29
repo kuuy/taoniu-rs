@@ -25,9 +25,10 @@ impl SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("cron binance spot");
     let rdb = Rdb::new(1).await.unwrap();
+    let rmq = Rmq::new(1).await.unwrap();
     let pool = Pool::new(1).unwrap();
     let nats = Nats::new().await.unwrap();
-    let ctx = Ctx::new(rdb, pool, nats);
+    let ctx = Ctx::new(rdb, rmq, pool, nats);
     let scheduler = Scheduler::local();
 
     SpotScheduler::new(ctx, scheduler).dispatch().await;
