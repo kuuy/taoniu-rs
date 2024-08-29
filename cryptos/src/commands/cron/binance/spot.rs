@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use tokio_cron::{Scheduler, Job};
 use clap::{Parser};
 
@@ -26,7 +28,7 @@ impl SpotCommand {
     let pool = Pool::new(1).unwrap();
     let ctx = Ctx::new(rdb, pool);
     let scheduler = Scheduler::local();
-    SpotScheduler::new(scheduler).dispatch(ctx)?;
+    SpotScheduler::new(scheduler).dispatch(ctx).await?;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;

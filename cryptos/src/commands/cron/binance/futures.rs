@@ -1,3 +1,4 @@
+use tokio::sync::Mutex;
 use tokio_cron::{Scheduler, Job};
 use clap::{Parser};
 
@@ -24,15 +25,15 @@ impl<'a> FuturesCommand {
     let rdb = Rdb::new(2).await.unwrap();
     let pool = Pool::new(2).unwrap();
     let ctx = Ctx::new(rdb, pool);
-    let mut scheduler = Scheduler::local();
+    // let scheduler = Scheduler::local();
 
-    scheduler.add(Job::new_sync("*/1 * * * * *", move || {
-        println!("Hello, world!");
-    }));
+    // scheduler.add(Job::new_sync("*/1 * * * * *", move || {
+    //   println!("Hello, world!");
+    // }));
 
-    loop {
-      tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-    }
+    // loop {
+    //   tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    // }
 
     Ok(())
   }

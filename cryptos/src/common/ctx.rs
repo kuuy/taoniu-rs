@@ -1,8 +1,8 @@
 use std::sync::{RwLock, Arc};
+use std::marker::PhantomData;
 use tokio::sync::Mutex;
 
 use redis::aio::MultiplexedConnection;
-use async_nats::Client;
 use diesel::pg::PgConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
 
