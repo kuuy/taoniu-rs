@@ -23,7 +23,8 @@ impl SpotCommand {
     let mut rdb = Rdb::new(1).await.expect("redis connect failed");
     let rdb = Rdb::new(1).await.unwrap();
     let pool = Pool::new(1).unwrap();
-    let ctx = Ctx::new(rdb, pool);
+    let nats = Nats::new().await.unwrap();
+    let ctx = Ctx::new(rdb, pool, nats);
     Ok(())
   }
 }

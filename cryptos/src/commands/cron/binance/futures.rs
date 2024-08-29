@@ -24,7 +24,8 @@ impl<'a> FuturesCommand {
     println!("nats queue binance futures");
     let rdb = Rdb::new(2).await.unwrap();
     let pool = Pool::new(2).unwrap();
-    let ctx = Ctx::new(rdb, pool);
+    let nats = Nats::new().await.unwrap();
+    let ctx = Ctx::new(rdb, pool, nats);
     // let scheduler = Scheduler::local();
 
     // scheduler.add(Job::new_sync("*/1 * * * * *", move || {

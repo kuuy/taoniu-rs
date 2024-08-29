@@ -16,22 +16,24 @@ pub mod orders;
 
 #[derive(Clone)]
 pub struct SpotScheduler {
+  ctx: Ctx,
   scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
 }
 
 impl SpotScheduler {
-  pub fn new(scheduler: Scheduler<Local>) -> Self {
+  pub fn new(ctx: Ctx, scheduler: Scheduler<Local>) -> Self {
     Self {
+      ctx: ctx,
       scheduler: Arc::new(tokio::sync::Mutex::new(scheduler)),
     }
   }
 
-  pub async fn dispatch(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot scheduler dispatch");
-    TickersScheduler::new(self.scheduler.clone()).dispatch(ctx.clone()).await;
-    DepthScheduler::new(self.scheduler.clone()).dispatch(ctx.clone()).await;
-    StrategiesScheduler::new(self.scheduler.clone()).dispatch(ctx.clone()).await;
-    OrdersScheduler::new(self.scheduler.clone()).dispatch(ctx.clone()).await;
+    TickersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    DepthScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    StrategiesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    OrdersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
     Ok(())
   }
 }

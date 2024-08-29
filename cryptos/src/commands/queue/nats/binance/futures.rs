@@ -11,7 +11,7 @@ impl Default for FuturesCommand {
   }
 }
 
-impl<'a> FuturesCommand {
+impl FuturesCommand {
   pub fn new() -> Self {
     Self {
       ..Default::default()
@@ -22,7 +22,8 @@ impl<'a> FuturesCommand {
     println!("queue nats binance futures");
     let rdb = Rdb::new(2).await.unwrap();
     let pool = Pool::new(2).unwrap();
-    let ctx = Ctx::new(rdb, pool);
+    let nats = Nats::new().await.unwrap();
+    let ctx = Ctx::new(rdb, pool, nats);
     Ok(())
   }
 }

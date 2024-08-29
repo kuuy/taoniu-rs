@@ -10,13 +10,19 @@ use diesel::r2d2::{ConnectionManager, Pool};
 pub struct Ctx {
   pub rdb: Arc<Mutex<MultiplexedConnection>>,
   pub pool: Arc<RwLock<Pool<ConnectionManager<PgConnection>>>>,
+  pub nats: Arc<async_nats::Client>,
 }
 
 impl Ctx {
-  pub fn new(rdb: MultiplexedConnection, pool: Pool<ConnectionManager<PgConnection>>) -> Self {
+  pub fn new(
+    rdb: MultiplexedConnection,
+    pool: Pool<ConnectionManager<PgConnection>>,
+    nats: async_nats::Client,
+  ) -> Self {
     Self {
       rdb: Arc::new(Mutex::new(rdb)),
       pool: Arc::new(RwLock::new(pool)),
+      nats: Arc::new(nats),
     }
   }
 }

@@ -1,6 +1,7 @@
 use clap::{Parser};
 
 use crate::common::*;
+use crate::queue::nats::workers::binance::spot::*;
 
 #[derive(Parser)]
 pub struct SpotCommand {}
@@ -11,7 +12,7 @@ impl Default for SpotCommand {
   }
 }
 
-impl<'a> SpotCommand {
+impl SpotCommand {
   pub fn new() -> Self {
     Self {
       ..Default::default()
@@ -22,7 +23,15 @@ impl<'a> SpotCommand {
     println!("queue nats binance spot");
     let rdb = Rdb::new(1).await.unwrap();
     let pool = Pool::new(1).unwrap();
-    let ctx = Ctx::new(rdb, pool);
+    let nats = Nats::new().await.unwrap();
+    let ctx = Ctx::new(rdb, pool, nats);
+
+    SpotWorkers::new(ctx).subscribe().await;
+
+    loop {
+      tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    }
+
     Ok(())
   }
 }

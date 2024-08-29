@@ -26,9 +26,11 @@ impl SpotCommand {
     println!("cron binance spot");
     let rdb = Rdb::new(1).await.unwrap();
     let pool = Pool::new(1).unwrap();
-    let ctx = Ctx::new(rdb, pool);
+    let nats = Nats::new().await.unwrap();
+    let ctx = Ctx::new(rdb, pool, nats);
     let scheduler = Scheduler::local();
-    SpotScheduler::new(scheduler).dispatch(ctx).await?;
+
+    SpotScheduler::new(ctx, scheduler).dispatch().await;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;

@@ -6,12 +6,14 @@ use chrono::offset::Local;
 use crate::common::*;
 
 pub struct OrdersScheduler {
+  ctx: Ctx,
   scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
 }
 
 impl OrdersScheduler {
-  pub fn new(scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
+  pub fn new(ctx: Ctx, scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
     Self {
+      ctx: ctx,
       scheduler: scheduler,
     }
   }
@@ -31,25 +33,25 @@ impl OrdersScheduler {
     Ok(())
   }
 
-  pub async fn dispatch(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot orders scheduler dispatch");
     let mut scheduler = self.scheduler.lock().await;
-    let context = ctx.clone();
+    let ctx = self.ctx.clone();
     scheduler.add(Job::new("0 * * * * *", move || {
       Box::pin({
-        let context = context.clone();
+        let ctx = ctx.clone();
         async move {
-          Self::sync(context.clone()).await;
+          Self::sync(ctx.clone()).await;
         }
       })
     }));
-    let context = ctx.clone();
+    let ctx = self.ctx.clone();
     scheduler.add(Job::new("*/30 * * * * *", move || {
       Box::pin({
-        let context = context.clone();
+        let ctx = ctx.clone();
         async move {
-          Self::open(context.clone()).await;
-          Self::flush(context.clone()).await;
+          Self::open(ctx.clone()).await;
+          Self::flush(ctx.clone()).await;
         }
       })
     }));
