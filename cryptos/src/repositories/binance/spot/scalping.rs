@@ -7,7 +7,7 @@ use crate::models::binance::spot::scalping::schema::dsl::*;
 pub struct ScalpingRepository {}
 
 impl ScalpingRepository {
-  pub fn scan(&self, ctx: Ctx) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+  pub fn scan(ctx: Ctx) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let pool = ctx.pool.read().unwrap();
     let mut conn = pool.get().unwrap();
     let symbols = schema

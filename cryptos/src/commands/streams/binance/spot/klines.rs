@@ -1,4 +1,6 @@
+use std::time::Duration;
 use std::sync::Arc;
+use tokio::io::AsyncWriteExt;
 
 use chrono::prelude::Utc;
 use rust_decimal::prelude::*;
@@ -15,8 +17,6 @@ use crate::repositories::binance::spot::scalping::*;
 
 #[derive(Parser)]
 pub struct KlinesCommand {
-  #[arg(skip)]
-  scalping_repository: ScalpingRepository,
   interval: String,
   #[arg(default_value_t = 1)]
   current: u8,
@@ -49,7 +49,7 @@ struct KlineMessage {
   #[serde(alias = "o", deserialize_with = "to_f64")]
   open: f64,
   #[serde(alias = "c", deserialize_with = "to_f64")]
-  price: f64,
+  close: f64,
   #[serde(alias = "h", deserialize_with = "to_f64")]
   high: f64,
   #[serde(alias = "l", deserialize_with = "to_f64")]
@@ -73,47 +73,44 @@ where
 impl KlinesCommand {
   pub fn new() -> Self {
     Self {
-      scalping_repository: ScalpingRepository{},
       ..Default::default()
     }
   }
 
-  async fn process(&self, ctx: Ctx, message: KlineMessage) -> Result<(), Box<dyn std::error::Error>> {
+  async fn process(ctx: Ctx, message: KlineMessage) -> Result<(), Box<dyn std::error::Error>> {
     println!("process message {} {}", message.symbol, message.timestamp);
-    // let open = Decimal::from_f64(message.open).unwrap();
-    // let price = Decimal::from_f64(message.price).unwrap();
-    // let change = ((open - price) / open).round_dp(4).to_f32().unwrap();
-    // let timestamp = Utc::now().timestamp_millis();
+    let open = Decimal::from_f64(message.open).unwrap();
+    let close = Decimal::from_f64(message.close).unwrap();
+    let change = ((open - close) / open).round_dp(4).to_f32().unwrap();
+    let timestamp = Utc::now().timestamp_millis();
 
-    // let ttl = match message.interval.as_str() {
-    //   "1m" => 1440 * 60,
-    //   "15m" => 672 * 900,
-    //   "4h" => 126 * 14400,
-    //   "1d" => 100 * 86400,
-    //   _ => panic!("invalid interval {}", message.interval)
-    // };
+    let ttl: Duration = match message.interval.as_str() {
+      "1m" => Duration::from_secs(1440 * 60),
+      "15m" => Duration::from_secs(672 * 900),
+      "4h" => Duration::from_secs(126 * 14400),
+      "1d" => Duration::from_secs(100 * 86400),
+      _ => panic!("invalid interval {}", message.interval)
+    };
 
-    // let mut rdb = ctx.rdb.lock().await;
-    // let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
-    // let _: () = rdb
-    //   .hset_multiple(
-    //     &redis_key[..],
-    //     &[
-    //       ("symbol", message.symbol),
-    //       ("open", message.open.to_string()),
-    //       ("price", message.price.to_string()),
-    //       ("change", change.to_string()),
-    //       ("high", message.high.to_string()),
-    //       ("price", message.price.to_string()),
-    //       ("low", message.low.to_string()),
-    //       ("volume", message.volume.to_string()),
-    //       ("quota", message.quota.to_string()),
-    //       ("timestamp", timestamp.to_string()),
-    //     ],
-    //   )
-    //   .await
-    //   .unwrap();
-    //   let _: () = rdb.expire(&redis_key[..], ttl).await.unwrap();
+    let mut rdb = ctx.rdb.lock().await.clone();
+    let result: bool = redis::cmd("HMSET")
+      .arg(format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp))
+      .arg(&[
+        ("symbol", message.symbol),
+        ("open", message.open.to_string()),
+        ("close", message.close.to_string()),
+        ("change", change.to_string()),
+        ("high", message.high.to_string()),
+        ("low", message.low.to_string()),
+        ("volume", message.volume.to_string()),
+        ("quota", message.quota.to_string()),
+        ("timestamp", timestamp.to_string()),
+      ])
+      .arg("EX")
+      .arg(ttl.as_secs())
+      .query_async(&mut rdb)
+      .await?;
+
     Ok(())
   }
 
@@ -123,7 +120,7 @@ impl KlinesCommand {
     }
 
     println!("streams tickres current {}", self.current);
-    let mut symbols = self.scalping_repository.scan(ctx).expect("scalping scan failed");
+    let mut symbols = ScalpingRepository::scan(ctx.clone()).expect("scalping scan failed");
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))
@@ -154,26 +151,26 @@ impl KlinesCommand {
     );
     println!("endpoint {endpoint:}");
 
-    // let rdb = Arc::new(tokio::sync::Mutex::new(ctx.rdb.clone()));
-
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
     let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
-    let handle = tokio::spawn(async move {
+    let handle = tokio::spawn(Box::pin({
+      let ctx = ctx.clone();
       let mut read = read.lock_owned().await;
-      while let Some(message) = read.next().await {
-        let data = message.unwrap().into_data();
-        //tokio::io::stdout().write(&data).await.unwrap();
-        match serde_json::from_slice::<KlineEvent>(&data) {
-          Ok(event) => {
-            // let mut rdb: tokio::sync::MutexGuard<'_, MultiplexedConnection> = rdb.lock().await;
-            // let _ = self.process(ctx, event.data.message).await;
+      async move {
+        while let Some(message) = read.next().await {
+          let data = message.unwrap().into_data();
+          tokio::io::stdout().write(&data).await.unwrap();
+          match serde_json::from_slice::<KlineEvent>(&data) {
+            Ok(event) => {
+              Self::process(ctx.clone(), event.data.message).await;
+            }
+            Err(err) => println!("error: {}", err)
           }
-          Err(err) => println!("error: {}", err)
         }
       }
-    });
+    }));
     handle.await.expect("The read task failed.");
 
     Ok(())

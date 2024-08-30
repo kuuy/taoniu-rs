@@ -4,13 +4,16 @@ use std::sync::Arc;
 use redis::RedisError;
 use redis::aio::MultiplexedConnection;
 
-pub struct Mutex<T: AsRef<str>> {
+pub struct Mutex<T> {
   rdb: MultiplexedConnection,
   key: T,
   id: T,
 }
 
-impl <T: AsRef<str>> Mutex<T> {
+impl<T> Mutex<T>
+where
+  T: AsRef<str>
+{
   pub fn new(rdb: MultiplexedConnection, key: T, id: T) -> Self {
     Self {
       rdb: rdb,

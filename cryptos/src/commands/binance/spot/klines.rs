@@ -5,8 +5,6 @@ use crate::repositories::binance::spot::klines::*;
 
 #[derive(Parser)]
 pub struct KlinesCommand {
-  #[clap(skip)]
-  repository: KlinesRepository,
   #[command(subcommand)]
   commands: Commands,
 }
@@ -19,6 +17,8 @@ impl Default for KlinesCommand {
 
 #[derive(Subcommand)]
 enum Commands {
+  /// klines gets
+  Gets,
   /// klines timestamp
   Timestamp(TimestampArgs),
 }
@@ -32,9 +32,21 @@ struct TimestampArgs {
 impl KlinesCommand {
   pub fn new() -> Self {
     Self {
-      repository: KlinesRepository{},
       ..Default::default()
     }
+  }
+
+  async fn gets(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+    println!("klines gets");
+    let values = KlinesRepository::gets(
+      ctx,
+      ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "AUD"].to_vec(),
+      ["open", "close", "high", "low", "volume", "quota", "timestamp"].to_vec(),
+      "1m",
+      1724947020000,
+    ).await;
+    println!("klines gets {:?}", values);
+    Ok(())
   }
 
   async fn timestamp(&self, interval: String) -> Result<(), Box<dyn std::error::Error>> {
@@ -42,13 +54,14 @@ impl KlinesCommand {
     if !["1m", "15m", "4h", "1d"].iter().any(|&s| s == interval) {
       return Err(Box::from("interval not valid"))
     }
-    let timestamp = self.repository.timestamp(interval);
+    let timestamp = KlinesRepository::timestamp(interval);
     println!("klines timestamp {}", timestamp);
     Ok(())
   }
 
-  pub async fn run(&self, _: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
+      Commands::Gets => self.gets(ctx.clone()).await,
       Commands::Timestamp(args) => self.timestamp(args.interval.clone()).await,
     }
   }

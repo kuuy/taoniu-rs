@@ -14,8 +14,9 @@ impl Env {
     }
   }
 
-  pub fn var<S: AsRef<str>>(key: S) -> String {
-    match std::env::var(key.as_ref()) {
+  pub fn var<T: AsRef<str>>(key: T) -> String {
+    let key = key.as_ref();
+    match std::env::var(key) {
       Ok(val) => val,
       Err(_) => "".to_string(),
     }
@@ -28,8 +29,9 @@ impl Env {
   //   }
   // }
 
-  pub fn int<S: AsRef<str>>(key: S) -> i32 {
-    match std::env::var(key.as_ref()) {
+  pub fn int<T: AsRef<str>>(key: T) -> i32 {
+    let key = key.as_ref();
+    match std::env::var(key) {
       Ok(val) => val.parse::<i32>().unwrap_or(0),
       Err(_) => 0,
     }
@@ -42,24 +44,26 @@ impl Env {
   //   }
   // }
 
-  pub fn usize<S: AsRef<str>>(key: S) -> usize {
-    match std::env::var(key.as_ref()) {
+  pub fn usize<T: AsRef<str>>(key: T) -> usize {
+    let key = key.as_ref();
+    match std::env::var(key) {
       Ok(val) => val.parse::<usize>().unwrap_or(0),
       Err(_) => 0,
     }
   }
 
-  // pub fn vars<S: AsRef<str>>(key: S) -> Vec<String> {
-  //   let mut vars: Vec<String> = Vec::new();
-  //   let mut i: u32 = 1;
-  //   loop {
-  //     let var = Env::var(format!("{}_{}",key, i));
-  //     if "" == var {
-  //       break;
-  //     }
-  //     vars.push(var);
-  //     i += 1;
-  //   }
-  //   vars
-  // }
+  pub fn vars<T: AsRef<str>>(key: T) -> Vec<String> {
+    let key = key.as_ref();
+    let mut vars: Vec<String> = Vec::new();
+    let mut i: u32 = 1;
+    loop {
+      let var = Env::var(format!("{}_{}", key, i));
+      if "" == var {
+        break;
+      }
+      vars.push(var);
+      i += 1;
+    }
+    vars
+  }
 }

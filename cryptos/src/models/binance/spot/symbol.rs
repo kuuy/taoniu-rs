@@ -24,7 +24,6 @@ diesel::table! {
 pub struct Symbol {
   pub id: String,
   pub symbol: String,
-  //<Tz: TimeZone>
   // #[diesel(sql_type = VarChar)]
   // pub base_asset: String,
   // #[diesel(sql_type = VarChar)]

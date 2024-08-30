@@ -6,6 +6,7 @@ pub mod config;
 pub mod common;
 pub mod commands;
 pub mod models;
+pub mod schema;
 pub mod repositories;
 pub mod cron;
 pub mod queue;

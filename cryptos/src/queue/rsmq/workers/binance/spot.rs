@@ -1,6 +1,7 @@
 use crate::common::*;
 use crate::queue::rsmq::workers::binance::spot::account::*;
 
+pub mod klines;
 pub mod account;
 
 pub struct SpotWorkers {

@@ -26,12 +26,12 @@ impl DepthScheduler {
   pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot depth scheduler dispatch");
     let mut scheduler = self.scheduler.lock().await;
-    let context = self.ctx.clone();
+    let ctx = self.ctx.clone();
     scheduler.add(Job::new("0 * * * * *", move || {
       Box::pin({
-        let context = context.clone();
+        let ctx = ctx.clone();
         async move {
-          Self::flush(context.clone()).await;
+          Self::flush(ctx.clone()).await;
         }
       })
     }));

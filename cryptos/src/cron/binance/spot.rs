@@ -5,11 +5,13 @@ use chrono::offset::Local;
 
 use crate::common::*;
 use crate::cron::binance::spot::tickers::*;
+use crate::cron::binance::spot::klines::*;
 use crate::cron::binance::spot::depth::*;
 use crate::cron::binance::spot::strategies::*;
 use crate::cron::binance::spot::orders::*;
 
 pub mod tickers;
+pub mod klines;
 pub mod depth;
 pub mod strategies;
 pub mod orders;
@@ -31,6 +33,7 @@ impl SpotScheduler {
   pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot scheduler dispatch");
     TickersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    KlinesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
     DepthScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
     StrategiesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
     OrdersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
