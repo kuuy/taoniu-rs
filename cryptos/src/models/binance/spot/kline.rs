@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::spot::klines::*;
 
-#[derive(Queryable, Selectable, Insertable)]
+#[derive(Queryable, Selectable, Insertable, Deserialize, Serialize)]
 #[diesel(table_name = klines)]
 pub struct Kline {
   pub id: String,

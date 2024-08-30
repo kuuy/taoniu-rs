@@ -5,6 +5,7 @@ use crate::commands::binance::futures::*;
 
 pub mod spot;
 pub mod futures;
+pub mod margin;
 
 #[derive(Parser)]
 pub struct BinanceCommand {

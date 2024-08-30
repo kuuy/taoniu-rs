@@ -17,6 +17,7 @@ pub mod strategies;
 pub mod plans;
 pub mod positions;
 pub mod scalping;
+pub mod tradings;
 
 #[derive(Parser)]
 pub struct SpotCommand {
