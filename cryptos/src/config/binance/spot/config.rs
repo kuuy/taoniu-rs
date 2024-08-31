@@ -1,3 +1,5 @@
+pub const REDIS_KEY_BALANCE: &str = "binance:spot:balance";
+pub const REDIS_KEY_CURRENCIES: &str = "binance:spot:currencies";
 pub const REDIS_KEY_TICKERS: &str = "binance:spot:realtime";
 pub const REDIS_KEY_KLINES: &str = "binance:spot:klines";
 // pub const REDIS_KEY_TRADINGS_LAST_PRICE: &str = "binance:spot:tradings:last:price";

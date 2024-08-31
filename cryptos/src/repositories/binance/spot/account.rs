@@ -6,8 +6,8 @@ use sha2::Sha256;
 use hmac::{Hmac, Mac};
 use serde::{Deserialize, Deserializer};
 use chrono::prelude::Utc;
-
 use reqwest::header;
+use redis::AsyncCommands;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;
@@ -101,14 +101,38 @@ impl AccountRepository {
     let account_info = response.json::<AccountInfo>().await.unwrap();
     println!("account_info {}", account_info.balances.len());
 
-    let mut currencies: Vec<&str> = Vec::new();
+    let mut rdb = ctx.rdb.lock().await.clone();
+
+    let mut currencies: Vec<String> = Vec::new();
+    let last_currencies: Vec<String> = rdb.smembers(Config::REDIS_KEY_CURRENCIES).await.unwrap();
+
+    let mut pipe = redis::pipe();
     account_info.balances.iter().for_each(|coin| {
       if coin.free <= 0.0 {
         return;
       }
-      currencies.push(&coin.asset[..]);
+      pipe.hset_multiple(
+        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset), 
+        &[
+          ("free", coin.free.to_string()),
+          ("locked", coin.locked.to_string()),
+        ],
+      );
+      pipe.sadd(Config::REDIS_KEY_CURRENCIES, &coin.asset[..]);
+      currencies.push(coin.asset.clone());
       println!("coin balance {} {} {}", coin.asset, coin.free, coin.locked);
     });
+
+    last_currencies.iter().for_each(|last_asset| {
+      if currencies.iter().any(|asset| asset == last_asset) {
+        return;
+      }
+      pipe.srem(Config::REDIS_KEY_CURRENCIES, &last_asset[..]);
+      pipe.del(format!("{}:{}", Config::REDIS_KEY_BALANCE, last_asset));
+      println!("coin balance remove {}", last_asset);
+    });
+
+    pipe.query_async(&mut rdb).await?;
 
     println!("account flush");
     Ok(())
