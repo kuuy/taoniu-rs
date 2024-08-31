@@ -8,8 +8,6 @@ use crate::repositories::binance::spot::symbols::*;
 
 #[derive(Parser)]
 pub struct SymbolsCommand {
-  #[clap(skip)]
-  repository: SymbolsRepository,
   #[command(subcommand)]
   commands: Commands,
 }
@@ -31,7 +29,6 @@ enum Commands {
 impl SymbolsCommand {
   pub fn new() -> Self {
     Self {
-      repository: SymbolsRepository{},
       ..Default::default()
     }
   }
@@ -42,11 +39,11 @@ impl SymbolsCommand {
     let mutex_id = xid::new().to_string();
     let mut mutex = Mutex::new(
       rdb,
-      Config::LOCKS_TASKS_SYMBOLS_FLUSH,
+      Config::LOCKS_SYMBOLS_FLUSH,
       &mutex_id[..],
     );
     if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
-      panic!("mutex failed {}", Config::LOCKS_TASKS_SYMBOLS_FLUSH);
+      panic!("mutex failed {}", Config::LOCKS_SYMBOLS_FLUSH);
     }
     mutex.unlock().await.unwrap();
     Ok(())
@@ -54,7 +51,7 @@ impl SymbolsCommand {
 
   async fn count(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols count");
-    let count = self.repository.count(ctx).await.unwrap();
+    let count = SymbolsRepository::count(ctx).await.unwrap();
     println!("symbols count {}", count);
     Ok(())
   }
