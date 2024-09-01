@@ -10,11 +10,19 @@ use crate::cron::binance::spot::depth::*;
 use crate::cron::binance::spot::strategies::*;
 use crate::cron::binance::spot::orders::*;
 
+pub mod account;
+pub mod analysis;
 pub mod tickers;
 pub mod klines;
 pub mod depth;
+pub mod indicators;
 pub mod strategies;
+pub mod plans;
 pub mod orders;
+pub mod positions;
+pub mod scalping;
+pub mod triggers;
+pub mod tradings;
 
 #[derive(Clone)]
 pub struct SpotScheduler {

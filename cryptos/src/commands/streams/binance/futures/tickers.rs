@@ -15,8 +15,6 @@ use crate::repositories::binance::futures::scalping::*;
 
 #[derive(Parser)]
 pub struct TickersCommand {
-  #[clap(skip)]
-  scalping_repository: ScalpingRepository,
   #[clap(default_value_t = 1)]
   current: u8,
 }
@@ -64,7 +62,6 @@ where
 impl TickersCommand {
   pub fn new() -> Self {
     Self {
-      scalping_repository: ScalpingRepository{},
       ..Default::default()
     }
   }
@@ -96,7 +93,7 @@ impl TickersCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("streams tickres current {}", self.current);
-    let mut symbols = self.scalping_repository.scan(ctx.clone()).unwrap();
+    let mut symbols = ScalpingRepository::scan(ctx.clone()).unwrap();
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))
@@ -120,7 +117,7 @@ impl TickersCommand {
 
     let endpoint = format!(
       "{}/stream?streams={}",
-      Env::var("BINANCE_SPOT_STREAMS_ENDPOINT"),
+      Env::var("BINANCE_FUTURES_STREAMS_ENDPOINT"),
       symbols.iter().map(
         |symbol| format!("{}@miniTicker", symbol.to_lowercase())
       ).collect::<Vec<_>>().join("/"),
@@ -131,16 +128,19 @@ impl TickersCommand {
     let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
-    let handle = tokio::spawn(Box::pin(async move {
+    let handle = tokio::spawn(Box::pin({
+      let ctx = ctx.clone();
       let mut read = read.lock_owned().await;
-      while let Some(message) = read.next().await {
-        let data = message.unwrap().into_data();
-        // tokio::io::stdout().write(&data).await.unwrap();
-        match serde_json::from_slice::<TickerEvent>(&data) {
-          Ok(event) => {
-            Self::process(ctx.clone(), event.message).await;
+      async move {
+        while let Some(message) = read.next().await {
+          let data = message.unwrap().into_data();
+          // tokio::io::stdout().write(&data).await.unwrap();
+          match serde_json::from_slice::<TickerEvent>(&data) {
+            Ok(event) => {
+              Self::process(ctx.clone(), event.message).await;
+            }
+            Err(err) => println!("error: {}", err)
           }
-          Err(err) => println!("error: {}", err)
         }
       }
     }));

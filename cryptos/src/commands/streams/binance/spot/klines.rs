@@ -85,17 +85,19 @@ impl KlinesCommand {
     let timestamp = Utc::now().timestamp_millis();
 
     let ttl: Duration = match message.interval.as_str() {
-      "1m" => Duration::from_secs(1440 * 60),
-      "15m" => Duration::from_secs(672 * 900),
-      "4h" => Duration::from_secs(126 * 14400),
-      "1d" => Duration::from_secs(100 * 86400),
+      "1m" => Duration::from_secs(30+60),
+      "15m" => Duration::from_secs(30+900),
+      "4h" => Duration::from_secs(30+14400),
+      "1d" => Duration::from_secs(30+86400),
       _ => panic!("invalid interval {}", message.interval)
     };
 
     let mut rdb = ctx.rdb.lock().await.clone();
-    let result: bool = redis::cmd("HMSET")
-      .arg(format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp))
-      .arg(&[
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
+    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    rdb.hset_multiple(
+      &redis_key[..],
+      &[
         ("symbol", message.symbol),
         ("open", message.open.to_string()),
         ("close", message.close.to_string()),
@@ -105,12 +107,11 @@ impl KlinesCommand {
         ("volume", message.volume.to_string()),
         ("quota", message.quota.to_string()),
         ("timestamp", timestamp.to_string()),
-      ])
-      .arg("EX")
-      .arg(ttl.as_secs())
-      .query_async(&mut rdb)
-      .await?;
-
+      ],
+    ).await?;
+    if !is_exists {
+      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+    }
     Ok(())
   }
 
@@ -161,7 +162,7 @@ impl KlinesCommand {
       async move {
         while let Some(message) = read.next().await {
           let data = message.unwrap().into_data();
-          tokio::io::stdout().write(&data).await.unwrap();
+          // tokio::io::stdout().write(&data).await.unwrap();
           match serde_json::from_slice::<KlineEvent>(&data) {
             Ok(event) => {
               Self::process(ctx.clone(), event.data.message).await;

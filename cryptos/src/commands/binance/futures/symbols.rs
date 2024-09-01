@@ -42,11 +42,11 @@ impl SymbolsCommand {
     let mutex_id = xid::new().to_string();
     let mut mutex = Mutex::new(
       rdb,
-      Config::LOCKS_TASKS_SYMBOLS_FLUSH,
+      Config::LOCKS_SYMBOLS_FLUSH,
       &mutex_id[..],
     );
     if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
-      panic!("mutex failed {}", Config::LOCKS_TASKS_SYMBOLS_FLUSH);
+      panic!("mutex failed {}", Config::LOCKS_SYMBOLS_FLUSH);
     }
     mutex.unlock().await.unwrap();
     Ok(())

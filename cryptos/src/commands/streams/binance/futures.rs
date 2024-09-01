@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 use crate::common::*;
 use crate::commands::streams::binance::futures::tickers::*;
+use crate::commands::streams::binance::futures::klines::*;
 
 mod account;
 mod tickers;
@@ -16,6 +17,7 @@ pub struct FuturesCommand {
 #[derive(Subcommand)]
 enum Commands {
   Tickers(TickersCommand),
+  Klines(KlinesCommand),
 }
 
 impl FuturesCommand {
@@ -27,6 +29,7 @@ impl FuturesCommand {
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
       Commands::Tickers(tickers) => tickers.run(ctx).await,
+      Commands::Klines(klines) => klines.run(ctx).await,
     }
   }
 }
