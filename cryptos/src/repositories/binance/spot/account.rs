@@ -36,26 +36,6 @@ where
   s.parse::<f64>().map_err(serde::de::Error::custom)
 }
 
-#[derive(Deserialize)]
-struct TickerMessage {
-  #[serde(alias = "s")]
-  symbol: String,
-  #[serde(alias = "o", deserialize_with = "to_f64")]
-  open: f64,
-  #[serde(alias = "c", deserialize_with = "to_f64")]
-  price: f64,
-  #[serde(alias = "h", deserialize_with = "to_f64")]
-  high: f64,
-  #[serde(alias = "l", deserialize_with = "to_f64")]
-  low: f64,
-  #[serde(alias = "v", deserialize_with = "to_f64")]
-  volume: f64,
-  #[serde(alias = "q", deserialize_with = "to_f64")]
-  quota: f64,
-  #[serde(alias = "E")]
-  timestamp: i64,
-}
-
 impl AccountRepository {
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     let timestamp = Utc::now().timestamp_millis().to_string();

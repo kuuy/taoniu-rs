@@ -1,5 +1,6 @@
 use crate::common::Ctx;
 
+pub mod indicators;
 pub mod strategies;
 
 pub struct FuturesWorkers {}

@@ -41,5 +41,6 @@ pub const NATS_EVENTS_KLINES_UPDATE: &str = "binance.spot.klines.update";
 pub const NATS_EVENTS_TRADINGS_SCALPING_PLACE: &str = "binance.spot.tradings.scalping.place";
 pub const LOCKS_ACCOUNT_FLUSH: &str = "locks:binance:spot:account:flush";
 pub const LOCKS_SYMBOLS_FLUSH: &str = "locks:binance:spot:symbols:flush";
+pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:spot:klines:flush";
 
 // pub const REDIS_QUEUE_TICKERS: &str  = "binance.spot.tickers";

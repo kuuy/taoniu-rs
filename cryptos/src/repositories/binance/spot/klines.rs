@@ -11,6 +11,7 @@ use chrono::{prelude::Utc, Timelike};
 use crate::common::*;
 use crate::models::binance::spot::kline::*;
 use crate::schema::binance::spot::klines::*;
+use crate::queue::nats::jobs::binance::spot::klines::*;
 
 #[derive(Default)]
 pub struct KlinesRepository {}
@@ -146,7 +147,7 @@ impl KlinesRepository
 
   pub async fn update<V>(
     ctx: Ctx,
-    kline: Kline,
+    id: String,
     value: V,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
@@ -155,7 +156,7 @@ impl KlinesRepository
   {
     let pool = ctx.pool.write().unwrap();
     let mut conn = pool.get().unwrap();
-    match diesel::update(klines::table).set(value).execute(&mut conn) {
+    match diesel::update(klines::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(e) => Err(e.into()),
     }
@@ -170,7 +171,6 @@ impl KlinesRepository
   where
     T: AsRef<str>
   {
-    println!("binance spot klines flush");
     let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
     let fields = ["open", "close", "high", "low", "volume", "quota"].to_vec();
     let interval = interval.as_ref();
@@ -194,11 +194,10 @@ impl KlinesRepository
           kline = Some(result);
         },
         Ok(None) => {},
-        Err(e) => {
-          println!("get error occurs {e:?}")
-        },
+        Err(e) => return Err(e.into()),
       }
 
+      let mut success = false;
       if kline.is_none() {
         let id = xid::new().to_string();
         match Self::create(
@@ -215,16 +214,19 @@ impl KlinesRepository
           timestamp,
         ).await {
           Ok(result) => {
-            println!("create result {result:}");
+            if result {
+              success = result;
+            }
+            println!("binance spot kline {symbol:} {interval:} {timestamp:} create success {result:}");
           }
           Err(e) => {
-            println!("insert error occurs {e:?}")
+            println!("binance spot kline {symbol:} {interval:} {timestamp:} create failed {e:?}")
           },
         }
       } else {
         match Self::update(
           ctx.clone(),
-          kline.unwrap(),
+          kline.unwrap().id,
           (
             klines::open.eq(open),
             klines::close.eq(close),
@@ -235,15 +237,19 @@ impl KlinesRepository
           ),
         ).await {
           Ok(result) => {
-            println!("update result {result:}");
+            success = result;
+            println!("binance spot kline {symbol:} {interval:} {timestamp:} update success {result:}");
           }
           Err(e) => {
-            println!("update error occurs {e:?}")
+            println!("binance spot kline {symbol:} {interval:} {timestamp:} update failed {e:?}")
           },
         }
       }
 
-      println!("klines flush {symbol:} {interval:} {timestamp:} {open:} {close:} {high:} {low:} {volume:} {quota:}");
+      if success {
+        let job = KlinesJob::new(ctx.clone());
+        job.update(symbol, interval).await;
+      }
     }
     Ok(())
   }

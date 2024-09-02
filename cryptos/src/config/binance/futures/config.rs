@@ -1,3 +1,4 @@
+pub const REDIS_KEY_BALANCE: &str = "binance:futures:balance";
 pub const REDIS_KEY_TICKERS: &str = "binance:futures:realtime";
 pub const REDIS_KEY_KLINES: &str = "binance:futures:klines";
 // pub const REDIS_KEY_KLINES: &str = "binance:futures:klines";
@@ -40,5 +41,6 @@ pub const NATS_EVENTS_KLINES_UPDATE: &str = "binance.futures.klines.update";
 pub const NATS_EVENTS_TRADINGS_SCALPING_PLACE: &str = "binance.futures.tradings.scalping.place";
 pub const LOCKS_ACCOUNT_FLUSH: &str = "locks:binance:futures:account:flush";
 pub const LOCKS_SYMBOLS_FLUSH: &str = "locks:binance:futures:symbols:flush";
+pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:futures:klines:flush";
 
 // pub const REDIS_QUEUE_TICKERS: &str  = "binance.futures.tickers";

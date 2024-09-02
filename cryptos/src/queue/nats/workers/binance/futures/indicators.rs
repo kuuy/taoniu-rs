@@ -3,11 +3,11 @@ use futures_util::StreamExt;
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
 
-pub struct StrategiesWorker {
+pub struct IndicatorsWorker {
   ctx: Ctx,
 }
 
-impl StrategiesWorker {
+impl IndicatorsWorker {
   pub fn new(ctx: Ctx) -> Self {
     Self {
       ctx: ctx,
@@ -15,10 +15,10 @@ impl StrategiesWorker {
   }
 
   pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance futures strategies nats workers subscribe");
+    println!("binance futures indicators nats workers subscribe");
     let client = self.ctx.nats.clone();
     tokio::spawn(Box::pin({
-      let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await?;
+      let mut subscriber = client.subscribe(Config::NATS_EVENTS_KLINES_UPDATE).await?;
       async move {
         while let Some(message) = subscriber.next().await {
           println!("message received: {:?}", message);

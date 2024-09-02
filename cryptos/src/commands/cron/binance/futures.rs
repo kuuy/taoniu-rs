@@ -1,8 +1,10 @@
-use tokio::sync::Mutex;
+use std::sync::Arc;
+
 use tokio_cron::{Scheduler, Job};
 use clap::{Parser};
 
 use crate::common::*;
+use crate::cron::binance::futures::*;
 
 #[derive(Parser)]
 pub struct FuturesCommand {}
@@ -13,7 +15,7 @@ impl Default for FuturesCommand {
   }
 }
 
-impl<'a> FuturesCommand {
+impl FuturesCommand {
   pub fn new() -> Self {
     Self {
       ..Default::default()
@@ -21,21 +23,19 @@ impl<'a> FuturesCommand {
   }
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("nats queue binance futures");
+    println!("cron binance futures");
     let rdb = Rdb::new(2).await.unwrap();
     let rmq = Rmq::new(2).await.unwrap();
     let pool = Pool::new(2).unwrap();
     let nats = Nats::new().await.unwrap();
     let ctx = Ctx::new(rdb, rmq, pool, nats);
-    // let scheduler = Scheduler::local();
+    let scheduler = Scheduler::local();
 
-    // scheduler.add(Job::new_sync("*/1 * * * * *", move || {
-    //   println!("Hello, world!");
-    // }));
+    FuturesScheduler::new(ctx, scheduler).dispatch().await;
 
-    // loop {
-    //   tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-    // }
+    loop {
+      tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+    }
 
     Ok(())
   }

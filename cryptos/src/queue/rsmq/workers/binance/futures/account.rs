@@ -1,4 +1,5 @@
 use futures_util::StreamExt;
+use rsmq_async::{RsmqMessage, RsmqConnection};
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
@@ -16,6 +17,24 @@ impl AccountWorker {
 
   pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures account rsmq workers subscribe");
+    tokio::spawn(Box::pin({
+      let rmq = self.ctx.rmq.lock().await.clone();
+      async move {
+        let mut client = Rsmq::new(rmq.clone()).await.unwrap();
+        loop {
+          let _ = match client.pop_message::<String>(Config::RSMQ_QUEUE_ACCOUNT).await {
+            Ok(Some(message)) => {
+              println!("message received: {:?}", message);
+              client.delete_message(Config::RSMQ_QUEUE_ACCOUNT, &message.id).await;
+            },
+            Ok(None) => {
+              tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            }
+            Err(_) => {}
+          };
+        }
+      }
+    }));
     Ok(())
   }
 }
