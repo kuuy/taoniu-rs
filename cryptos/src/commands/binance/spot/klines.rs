@@ -1,7 +1,10 @@
 use clap::{Parser, Args, Subcommand};
 
 use crate::common::*;
+use crate::commands::binance::spot::klines::rsmq::*;
 use crate::repositories::binance::spot::klines::*;
+
+pub mod rsmq;
 
 #[derive(Parser)]
 pub struct KlinesCommand {
@@ -21,6 +24,7 @@ enum Commands {
   Gets,
   /// klines timestamp
   Timestamp(TimestampArgs),
+  Rsmq(RsmqCommand),
 }
 
 #[derive(Args)]
@@ -63,6 +67,7 @@ impl KlinesCommand {
     match &self.commands {
       Commands::Gets => self.gets(ctx.clone()).await,
       Commands::Timestamp(args) => self.timestamp(args.interval.clone()).await,
+      Commands::Rsmq(nats) => nats.run(ctx).await,
     }
   }
 }

@@ -22,7 +22,7 @@ impl KlinesScheduler {
 
   pub async fn flush(ctx: Ctx, interval: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot klines scheduler flush {}", interval);
-    let symbols = ScalpingRepository::scan(ctx.clone()).unwrap();
+    let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
     let timestamp = KlinesRepository::timestamp(interval);
     println!("symbols {:?}", symbols);
     symbols.iter().for_each(|symbol| {

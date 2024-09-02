@@ -8,8 +8,6 @@ use crate::repositories::binance::futures::symbols::*;
 
 #[derive(Parser)]
 pub struct SymbolsCommand {
-  #[clap(skip)]
-  repository: SymbolsRepository,
   #[command(subcommand)]
   commands: Commands,
 }
@@ -31,7 +29,6 @@ enum Commands {
 impl SymbolsCommand {
   pub fn new() -> Self {
     Self {
-      repository: SymbolsRepository{},
       ..Default::default()
     }
   }
@@ -54,7 +51,7 @@ impl SymbolsCommand {
 
   async fn count(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols count");
-    let count = self.repository.count(ctx).await.unwrap();
+    let count = SymbolsRepository::count(ctx).await.unwrap();
     println!("symbols count {}", count);
     Ok(())
   }

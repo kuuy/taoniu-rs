@@ -2,6 +2,7 @@ use std::ops::Sub;
 use std::time::Duration;
 
 use diesel::prelude::*;
+use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
@@ -21,7 +22,7 @@ impl KlinesRepository
     symbol: T,
     interval: T,
     timestamp: i64,
-  ) -> Result<(), Box<dyn std::error::Error>>
+  ) -> Result<Option<Kline>, Box<dyn std::error::Error>>
   where
     T: AsRef<str>
   {
@@ -29,13 +30,17 @@ impl KlinesRepository
     let interval = interval.as_ref();
     let pool = ctx.pool.read().unwrap();
     let mut conn = pool.get().unwrap();
-    let kline = klines::table
+
+    match klines::table
       .select(Kline::as_select())
       .filter(klines::symbol.eq(symbol))
       .filter(klines::interval.eq(interval))
       .filter(klines::timestamp.eq(timestamp))
-      .first(&mut conn)?;
-    Ok(())
+      .first(&mut conn) {
+      Ok(kline) => Ok(Some(kline)),
+      Err(diesel::result::Error::NotFound) => Ok(None),
+      Err(e) => Err(e.into()),
+    }
   }
 
   pub async fn gets<T>(
@@ -100,6 +105,62 @@ impl KlinesRepository
     vars
   }
 
+  pub async fn create(
+    ctx: Ctx,
+    id: String,
+    symbol: String,
+    interval: String,
+    open: f64,
+    close: f64,
+    high: f64,
+    low: f64,
+    volume: f64,
+    quota: f64,
+    timestamp: i64,
+  ) -> Result<bool, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.write().unwrap();
+    let mut conn = pool.get().unwrap();
+
+    let now = Utc::now();
+    let kline = Kline::new(
+      id,
+      symbol,
+      interval,
+      open,
+      close,
+      high,
+      low,
+      volume,
+      quota,
+      timestamp,
+      now,
+      now,
+    );
+    match diesel::insert_into(klines::table)
+      .values(&kline)
+      .execute(&mut conn) {
+      Ok(effective_rows) => Ok(effective_rows > 0),
+      Err(e) => Err(e.into()),
+    }
+  }
+
+  pub async fn update<V>(
+    ctx: Ctx,
+    kline: Kline,
+    value: V,
+  ) -> Result<bool, Box<dyn std::error::Error>> 
+  where
+    V: diesel::AsChangeset<Target = klines::table>,
+    <V as diesel::AsChangeset>::Changeset: QueryFragment<diesel::pg::Pg>,
+  {
+    let pool = ctx.pool.write().unwrap();
+    let mut conn = pool.get().unwrap();
+    match diesel::update(klines::table).set(value).execute(&mut conn) {
+      Ok(effective_rows) => Ok(effective_rows > 0),
+      Err(e) => Err(e.into()),
+    }
+  }
+
   pub async fn flush<T>(
     ctx: Ctx,
     symbols: Vec<T>,
@@ -109,19 +170,81 @@ impl KlinesRepository
   where
     T: AsRef<str>
   {
-    // let fields = ["open", "close", "high", "low", "volume", "quota"].to_vec();
-    // let values = Self::gets(ctx, symbols, fields, interval, timestamp).await;
-    // values.iter().enumerate().for_each(|(i, value)| {
-    //   if value.len() == 0 {
-    //     return None;
-    //   }
-    //   let symbol = symbols[i];
-    //   println!("klines flush {} {} {}", symbol, interval, timestamp);
-    // });
-    Ok(())
-  }
+    println!("binance spot klines flush");
+    let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let fields = ["open", "close", "high", "low", "volume", "quota"].to_vec();
+    let interval = interval.as_ref();
+    let values = Self::gets(ctx.clone(), symbols.clone(), fields, interval, timestamp).await;
+    for (i, data) in values.iter().enumerate() {
+      if data.len() == 0 {
+        continue;
+      }
 
-  pub async fn updates() -> Result<(), Box<dyn std::error::Error>> {
+      let symbol = symbols.clone()[i];
+      let open = data[0].parse::<f64>().unwrap();
+      let close = data[1].parse::<f64>().unwrap();
+      let high = data[2].parse::<f64>().unwrap();
+      let low = data[3].parse::<f64>().unwrap();
+      let volume = data[4].parse::<f64>().unwrap();
+      let quota = data[4].parse::<f64>().unwrap();
+
+      let mut kline: Option<Kline> = None;
+      match Self::get(ctx.clone(), symbol, interval, timestamp).await {
+        Ok(Some(result)) => {
+          kline = Some(result);
+        },
+        Ok(None) => {},
+        Err(e) => {
+          println!("get error occurs {e:?}")
+        },
+      }
+
+      if kline.is_none() {
+        let id = xid::new().to_string();
+        match Self::create(
+          ctx.clone(), 
+          id,
+          symbol.to_string(),
+          interval.to_string(),
+          open,
+          close,
+          high,
+          low,
+          volume,
+          quota,
+          timestamp,
+        ).await {
+          Ok(result) => {
+            println!("create result {result:}");
+          }
+          Err(e) => {
+            println!("insert error occurs {e:?}")
+          },
+        }
+      } else {
+        match Self::update(
+          ctx.clone(),
+          kline.unwrap(),
+          (
+            klines::open.eq(open),
+            klines::close.eq(close),
+            klines::high.eq(high),
+            klines::low.eq(low),
+            klines::volume.eq(volume),
+            klines::quota.eq(quota),
+          ),
+        ).await {
+          Ok(result) => {
+            println!("update result {result:}");
+          }
+          Err(e) => {
+            println!("update error occurs {e:?}")
+          },
+        }
+      }
+
+      println!("klines flush {symbol:} {interval:} {timestamp:} {open:} {close:} {high:} {low:} {volume:} {quota:}");
+    }
     Ok(())
   }
 
@@ -132,6 +255,7 @@ impl KlinesRepository
     let interval = interval.as_ref();
     let mut datetime = Utc::now();
     datetime = datetime.sub(Duration::from_secs(datetime.second() as u64));
+    datetime = datetime.sub(Duration::from_nanos(datetime.nanosecond() as u64));
     if interval == "15m" {
       let minutes = datetime.minute() as u64 - ((Decimal::from_u64(datetime.minute() as u64).unwrap() / dec!(15)).floor() * dec!(15)).to_u64().unwrap();
       datetime = datetime.sub(Duration::from_secs(minutes * 60));

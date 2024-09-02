@@ -93,7 +93,7 @@ impl TickersCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("streams tickres current {}", self.current);
-    let mut symbols = ScalpingRepository::scan(ctx.clone()).unwrap();
+    let mut symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))
