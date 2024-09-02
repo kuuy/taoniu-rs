@@ -4,8 +4,7 @@ use tokio_cron::{Scheduler, Job};
 use chrono::offset::Local;
 
 use crate::common::*;
-use crate::repositories::binance::spot::klines::*;
-use crate::repositories::binance::spot::scalping::*;
+use crate::queue::rsmq::jobs::binance::spot::klines::*;
 
 pub struct KlinesScheduler {
   ctx: Ctx,
@@ -22,13 +21,8 @@ impl KlinesScheduler {
 
   pub async fn flush(ctx: Ctx, interval: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot klines scheduler flush {}", interval);
-    let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
-    let timestamp = KlinesRepository::timestamp(interval);
-    println!("symbols {:?}", symbols);
-    symbols.iter().for_each(|symbol| {
-      println!("symbol {} {}", symbol, timestamp);
-    });
-    // array_iter.filter(|x| { let _: () = x; x == 2 });
+    let job = KlinesJob::new(ctx.clone());
+    job.flush(interval).await?;
     Ok(())
   }
 
@@ -41,6 +35,9 @@ impl KlinesScheduler {
         let ctx = ctx.clone();
         async move {
           Self::flush(ctx.clone(), "1m").await;
+          Self::flush(ctx.clone(), "15m").await;
+          Self::flush(ctx.clone(), "4h").await;
+          Self::flush(ctx.clone(), "1d").await;
         }
       })
     }));
