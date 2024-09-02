@@ -51,7 +51,7 @@ impl KlinesWorker {
                 _ => {},
               };
               println!("action {action:} payload {content:}");
-              // client.delete_message(Config::RSMQ_QUEUE_KLINES, &message.id).await;
+              client.delete_message(Config::RSMQ_QUEUE_KLINES, &message.id).await;
             },
             Ok(None) => {
               tokio::time::sleep(std::time::Duration::from_millis(500)).await;
