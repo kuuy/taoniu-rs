@@ -9,7 +9,7 @@ diesel::table! {
     depth -> Jsonb,
     is_spot -> Bool,
     is_margin -> Bool,
-    status -> Integer,
+    status -> Varchar,
     created_at -> Timestamptz,
     updated_at -> Timestamptz,
   }

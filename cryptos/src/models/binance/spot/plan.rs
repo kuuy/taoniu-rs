@@ -1,8 +1,12 @@
 use chrono::{DateTime, Utc};
 use diesel::{Queryable, Selectable, Insertable};
+use diesel_as_jsonb::AsJsonb;
 use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::spot::plans::*;
+
+#[derive(Debug, Serialize, Deserialize, AsJsonb)]
+pub struct Context {}
 
 #[derive(Queryable, Selectable, Insertable, Deserialize, Serialize, Debug)]
 #[diesel(table_name = plans)]
@@ -14,7 +18,7 @@ pub struct Plan {
   pub quantity: f64,
   pub amount: f64,
   pub timestamp: i64,
-  pub context: String,
+  pub context: Context,
   pub status: i32,
   pub remark: String,
   pub created_at: DateTime<Utc>,
@@ -30,7 +34,7 @@ impl Plan {
     quantity: f64,
     amount: f64,
     timestamp: i64,
-    context: String,
+    context: Context,
     status: i32,
     remark: String,
     created_at: DateTime<Utc>,

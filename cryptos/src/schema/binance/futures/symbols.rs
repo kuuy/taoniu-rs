@@ -7,7 +7,7 @@ diesel::table! {
     quote_asset -> Varchar,
     filters -> Jsonb,
     depth -> Jsonb,
-    status -> Integer,
+    status -> Varchar,
     created_at -> Timestamptz,
     updated_at -> Timestamptz,
   }

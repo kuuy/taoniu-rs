@@ -12,6 +12,7 @@ axum-extra = "0.9.3"
 chrono = { version = "0.4.38", features = ["serde"] }
 clap = { version = "4.5.16", features = ["derive"] }
 diesel = { version = "2.2.2", features = ["postgres", "chrono", "r2d2"] }
+diesel_as_jsonb = "1.0.1"
 dotenv = "0.15.0"
 futures-util = "0.3.30"
 hex = "0.4.3"

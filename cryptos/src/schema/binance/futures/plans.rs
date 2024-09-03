@@ -9,7 +9,7 @@ diesel::table! {
     quantity -> Double,
     amount -> Double,
     timestamp -> BigInt,
-    context -> Varchar,
+    context -> Jsonb,
     status -> Integer,
     remark -> Varchar,
     created_at -> Timestamptz,

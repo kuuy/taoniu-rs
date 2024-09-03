@@ -1,7 +1,8 @@
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::spot::symbol::schema::dsl::*;
+use crate::schema::binance::spot::symbols::*;
+use crate::models::binance::spot::symbol::*;
 
 pub struct SymbolsRepository {}
 
@@ -17,9 +18,9 @@ impl SymbolsRepository {
   pub async fn count(ctx: Ctx) -> Result<i64, Box<dyn std::error::Error>> {
     let pool = ctx.pool.read().unwrap();
     let mut conn = pool.get().unwrap();
-    let count = schema
-      .filter(status.eq("TRADING"))
-      .filter(is_spot.eq(true))
+    let count = symbols::table
+      .filter(symbols::status.eq("TRADING"))
+      .filter(symbols::is_spot.eq(true))
       .count()
       .get_result(&mut conn)?;
     Ok(count)

@@ -1,40 +1,58 @@
-// use chrono::{DateTime, TimeZone};
+use chrono::{DateTime, Utc};
 use diesel::{Queryable, Selectable};
+use diesel_as_jsonb::AsJsonb;
 use serde::{Deserialize, Serialize};
 
-diesel::table! {
-  #[sql_name = "binance_spot_symbols"]
-  schema (id) {
-    id -> Varchar,
-    symbol -> Varchar,
-    // base_asset -> VarChar,
-    // quote_asset -> VarChar,
-    // filters -> Jsonb,
-    // depth -> Jsonb,
-    is_spot -> Bool,
-    is_margin -> Bool,
-    status -> VarChar,
-    // created_at -> Timestamptz,
-    // updated_at -> Timestamptz,
-  }
-}
+use crate::schema::binance::spot::symbols::*;
+
+#[derive(Debug, Serialize, Deserialize, AsJsonb)]
+pub struct Filters {}
+
+#[derive(Debug, Serialize, Deserialize, AsJsonb)]
+pub struct Depth {}
 
 #[derive(Queryable, Selectable, Deserialize, Serialize)]
-#[diesel(table_name = schema)]
+#[diesel(table_name = symbols)]
 pub struct Symbol {
   pub id: String,
   pub symbol: String,
-  // #[diesel(sql_type = VarChar)]
-  // pub base_asset: String,
-  // #[diesel(sql_type = VarChar)]
-  // pub quote_asset: String,
-  // pub filters: Jsonb,
+  pub base_asset: String,
+  pub quote_asset: String,
+  pub filters: Filters,
+  pub depth: Depth,
   pub is_spot: bool,
   pub is_margin: bool,
-  // #[diesel(sql_type = VarChar)]
   pub status: String,
-  // #[diesel(sql_type = Timestamptz)]
-  // pub created_at: DateTime<Tz>,
-  // #[diesel(sql_type = Timestamptz)]
-  // pub updated_at: DateTime<Tz>,
+  pub created_at: DateTime<Utc>,
+  pub updated_at: DateTime<Utc>,
+}
+
+impl Symbol {
+  pub fn new(
+    id: String,
+    symbol: String,
+    base_asset: String,
+    quote_asset: String,
+    filters: Filters,
+    depth: Depth,
+    is_spot: bool,
+    is_margin: bool,
+    status: String,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+  ) -> Self {
+    Self {
+      id: id,
+      symbol: symbol,
+      base_asset: base_asset,
+      quote_asset: quote_asset,
+      filters: filters,
+      depth: depth,
+      is_spot: is_spot,
+      is_margin: is_margin,
+      status: status,
+      created_at: created_at,
+      updated_at: updated_at,
+    }
+  }
 }
