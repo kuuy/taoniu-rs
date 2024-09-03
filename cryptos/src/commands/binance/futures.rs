@@ -1,11 +1,13 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
+use crate::commands::binance::futures::account::*;
 use crate::commands::binance::futures::symbols::*;
 use crate::commands::binance::futures::klines::*;
 use crate::commands::binance::futures::positions::*;
 use crate::commands::binance::futures::scalping::*;
 
+pub mod account;
 pub mod symbols;
 pub mod klines;
 pub mod positions;
@@ -19,6 +21,7 @@ pub struct FuturesCommand {
 
 #[derive(Subcommand)]
 enum Commands {
+  Account(AccountCommand),
   Symbols(SymbolsCommand),
   Klines(KlinesCommand),
   Positions(PositionsCommand),
@@ -33,6 +36,7 @@ impl FuturesCommand {
     let nats = Nats::new().await.unwrap();
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
+      Commands::Account(account) => account.run(ctx).await,
       Commands::Symbols(symbols) => symbols.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,
       Commands::Positions(positions) => positions.run(),

@@ -1,6 +1,6 @@
 diesel::table! {
   #[sql_name = "binance_spot_symbols"]
-  klines (id) {
+  symbols (id) {
     id -> Varchar,
     symbol -> Varchar,
     base_asset -> Varchar,

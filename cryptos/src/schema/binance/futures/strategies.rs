@@ -1,6 +1,6 @@
 diesel::table! {
   #[sql_name = "binance_futures_strategies"]
-  scalping (id) {
+  strategies (id) {
     id -> Varchar,
     symbol -> Varchar,
     indicator -> Varchar,

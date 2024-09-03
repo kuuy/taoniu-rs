@@ -1,6 +1,6 @@
 diesel::table! {
   #[sql_name = "binance_futures_tradings_triggers"]
-  scalping (id) {
+  triggers (id) {
     id -> Varchar,
     symbol -> Varchar,
     trigger_id -> Varchar,

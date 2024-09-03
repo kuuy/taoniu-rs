@@ -20,7 +20,7 @@ struct AccountInfo {
   positions: Vec<Position>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Asset {
   asset: String,
   #[serde(alias = "walletBalance", deserialize_with = "to_f64")]
@@ -37,15 +37,14 @@ struct Asset {
   maint_margin: f64,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Position {
   symbol: String,
-  #[serde(alias = "positionSide", deserialize_with = "to_f64")]
-  position_side: f64,
-  #[serde(deserialize_with = "to_bool")]
+  #[serde(alias = "positionSide")]
+  position_side: String,
   isolated: bool,
-  #[serde(deserialize_with = "to_u8")]
-  leverage: u8,
+  #[serde(deserialize_with = "to_i32")]
+  leverage: i32,
   #[serde(alias = "maxNotional", deserialize_with = "to_f64")]
   capital: f64,
   #[serde(deserialize_with = "to_f64")]
@@ -54,24 +53,8 @@ struct Position {
   entry_price: f64,
   #[serde(alias = "positionAmt", deserialize_with = "to_f64")]
   entry_quantity: f64,
-  #[serde(alias = "updateTime", deserialize_with = "to_i64")]
+  #[serde(alias = "updateTime")]
   update_time: i64,
-}
-
-fn to_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
-where
-  D: Deserializer<'de>,
-{
-  let s: &str = Deserialize::deserialize(deserializer)?;
-  s.parse::<bool>().map_err(serde::de::Error::custom)
-}
-
-fn to_u8<'de, D>(deserializer: D) -> Result<u8, D::Error>
-where
-  D: Deserializer<'de>,
-{
-  let s: &str = Deserialize::deserialize(deserializer)?;
-  s.parse::<u8>().map_err(serde::de::Error::custom)
 }
 
 fn to_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
@@ -80,6 +63,14 @@ where
 {
   let s: &str = Deserialize::deserialize(deserializer)?;
   s.parse::<f64>().map_err(serde::de::Error::custom)
+}
+
+fn to_i32<'de, D>(deserializer: D) -> Result<i32, D::Error>
+where
+  D: Deserializer<'de>,
+{
+  let s: &str = Deserialize::deserialize(deserializer)?;
+  s.parse::<i32>().map_err(serde::de::Error::custom)
 }
 
 fn to_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>
@@ -118,7 +109,7 @@ impl AccountRepository {
     let client = reqwest::Client::new();
     let response = client.get(url)
       .headers(headers)
-      .timeout(Duration::from_secs(3))
+      .timeout(Duration::from_secs(30))
       .send()
       .await?;
 
@@ -134,7 +125,54 @@ impl AccountRepository {
     }
 
     let account_info = response.json::<AccountInfo>().await.unwrap();
-    println!("account_info {}", account_info.balances.len());
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+
+    let mut currencies: Vec<String> = Vec::new();
+    let last_currencies: Vec<String> = rdb.smembers(Config::REDIS_KEY_CURRENCIES).await.unwrap();
+
+    let mut pipe = redis::pipe();
+    account_info.assets.iter().for_each(|coin| {
+      if coin.free <= 0.0 {
+        return;
+      }
+      pipe.hset_multiple(
+        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset), 
+        &[
+          ("balance", coin.balance.to_string()),
+          ("free", coin.free.to_string()),
+          ("unrealized_profit", coin.unrealized_profit.to_string()),
+          ("margin", coin.margin.to_string()),
+          ("initial_margin", coin.initial_margin.to_string()),
+          ("maint_margin", coin.maint_margin.to_string()),
+        ],
+      );
+      pipe.sadd(Config::REDIS_KEY_CURRENCIES, &coin.asset[..]);
+      currencies.push(coin.asset.clone());
+      println!("coin balance {} {} {}", coin.asset, coin.balance, coin.unrealized_profit);
+    });
+
+    last_currencies.iter().for_each(|last_asset| {
+      if currencies.iter().any(|asset| asset == last_asset) {
+        return;
+      }
+      pipe.srem(Config::REDIS_KEY_CURRENCIES, &last_asset[..]);
+      pipe.del(format!("{}:{}", Config::REDIS_KEY_BALANCE, last_asset));
+      println!("coin balance remove {}", last_asset);
+    });
+
+    pipe.query_async(&mut rdb).await?;
+
+    let mut ids: Vec<String> = Vec::new();
+    for position in account_info.positions.iter() {
+      if position.isolated || position.update_time == 0 {
+        continue
+      }
+
+      if position.position_side != "LONG" || position.position_side != "SHORT" {
+        continue
+      }
+    }
 
     println!("account flush");
     Ok(())

@@ -1,4 +1,5 @@
 pub const REDIS_KEY_BALANCE: &str = "binance:futures:balance";
+pub const REDIS_KEY_CURRENCIES: &str = "binance:futures:currencies";
 pub const REDIS_KEY_TICKERS: &str = "binance:futures:realtime";
 pub const REDIS_KEY_KLINES: &str = "binance:futures:klines";
 // pub const REDIS_KEY_KLINES: &str = "binance:futures:klines";

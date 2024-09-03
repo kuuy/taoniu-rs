@@ -1,12 +1,14 @@
 diesel::table! {
-  #[sql_name = "binance_spot_positions"]
+  #[sql_name = "binance_futures_positions"]
   positions (id) {
     id -> Varchar,
     symbol -> Varchar,
+    side -> Integer,
+    leverage -> Integer,
+    capital -> Double,
     notional -> Double,
     entry_price -> Double,
     entry_quantity -> Double,
-    entry_amount -> Double,
     timestamp -> BigInt,
     status -> Integer,
     version -> BigInt,
