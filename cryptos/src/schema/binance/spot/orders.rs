@@ -8,6 +8,7 @@ diesel::table! {
     order_type -> Varchar,
     side -> Varchar,
     price -> Double,
+    avg_price -> Double,
     stop_price -> Double,
     quantity -> Double,
     executed_quantity -> Double,

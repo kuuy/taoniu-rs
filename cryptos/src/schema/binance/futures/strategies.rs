@@ -8,6 +8,7 @@ diesel::table! {
     price -> Double,
     signal -> Integer,
     timestamp -> BigInt,
+    remark -> Varchar,
     created_at -> Timestamptz,
     updated_at -> Timestamptz,
   }

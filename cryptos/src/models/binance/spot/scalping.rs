@@ -24,3 +24,43 @@ pub struct Scalping {
   pub created_at: DateTime<Utc>,
   pub updated_at: DateTime<Utc>,
 }
+
+impl Scalping {
+  pub fn new(
+    id: String,
+    symbol: String,
+    capital: f64,
+    price: f64,
+    take_price: f64,
+    stop_price: f64,
+    take_order_id: i64,
+    stop_order_id: i64,
+    profit: f64,
+    timestamp: i64,
+    status: i32,
+    version: i64,
+    remark: String,
+    expired_at: DateTime<Utc>,
+    created_at: DateTime<Utc>,
+    updated_at: DateTime<Utc>,
+  ) -> Self {
+    Self {
+      id: id,
+      symbol: symbol,
+      capital: capital,
+      price: price,
+      take_price: take_price,
+      stop_price: stop_price,
+      take_order_id: take_order_id,
+      stop_order_id: stop_order_id,
+      profit: profit,
+      timestamp: timestamp,
+      status: status,
+      version: version,
+      remark: remark,
+      expired_at: expired_at,
+      created_at: created_at,
+      updated_at: updated_at,
+    }
+  }
+}

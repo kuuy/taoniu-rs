@@ -6,10 +6,18 @@ use serde::{Deserialize, Serialize};
 use crate::schema::binance::spot::symbols::*;
 
 #[derive(Debug, Serialize, Deserialize, AsJsonb)]
-pub struct Filters {}
+pub struct Filters {
+  pub price: String,
+  pub quote: String,
+}
 
 #[derive(Debug, Serialize, Deserialize, AsJsonb)]
-pub struct Depth {}
+pub struct Depth {
+  pub asks: Vec<Vec<String>>,
+  pub bids: Vec<Vec<String>>,
+  #[serde(alias = "lastUpdateId")]
+  pub last_update_id: i64,
+}
 
 #[derive(Queryable, Selectable, Deserialize, Serialize)]
 #[diesel(table_name = symbols)]
