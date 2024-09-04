@@ -671,7 +671,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "talib",
+ "talib-sys",
  "tokio",
  "tokio-cron",
  "tokio-tungstenite",
@@ -2734,16 +2734,6 @@ checksum = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4"
 dependencies = [
  "core-foundation-sys",
  "libc",
-]
-
-[[package]]
-name = "talib"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2147856b9b16109647f8e21a63f72f670614e61ffa671f0dc24c5104d1e80b9f"
-dependencies = [
- "serde",
- "talib-sys",
 ]
 
 [[package]]
