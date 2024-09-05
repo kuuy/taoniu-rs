@@ -1,5 +1,4 @@
 use std::any::Any;
-use std::collections::HashMap;
 use std::ops::Sub;
 use std::time::Duration;
 
@@ -31,6 +30,7 @@ impl KlinesRepository
   {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
+
     let pool = ctx.pool.read().unwrap();
     let mut conn = pool.get().unwrap();
 

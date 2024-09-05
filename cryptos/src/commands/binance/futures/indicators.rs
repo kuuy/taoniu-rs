@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::commands::binance::spot::indicators::nats::*;
-use crate::repositories::binance::spot::indicators::*;
+use crate::commands::binance::futures::indicators::nats::*;
+use crate::repositories::binance::futures::indicators::*;
 
 pub mod nats;
 
