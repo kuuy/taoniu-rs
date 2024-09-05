@@ -1,7 +1,7 @@
 use std::ops::Sub;
 use std::time::Duration;
 
-use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_BBANDS, TA_RetCode};
+use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_STOCH, TA_BBANDS, TA_RetCode};
 
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
@@ -235,12 +235,12 @@ impl IndicatorsRepository {
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
-      .select((klines::close, klines::high, klines::low, klines::timestamp))
+      .select((klines::close, klines::timestamp))
       .filter(klines::symbol.eq(symbol))
       .filter(klines::interval.eq(interval))
       .order(klines::timestamp.desc())
       .limit(limit)
-      .load::<(f64, f64, f64, i64)>(&mut conn)?;
+      .load::<(f64, i64)>(&mut conn)?;
 
     if items.len() < limit as usize {
       return Err(Box::from(format!("[{symbol:}] {interval:} klines not enough")))
@@ -256,7 +256,7 @@ impl IndicatorsRepository {
     let mut last_timestamp: i64 = 0;
     let current_timestamp = Self::timestamp(interval);
 
-    for (close, high, low, timestamp) in items {
+    for (close, timestamp) in items {
       if first_timestamp == 0 {
         if timestamp < current_timestamp - 60000 {
           return Err(Box::from(format!("[{symbol:}] waiting for {interval:} klines flush")))
@@ -345,6 +345,116 @@ impl IndicatorsRepository {
   where
     T: AsRef<str>
   {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().unwrap();
+    let mut conn = pool.get().unwrap();
+
+    let items = klines::table
+      .select((klines::open, klines::close, klines::high, klines::low, klines::timestamp))
+      .filter(klines::symbol.eq(symbol))
+      .filter(klines::interval.eq(interval))
+      .order(klines::timestamp.desc())
+      .limit(limit)
+      .load::<(f64, f64, f64, f64, i64)>(&mut conn)?;
+
+    if items.len() < limit as usize {
+      return Err(Box::from(format!("[{symbol:}] {interval:} klines not enough")))
+    }
+
+    let lag = ((period - 1) / 2) as usize;
+    println!("lag {lag:}");
+
+    let mut data: Vec<TA_Real> = Vec::new();
+    let mut temp: Vec<TA_Real> = Vec::new();
+    let mut first_avg_price:f64 = 0.0;
+    let mut first_timestamp: i64 = 0;
+    let mut last_timestamp: i64 = 0;
+    let current_timestamp = Self::timestamp(interval);
+
+    for (open, close, high, low, timestamp) in items {
+      let open = Decimal::from_f64(open).unwrap();
+      let close = Decimal::from_f64(close).unwrap();
+      let high = Decimal::from_f64(high).unwrap();
+      let low = Decimal::from_f64(low).unwrap();
+      let avg_price = (open + close + high + low) / dec!(4);
+      let avg_price = avg_price.to_f64().unwrap();
+      if first_timestamp == 0 {
+        if timestamp < current_timestamp - 60000 {
+          return Err(Box::from(format!("[{symbol:}] waiting for {interval:} klines flush")))
+        }
+        first_avg_price = avg_price;
+        first_timestamp = timestamp;
+      }
+      if last_timestamp > 0 && last_timestamp != timestamp + Self::timestep(interval) {
+        return Err(Box::from(format!("[{symbol:}] {interval:} klines lost")))
+      }
+      if temp.len() < lag  {
+        temp.splice(0..0, vec![avg_price]);
+      } else {
+        let value = temp.pop().unwrap();
+        data.splice(0..0, vec![avg_price - value]);
+        temp.splice(0..0, vec![avg_price]);
+      }
+      last_timestamp = timestamp;
+    }
+
+    let dt = DateTime::from_timestamp_millis(first_timestamp).unwrap();
+    if dt.format("%m%d").to_string() != Utc::now().format("%m%d").to_string() {
+      return Err(Box::from(format!("[{symbol:}] {interval:} timestamp is not today")))
+    }
+    let day = Local::now().format("%m%d").to_string();
+
+    let result: String;
+
+    unsafe {
+      let size = data.len();
+      let mut out: Vec<TA_Real> = Vec::with_capacity(size);
+      let mut out_begin: TA_Integer = 0;
+      let mut out_size: TA_Integer = 0;
+
+      let ret_code = TA_MA(
+        0,
+        size as i32 - 1,
+        data.as_ptr(),
+        period,
+        TA_MAType_TA_MAType_EMA,
+        &mut out_begin,
+        &mut out_size,
+        out.as_mut_ptr()
+      );
+      let out_size = out_size as usize;
+      match ret_code {
+        TA_RetCode::TA_SUCCESS => {
+          out.set_len(out_size as usize);
+          result = format!(
+            "{},{},{},{}",
+            out[out_size-2],
+            out[out_size-1],
+            first_avg_price,
+            current_timestamp,
+          );
+        },
+        _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
+      }
+    }
+
+    let ttl = Duration::from_secs(30+86400);
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    rdb.hset(
+      &redis_key[..],
+      "ha_zlema",
+      result.clone(),
+    ).await?;
+    if !is_exists {
+      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+    }
+    println!("result {result:}");
+
     Ok(())
   }
 
@@ -359,6 +469,129 @@ impl IndicatorsRepository {
   where
     T: AsRef<str>
   {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().unwrap();
+    let mut conn = pool.get().unwrap();
+
+    let items = klines::table
+      .select((klines::close, klines::high, klines::low, klines::timestamp))
+      .filter(klines::symbol.eq(symbol))
+      .filter(klines::interval.eq(interval))
+      .order(klines::timestamp.desc())
+      .limit(limit)
+      .load::<(f64, f64, f64, i64)>(&mut conn)?;
+
+    if items.len() < limit as usize {
+      return Err(Box::from(format!("[{symbol:}] {interval:} klines not enough")))
+    }
+
+    let mut avg_prices: Vec<TA_Real> = Vec::new();
+    let mut highs: Vec<TA_Real> = Vec::new();
+    let mut lows: Vec<TA_Real> = Vec::new();
+    let mut first_avg_price:f64 = 0.0;
+    let mut first_timestamp: i64 = 0;
+    let mut last_timestamp: i64 = 0;
+    let current_timestamp = Self::timestamp(interval);
+
+    for (close, high, low, timestamp) in items {
+      let close = Decimal::from_f64(close).unwrap();
+      let high = Decimal::from_f64(high).unwrap();
+      let low = Decimal::from_f64(low).unwrap();
+      let avg_price = (close + high + low) / dec!(3);
+      let avg_price = avg_price.to_f64().unwrap();
+
+      if first_timestamp == 0 {
+        if timestamp < current_timestamp - 60000 {
+          return Err(Box::from(format!("[{symbol:}] waiting for {interval:} klines flush")))
+        }
+        first_avg_price = avg_price;
+        first_timestamp = timestamp;
+      }
+
+      if last_timestamp > 0 && last_timestamp != timestamp + Self::timestep(interval) {
+        return Err(Box::from(format!("[{symbol:}] {interval:} klines lost")))
+      }
+
+      let avg_price = avg_price.to_f64().unwrap();
+      let high = high.to_f64().unwrap();
+      let low = low.to_f64().unwrap();
+
+      avg_prices.splice(0..0, vec![avg_price]);
+      highs.splice(0..0, vec![high]);
+      lows.splice(0..0, vec![low]);
+
+      last_timestamp = timestamp;
+    }
+
+    let dt = DateTime::from_timestamp_millis(first_timestamp).unwrap();
+    if dt.format("%m%d").to_string() != Utc::now().format("%m%d").to_string() {
+      return Err(Box::from(format!("[{symbol:}] {interval:} timestamp is not today")))
+    }
+    let day = Local::now().format("%m%d").to_string();
+
+    let result: String;
+
+    unsafe {
+      let size = avg_prices.len();
+      let mut out_slowk: Vec<TA_Real> = Vec::with_capacity(size);
+      let mut out_slowd: Vec<TA_Real> = Vec::with_capacity(size);
+      let mut out_begin: TA_Integer = 0;
+      let mut out_size: TA_Integer = 0;
+
+      let ret_code = TA_STOCH(
+        0,
+        size as i32 - 1,
+        highs.as_ptr(),
+        lows.as_ptr(),
+        avg_prices.as_ptr(),
+        long_period,
+        short_period,
+        0,
+        short_period,
+        0,
+        &mut out_begin,
+        &mut out_size,
+        out_slowk.as_mut_ptr(),
+        out_slowd.as_mut_ptr(),
+      );
+      let out_size = out_size as usize;
+      match ret_code {
+        TA_RetCode::TA_SUCCESS => {
+          out_slowk.set_len(out_size as usize);
+          out_slowd.set_len(out_size as usize);
+          let slowk = Decimal::from_f64(out_slowk[out_size-1]).unwrap();
+          let slowd = Decimal::from_f64(out_slowd[out_size-1]).unwrap();
+          let slowj = slowk * dec!(3) - slowd * dec!(2);
+          result = format!(
+            "{},{},{},{},{}",
+            slowk,
+            slowd,
+            slowj,
+            first_avg_price,
+            current_timestamp,
+          );
+        },
+        _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
+      }
+    }
+
+    let ttl = Duration::from_secs(30+86400);
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    rdb.hset(
+      &redis_key[..],
+      "kdj",
+      result.to_string(),
+    ).await?;
+    if !is_exists {
+      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+    }
+    println!("result {result:}");
+
     Ok(())
   }
 

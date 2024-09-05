@@ -22,6 +22,8 @@ enum Commands {
   Zlema,
   /// indicators ha_zlema
   HaZlema,
+  /// indicators kdj
+  Kdj,
   Nats(NatsCommand),
 }
 
@@ -80,12 +82,28 @@ impl IndicatorsCommand {
     }
   }
 
+  async fn kdj(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+    println!("indicators ha kdj");
+    match (IndicatorsRepository::kdj(
+      ctx,
+      "BTCUSDT",
+      "15m",
+      9,
+      3,
+      100,
+    ).await) {
+      Ok(_) => Ok(()),
+      Err(e) => Err(e.into()),
+    }
+  }
+
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Pivot => self.pivot(ctx.clone()).await,
       Commands::Atr => self.atr(ctx.clone()).await,
       Commands::Zlema => self.zlema(ctx.clone()).await,
       Commands::HaZlema => self.ha_zlema(ctx.clone()).await,
+      Commands::Kdj => self.kdj(ctx.clone()).await,
       Commands::Nats(nats) => nats.run(ctx).await,
     }
   }
