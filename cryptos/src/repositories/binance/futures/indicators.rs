@@ -56,6 +56,9 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
     let tick_size: f64;
     match Self::filters(ctx.clone(), symbol).await {
       Ok(result) => {
@@ -63,9 +66,6 @@ impl IndicatorsRepository {
       },
       Err(e) => return Err(e.into()),
     }
-
-    let pool = ctx.pool.read().unwrap();
-    let mut conn = pool.get().unwrap();
 
     let (close, high, low, timestamp): (f64, f64, f64, i64);
     match klines::table
@@ -150,7 +150,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -254,7 +254,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -371,7 +371,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -495,7 +495,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -631,7 +631,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -724,6 +724,12 @@ impl IndicatorsRepository {
           out_mbands.set_len(out_size);
           out_lbands.set_len(out_size);
 
+          if out_ubands[out_size-3] == out_lbands[out_size-3] 
+            || out_ubands[out_size-2] == out_lbands[out_size-2] 
+            || out_ubands[out_size-1] == out_lbands[out_size-1] {
+            return Err(Box::from(format!("[{symbol:}] {interval:} klined invalid")))
+          }
+
           let p1 = Decimal::from_f64(closes[out_size-period-2] + highs[out_size-period-2] + lows[out_size-period-2]).unwrap() / dec!(3);
           let p2 = Decimal::from_f64(closes[out_size-period-1] + highs[out_size-period-1] + lows[out_size-period-1]).unwrap() / dec!(3);
           let p3 = Decimal::from_f64(closes[out_size-period] + highs[out_size-period] + lows[out_size-period]).unwrap() / dec!(3);
@@ -735,10 +741,7 @@ impl IndicatorsRepository {
           let w3 = Decimal::from_f64(out_ubands[out_size-1] - out_lbands[out_size-1]).unwrap() / Decimal::from_f64(out_mbands[out_size-3]).unwrap();
 
           result = format!(
-            "{},{},{},{},{},{},{},{},{},{},{}",
-            p1,
-            p2,
-            p3,
+            "{},{},{},{},{},{},{},{}",
             b1,
             b2,
             b3,
@@ -785,7 +788,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -960,7 +963,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -1172,7 +1175,7 @@ impl IndicatorsRepository {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let items = klines::table
@@ -1354,7 +1357,7 @@ impl IndicatorsRepository {
   {
     let symbol = symbol.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     let (tick_size, step_size): (f64, f64);

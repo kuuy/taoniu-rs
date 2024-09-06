@@ -36,7 +36,7 @@ impl NatsCommand {
   async fn publish(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures indicators nats publish");
     let job = IndicatorsJob::new(ctx.clone());
-    job.update().await?;
+    job.update("BTCUSDT", "15m").await?;
     Ok(())
   }
 

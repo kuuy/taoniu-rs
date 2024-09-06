@@ -53,19 +53,17 @@ impl KlinesWorker {
       let ctx = self.ctx.clone();
       async move {
         let rmq = ctx.rmq.lock().await.clone();
+        let mut client = Rsmq::new(rmq).await.unwrap();
         loop {
           println!("binance spot klines rsmq loop");
-          let rmq = ctx.rmq.lock().await.clone();
-          let mut client = Rsmq::new(rmq).await.unwrap();
           let _ = match client.pop_message::<String>(Config::RSMQ_QUEUE_KLINES).await {
             Ok(Some(message)) => {
               let (action, content) = serde_json::from_slice::<(String, String)>(message.message.as_bytes()).unwrap();
               match action.as_str() {
                 Config::RSMQ_JOBS_KLINES_FLUSH => {
                   let payload = serde_json::from_slice::<KlinesFlushPayload<&str>>(content.as_bytes()).unwrap();
-                  match Self::flush(ctx.clone(), payload.interval).await {
-                    Err(e) => println!("{e:?}"),
-                    _ => {},
+                  if let Err(e) = Self::flush(ctx.clone(), payload.interval).await {
+                    println!("{e:?}");
                   }
                 }
                 _ => {},

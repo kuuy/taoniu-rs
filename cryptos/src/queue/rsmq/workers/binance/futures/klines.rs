@@ -24,7 +24,6 @@ impl KlinesWorker {
   where
     T: AsRef<str>
   {
-    println!("binance futures klines rsmq workers flush");
     let interval = interval.as_ref();
   
     let rdb = ctx.rdb.lock().await.clone();
@@ -39,9 +38,9 @@ impl KlinesWorker {
       return Err(Box::from(format!("mutex failed {}", redis_key)));
     }
 
-    // let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
-    // let timestamp = KlinesRepository::timestamp(interval);
-    // KlinesRepository::flush(ctx.clone(), symbols.iter().map(String::as_ref).collect(), interval, timestamp).await;
+    let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
+    let timestamp = KlinesRepository::timestamp(interval);
+    KlinesRepository::flush(ctx.clone(), symbols.iter().map(String::as_ref).collect(), interval, timestamp).await;
 
     mutex.unlock().await.unwrap();
     Ok(())
@@ -54,8 +53,8 @@ impl KlinesWorker {
       let ctx = self.ctx.clone();
       async move {
         let rmq = ctx.rmq.lock().await.clone();
+        let mut client = Rsmq::new(rmq).await.unwrap();
         loop {
-          let mut client = Rsmq::new(rmq.clone()).await.unwrap();
           println!("binance futures klines rsmq loop");
           let _ = match client.pop_message::<String>(Config::RSMQ_QUEUE_KLINES).await {
             Ok(Some(message)) => {
@@ -63,21 +62,17 @@ impl KlinesWorker {
               match action.as_str() {
                 Config::RSMQ_JOBS_KLINES_FLUSH => {
                   let payload = serde_json::from_slice::<KlinesFlushPayload<&str>>(content.as_bytes()).unwrap();
-                  match Self::flush(ctx.clone(), payload.interval).await {
-                    Err(e) => println!("{e:?}"),
-                    _ => {},
+                  if let Err(e) = Self::flush(ctx.clone(), payload.interval).await {
+                    println!("{e:?}");
                   }
                 }
                 _ => {},
               };
             },
             Ok(None) => {
-              println!("queue empty now");
               tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             }
-            Err(e) => {
-              println!("{e:?}");
-            }
+            Err(_) => {}
           };
           tokio::time::sleep(std::time::Duration::from_millis(100)).await;
         }

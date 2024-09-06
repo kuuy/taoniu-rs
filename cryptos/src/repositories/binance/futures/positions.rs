@@ -26,7 +26,7 @@ impl PositionsRepository
   {
     let symbol = symbol.as_ref();
 
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     match positions::table
@@ -52,7 +52,7 @@ impl PositionsRepository
     timestamp: i64,
     status: i32,
   ) -> Result<bool, Box<dyn std::error::Error>> {
-    let pool = ctx.pool.write().unwrap();
+    let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
 
     let now = Utc::now();
@@ -88,7 +88,7 @@ impl PositionsRepository
     V: diesel::AsChangeset<Target = positions::table>,
     <V as diesel::AsChangeset>::Changeset: QueryFragment<diesel::pg::Pg>,
   {
-    let pool = ctx.pool.write().unwrap();
+    let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
     match diesel::update(positions::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),

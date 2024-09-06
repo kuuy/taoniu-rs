@@ -1,6 +1,6 @@
-use std::sync::{RwLock, Arc};
+use std::sync::Arc;
 use std::marker::PhantomData;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
 use redis::aio::MultiplexedConnection;
 use diesel::pg::PgConnection;

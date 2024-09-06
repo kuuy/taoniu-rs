@@ -1,12 +1,12 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct KlinesUpdatePayload<T> {
+pub struct IndicatorsUpdatePayload<T> {
   pub symbol: T,
   pub interval: T,
 }
 
-impl<T> KlinesUpdatePayload<T>
+impl<T> IndicatorsUpdatePayload<T>
 where
   T: AsRef<str>
 {

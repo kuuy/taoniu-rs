@@ -1,9 +1,9 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct KlinesUpdatePayload<T> {
-  symbol: T,
-  interval: T,
+  pub symbol: T,
+  pub interval: T,
 }
 
 impl<T> KlinesUpdatePayload<T>

@@ -17,7 +17,7 @@ impl SymbolsRepository {
   }
 
   pub async fn count(ctx: Ctx) -> Result<i64, Box<dyn std::error::Error>> {
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
     let count = symbols::table
       .filter(symbols::status.eq("TRADING"))

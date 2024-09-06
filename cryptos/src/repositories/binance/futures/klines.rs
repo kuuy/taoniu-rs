@@ -29,7 +29,7 @@ impl KlinesRepository
   {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
-    let pool = ctx.pool.read().unwrap();
+    let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
     match klines::table
@@ -119,7 +119,7 @@ impl KlinesRepository
     quota: f64,
     timestamp: i64,
   ) -> Result<bool, Box<dyn std::error::Error>> {
-    let pool = ctx.pool.write().unwrap();
+    let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
 
     let now = Utc::now();
@@ -154,7 +154,7 @@ impl KlinesRepository
     V: diesel::AsChangeset<Target = klines::table>,
     <V as diesel::AsChangeset>::Changeset: QueryFragment<diesel::pg::Pg>,
   {
-    let pool = ctx.pool.write().unwrap();
+    let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
     match diesel::update(klines::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),

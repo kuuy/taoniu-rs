@@ -16,10 +16,11 @@ impl StrategiesWorker {
 
   pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot strategies nats workers subscribe");
-    let client = self.ctx.nats.clone();
     tokio::spawn(Box::pin({
-      let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await?;
+      let ctx = self.ctx.clone();
       async move {
+        let client = ctx.nats.clone();
+        let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await.unwrap();
         while let Some(message) = subscriber.next().await {
           println!("message received: {:?}", message);
         }
