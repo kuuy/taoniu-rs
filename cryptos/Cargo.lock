@@ -659,9 +659,12 @@ dependencies = [
  "diesel",
  "diesel_as_jsonb",
  "dotenv",
+ "erased-serde",
  "futures-util",
  "hex",
  "hmac",
+ "jose-jwe",
+ "jose-jwt",
  "log",
  "redis",
  "reqwest 0.12.7",
@@ -676,7 +679,6 @@ dependencies = [
  "tokio-cron",
  "tokio-tungstenite",
  "tower 0.5.0",
- "typetag",
  "url",
  "xid",
 ]
@@ -1454,12 +1456,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "inventory"
-version = "0.3.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f958d3d68f4167080a18141e10381e7634563984a537f2a49a30fd8e53ac5767"
-
-[[package]]
 name = "ipnet"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1494,6 +1490,18 @@ checksum = "48d1dbcbbeb6a7fec7e059840aa538bd62aaccf972c7346c4d9d2059312853d0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "jose-jwe"
+version = "0.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da37393583c7f15d664109cbfb1c451601766e95850d3b3963292a6763fcb9e8"
+
+[[package]]
+name = "jose-jwt"
+version = "0.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "455fb625397cfe0bce4081114e01dea98a1f7c2a3f5f8b5e775ff35dbe9d89a9"
 
 [[package]]
 name = "js-sys"
@@ -3090,30 +3098,6 @@ name = "typenum"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "42ff0bf0c66b8238c6f3b578df37d0b7848e55df8577b3f74f92a69acceeb825"
-
-[[package]]
-name = "typetag"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52ba3b6e86ffe0054b2c44f2d86407388b933b16cb0a70eea3929420db1d9bbe"
-dependencies = [
- "erased-serde",
- "inventory",
- "once_cell",
- "serde",
- "typetag-impl",
-]
-
-[[package]]
-name = "typetag-impl"
-version = "0.2.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70b20a22c42c8f1cd23ce5e34f165d4d37038f5b663ad20fb6adbdf029172483"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.77",
-]
 
 [[package]]
 name = "unicode-bidi"

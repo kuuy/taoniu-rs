@@ -1,28 +1,15 @@
 use std::any::Any;
-use std::fmt::Debug;
 use std::sync::Arc;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
-#[typetag::serde(tag = "data")]
-pub trait DataItem: Debug {}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize)]
 pub struct SuccessResponse {
   pub success: bool,
-  pub data: Box<dyn DataItem>,
+  pub data: Box<dyn erased_serde::Serialize>,
 }
 
-impl SuccessResponse {
-  pub fn new(success: bool, data: Box<dyn DataItem>) -> Self {
-    Self {
-      success: success,
-      data: data,
-    }
-  }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize)]
 pub struct ErrorResponse<T> {
   pub success: bool,
   pub code: T,
@@ -42,25 +29,13 @@ where
   }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize)]
 pub struct PagenateResponse {
   pub success: bool,
-  pub data: Vec<Box<dyn DataItem>>,
+  pub data: Vec<Box<dyn erased_serde::Serialize>>,
   pub total: u64,
   pub current: u32,
   pub page_size: u32,
-}
-
-impl PagenateResponse {
-  pub fn new(success: bool, data: Vec<Box<dyn DataItem>>, total: u64, current: u32, page_size: u32) -> Self {
-    Self {
-      success: success,
-      data: data,
-      total: total,
-      current: current,
-      page_size: page_size,
-    }
-  }
 }
 
 #[derive(Serialize)]
