@@ -39,6 +39,12 @@ pub struct PagenateResponse {
 }
 
 #[derive(Serialize)]
+pub struct RankingResponse {
+  pub success: bool,
+  pub data: Vec<Box<dyn erased_serde::Serialize>>,
+}
+
+#[derive(Serialize)]
 pub struct JweResponse<T> {
   pub payload: T,
 }

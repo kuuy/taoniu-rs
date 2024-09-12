@@ -1,6 +1,7 @@
 pub mod account;
 pub mod analysis;
 pub mod symbols;
+pub mod tickers;
 pub mod klines;
 pub mod indicators;
 pub mod strategies;

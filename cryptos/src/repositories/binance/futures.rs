@@ -2,6 +2,7 @@ pub mod account;
 pub mod analysis;
 pub mod symbols;
 pub mod klines;
+pub mod tickers;
 pub mod indicators;
 pub mod strategies;
 pub mod plans;
