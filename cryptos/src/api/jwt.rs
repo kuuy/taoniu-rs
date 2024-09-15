@@ -1,3 +1,5 @@
+use std::future::Future;
+use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use axum::{
@@ -6,6 +8,9 @@ use axum::{
   response::Response,
 };
 use tower::{Layer, Service};
+
+use crate::api::response::*;
+use crate::repositories::auth::token::*;
 
 #[derive(Clone)]
 pub struct AuthenticatorLayer {}
@@ -34,10 +39,11 @@ pub struct JwtMiddleware<S> {
 impl<S, Body, Response> Service<Request<Body>> for JwtMiddleware<S>
 where
   S: Service<Request<Body>, Response = Response>,
+  S::Future: Send + 'static,
 {
   type Response = S::Response;
   type Error = S::Error;
-  type Future = S::Future;
+  type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
 
   #[inline]
   fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -46,7 +52,31 @@ where
 
   #[inline]
   fn call(&mut self, mut request: Request<Body>) -> Self::Future {
-    println!("Hi jwt middleware");
-    self.inner.call(request)
+    let bearer = request.headers().get("Authorization")
+      .and_then(|header| header.to_str().ok());
+    let is_authorized = match request.headers().get("Authorization")
+      .and_then(|header| header.to_str().ok()) {
+      Some(bearer) => {
+        if bearer.starts_with("Taoniu") {
+          match TokenRepository::uid(&bearer[7..]) {
+            Ok(uid) => {
+              println!("Hi jwt middleware uid {uid:}");
+            },
+            Err(e) => {
+              println!("jwt middleware error {e:?}");
+            }
+          }
+        }
+        false
+      },
+      None => false,
+    };
+    let future = self.inner.call(request);
+    Box::pin({
+      async move {
+        let response: Response = future.await?;
+        Ok(response)
+      }
+    })
   }
 }
