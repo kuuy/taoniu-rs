@@ -1,8 +1,11 @@
+use std::time::SystemTime;
+
 use josekit::{
   jwe::{self, Dir, A128GCMKW},
   jws::{JwsHeader, RS256},
   jwt::{self, JwtPayload},
 };
+use serde_json::Value;
 
 use crate::common::*;
 
@@ -26,18 +29,30 @@ impl TokenRepository
     let jwt_key = Env::var("JWT_KEY");
     let decrypter = Dir.decrypter_from_bytes(&jwt_key)?;
     let (payload, header) = jwe::deserialize_compact(&token, &decrypter)?;
-    // println!("auth token {token:} {payload:?} {header:?}");
-
-    // let jwt_key = Env::var("JWT_KEY");
-    // let decrypter = A128GCMKW.decrypter_from_bytes(&jwt_key)?;
-    // let (payload, header) = jwt::decode_with_decrypter(&token, &decrypter)?;
-    // println!("jwt_key {jwt_key:?} {payload:?} {header:?}");
 
     let public_key = std::fs::read(std::env::home_dir().unwrap().join(".ssh/jwt_rsa.pub")).unwrap();
     let verifier = RS256.verifier_from_pem(&public_key)?;
     let (payload, header) = jwt::decode_with_verifier(&payload, &verifier)?;
-    println!("auth token {token:} {payload:?} {header:?}");
 
-    Ok("hello".into())
+    let now = SystemTime::now();
+    let expires_at = match payload.expires_at() {
+      Some(expires_at) => {
+        if expires_at <= now {
+          return Err(Box::from("token has been expired"))
+        }
+      },
+      _ => return Err(Box::from("invalid token"))
+    };
+
+    let uid = match payload.claim("uid") {
+      Some(uid) => {
+        match uid {
+          Value::String(uid) => uid.as_str(),
+          _ => return Err(Box::from("invalid token"))
+        }
+      },
+      None => return Err(Box::from("invalid token"))
+    };
+    Ok(uid.into())
   }
 }
