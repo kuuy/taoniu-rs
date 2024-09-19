@@ -3,6 +3,7 @@ use clap::{Parser, Subcommand};
 use crate::common::*;
 use crate::commands::binance::futures::account::*;
 use crate::commands::binance::futures::symbols::*;
+use crate::commands::binance::futures::tickers::*;
 use crate::commands::binance::futures::klines::*;
 use crate::commands::binance::futures::indicators::*;
 use crate::commands::binance::futures::positions::*;
@@ -10,6 +11,7 @@ use crate::commands::binance::futures::scalping::*;
 
 pub mod account;
 pub mod symbols;
+pub mod tickers;
 pub mod klines;
 pub mod indicators;
 pub mod positions;
@@ -25,6 +27,7 @@ pub struct FuturesCommand {
 enum Commands {
   Account(AccountCommand),
   Symbols(SymbolsCommand),
+  Tickers(TickersCommand),
   Klines(KlinesCommand),
   Indicators(IndicatorsCommand),
   Positions(PositionsCommand),
@@ -41,6 +44,7 @@ impl FuturesCommand {
     match &self.commands {
       Commands::Account(account) => account.run(ctx).await,
       Commands::Symbols(symbols) => symbols.run(ctx).await,
+      Commands::Tickers(tickers) => tickers.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,
       Commands::Indicators(indicators) => indicators.run(ctx).await,
       Commands::Positions(positions) => positions.run(),

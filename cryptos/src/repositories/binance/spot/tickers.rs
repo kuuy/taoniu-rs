@@ -58,4 +58,16 @@ impl TickersRepository {
     }
     vars
   }
+
+  pub async fn flush<T>(
+    ctx: Ctx,
+    symbols: Vec<T>,
+  ) -> Result<(), Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    println!("tickers flush {symbols:?}");
+    Ok(())
+  }
 }

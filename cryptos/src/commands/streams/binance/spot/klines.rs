@@ -1,13 +1,13 @@
 use std::time::Duration;
 use std::sync::Arc;
-use tokio::io::AsyncWriteExt;
+use futures_util::stream::StreamExt;
 
 use chrono::prelude::Utc;
 use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use redis::aio::MultiplexedConnection;
-use futures_util::stream::StreamExt;
 use serde::{Deserialize, Deserializer};
+use tokio::io::AsyncWriteExt;
 use tokio_tungstenite::connect_async;
 use clap::{Parser};
 

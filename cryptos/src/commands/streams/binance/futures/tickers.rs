@@ -1,10 +1,10 @@
 use std::sync::Arc;
+use futures_util::stream::StreamExt;
 
 use chrono::prelude::Utc;
 use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use redis::aio::MultiplexedConnection;
-use futures_util::stream::StreamExt;
 use serde::{Deserialize, Deserializer};
 use tokio_tungstenite::connect_async;
 use clap::{Parser};
