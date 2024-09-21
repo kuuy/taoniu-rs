@@ -1,6 +1,7 @@
 use clap::{Parser, Args, Subcommand};
 
 use crate::common::*;
+use crate::repositories::binance::ApiError;
 use crate::repositories::binance::spot::orders::*;
 
 #[derive(Parser)]
@@ -59,8 +60,19 @@ impl OrdersCommand {
     quantity: f64,
   ) -> Result<(), Box<dyn std::error::Error>> {
     println!("orders submit");
-    let values = OrdersRepository::submit(ctx, &symbol, &side, price, quantity).await;
-    println!("orders submit {:?}", values);
+    match OrdersRepository::submit(ctx, &symbol, &side, price, quantity).await {
+      Ok(order_id) => {
+        println!("orders submit success {order_id:}");
+      },
+      Err(err) => {
+        if err.is::<ApiError>() {
+          println!("error {:?}", err);
+        } else {
+          println!("error {:?}", err);
+        }
+      },
+    }
+
     Ok(())
   }
 

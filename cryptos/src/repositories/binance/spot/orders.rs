@@ -10,9 +10,10 @@ use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use reqwest::header;
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
-use serde::{Serialize, Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer};
 
 use crate::common::*;
+use crate::repositories::binance::ApiError;
 use crate::schema::binance::spot::orders::*;
 use crate::models::binance::spot::order::*;
 
@@ -56,13 +57,6 @@ struct TradeInfo {
   #[serde(alias = "transactTime")]
   transact_time: i64,
   status: String,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ApiError {
-	code: i64,
-  #[serde(alias = "msg")]
-	message: String,
 }
 
 fn to_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
@@ -169,7 +163,7 @@ impl OrdersRepository {
     side: T,
     price: f64,
     quantity: f64,
-  ) -> Result<(), Box<dyn std::error::Error>> 
+  ) -> Result<i64, Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
@@ -218,22 +212,21 @@ impl OrdersRepository {
     let status_code = response.status();
 
     if status_code.is_server_error() {
-      let err = ApiError{
-        code: 0,
-        message: format!("response error: {}", status_code),
-      };
-      return Err(Box::from(serde_json::to_string(&err).unwrap()))
+      return Err(Box::new(ApiError{
+        code: status_code.as_u16().into(),
+        message: "".to_string(),
+      }))
     }
 
     if status_code.is_client_error() {
       match response.json::<ApiError>().await {
         Ok(err) => {
-          let err = serde_json::to_string(&err).unwrap();
-          return Err(Box::from(err))
+          return Err(Box::new(err))
         }
-        Err(_) => {
-          return Err(Box::from(format!("bad request: {}", status_code)))
-        }
+        Err(_) => return Err(Box::new(ApiError{
+          code: status_code.as_u16().into(),
+          message: "".to_string(),
+        }))
       }
     }
 
@@ -274,7 +267,7 @@ impl OrdersRepository {
       },
     }
 
-    Ok(())
+    Ok(trade.order_id)
   }
 
   pub async fn sync<T>(
