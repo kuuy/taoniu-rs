@@ -220,7 +220,7 @@ impl OrdersRepository {
     if status_code.is_server_error() {
       let err = ApiError{
         code: 0,
-        message: "".to_owned(),
+        message: format!("response error: {}", status_code),
       };
       return Err(Box::from(serde_json::to_string(&err).unwrap()))
     }
