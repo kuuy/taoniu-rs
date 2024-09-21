@@ -17,10 +17,22 @@ impl Default for OrdersCommand {
 
 #[derive(Subcommand)]
 enum Commands {
-  /// orders open
-  Open,
+  /// orders submit
+  Submit(SubmitArgs),
   /// orders sync
   Sync(SyncArgs),
+}
+
+#[derive(Args)]
+struct SubmitArgs {
+  /// symbol
+  symbol: String,
+  /// side
+  side: String,
+  /// price
+  price: f64,
+  /// quantity
+  quantity: f64,
 }
 
 #[derive(Args)]
@@ -38,10 +50,17 @@ impl OrdersCommand {
     }
   }
 
-  async fn open(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
-    println!("orders open");
-    let values = OrdersRepository::open(ctx).await;
-    println!("orders open {:?}", values);
+  async fn submit(
+    &self,
+    ctx: Ctx,
+    symbol: String,
+    side: String,
+    price: f64,
+    quantity: f64,
+  ) -> Result<(), Box<dyn std::error::Error>> {
+    println!("orders submit");
+    let values = OrdersRepository::submit(ctx, &symbol, &side, price, quantity).await;
+    println!("orders submit {:?}", values);
     Ok(())
   }
 
@@ -52,14 +71,14 @@ impl OrdersCommand {
     limit: i64,
   ) -> Result<(), Box<dyn std::error::Error>> {
     println!("orders sync");
-    let values = OrdersRepository::sync(ctx, &symbol[..], 0, limit).await;
+    let values = OrdersRepository::sync(ctx, &symbol, 0, limit).await;
     println!("orders sync {:?}", values);
     Ok(())
   }
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Open => self.open(ctx.clone()).await,
+      Commands::Submit(args) => self.submit(ctx.clone(), args.symbol.clone(), args.side.clone(), args.price.clone(), args.quantity.clone()).await,
       Commands::Sync(args) => self.sync(ctx.clone(), args.symbol.clone(), args.limit.clone()).await,
     }
   }

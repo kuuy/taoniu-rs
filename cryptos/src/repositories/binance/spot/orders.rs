@@ -39,6 +39,32 @@ struct OrderInfo {
   status: String,
 }
 
+#[derive(Deserialize)]
+struct TradeInfo {
+  symbol: String,
+  #[serde(alias = "orderId")]
+  order_id: i64,
+  #[serde(alias = "type")]
+  order_type: String,
+  side: String,
+  #[serde(deserialize_with = "to_f64")]
+  price: f64,
+  #[serde(alias = "origQty", deserialize_with = "to_f64")]
+  quantity: f64,
+  #[serde(alias = "executedQty", deserialize_with = "to_f64")]
+  executed_quantity: f64,
+  #[serde(alias = "transactTime")]
+  transact_time: i64,
+  status: String,
+}
+
+#[derive(Deserialize)]
+struct ApiError {
+	code: i64,
+  #[serde(alias = "msg")]
+	message: String,
+}
+
 fn to_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
 where
   D: Deserializer<'de>,
@@ -137,19 +163,102 @@ impl OrdersRepository {
     }
   }
 
-  pub async fn open(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
-    println!("orders open");
-    let payload = "symbol=BTCUSDT&timestamp=";
+  pub async fn submit<T>(
+    ctx: Ctx,
+    symbol: T,
+    side: T,
+    price: f64,
+    quantity: f64,
+  ) -> Result<(), Box<dyn std::error::Error>> 
+  where
+    T: AsRef<str>
+  {
+    println!("orders submit");
+    let symbol = symbol.as_ref();
+    let side = side.as_ref();
+    let price_val = price.to_string();
+    let quantity_val = quantity.to_string();
+    let timestamp = Utc::now().timestamp_millis().to_string();
 
+    let mut params = HashMap::new();
+    params.insert("symbol", symbol);
+    params.insert("side", side);
+    params.insert("type", "LIMIT");
+    params.insert("price", &price_val);
+    params.insert("quantity", &quantity_val);
+    params.insert("timeInForce", "GTC");
+    params.insert("newOrderRespType", "RESULT");
+    params.insert("recvWindow", "60000");
+    params.insert("timestamp", &timestamp);
+
+    let payload = params.iter().map(|(k,v)| format!("{}={}", k, v)).collect::<Vec<_>>().join("&");
+ 
     let private_key = RsaPrivateKey::from_pkcs8_pem(&Env::var("BINANCE_SPOT_TRADE_API_SECRET"))?;
     let signature = private_key.sign(
       rsa::pkcs1v15::Pkcs1v15Sign::new::<rsa::sha2::Sha256>(),
       &Sha256::digest(payload.as_bytes()),
     )?;
-    println!("signature {:?}", base64::encode(signature));
-    if 1 > 0 {
-      return Err(Box::from("orders repository open failed"))
+    let signature = base64::encode(signature);
+
+    params.insert("signature", &signature);
+
+    let mut url = Url::parse(format!("{}/api/v3/order", Env::var("BINANCE_SPOT_API_ENDPOINT")).as_str())?;
+
+    let mut headers = header::HeaderMap::new();
+    headers.insert("X-MBX-APIKEY", Env::var("BINANCE_SPOT_TRADE_API_KEY").parse().unwrap());
+
+    let client = reqwest::Client::new();
+    let response = client.post(url)
+      .headers(headers)
+      .form(&params)
+      .timeout(Duration::from_secs(5))
+      .send()
+      .await?;
+
+    let status_code = response.status();
+
+    if status_code.is_client_error() {
+      println!("response {}", response.text().await.unwrap());
+      return Err(Box::from(format!("bad request: {}", status_code)))
     }
+
+    if !status_code.is_success() {
+      return Err(Box::from(format!("request error: {}", status_code)))
+    }
+
+    let trade = response.json::<TradeInfo>().await.unwrap();
+    println!("response {:?}", trade.order_id);
+
+    let mut success = false;
+
+    let id = xid::new().to_string();
+    match Self::create(
+      ctx.clone(),
+      id,
+      symbol.to_owned(),
+      trade.order_id,
+      trade.order_type.clone(),
+      side.to_owned(),
+      price,
+      0.0,
+      quantity,
+      0.0,
+      trade.transact_time,
+      0,
+      trade.status.clone(),
+      "".to_owned(),
+    ).await {
+      Ok(result) => {
+        if result {
+          success = result;
+        }
+        println!("binance spot order {0:} {1:} create success {result:}", symbol, trade.order_id);
+      }
+      Err(e) => {
+        println!("binance spot order {0:} {1:} create failed {e:?}", symbol, trade.order_id)
+      },
+    }
+
     Ok(())
   }
 
