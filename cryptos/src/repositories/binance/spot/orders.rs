@@ -10,7 +10,7 @@ use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use reqwest::header;
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
-use serde::{Deserialize, Deserializer};
+use serde::{Serialize, Deserialize, Deserializer};
 
 use crate::common::*;
 use crate::schema::binance::spot::orders::*;
@@ -58,7 +58,7 @@ struct TradeInfo {
   status: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct ApiError {
 	code: i64,
   #[serde(alias = "msg")]
@@ -217,9 +217,24 @@ impl OrdersRepository {
 
     let status_code = response.status();
 
+    if status_code.is_server_error() {
+      let err = ApiError{
+        code: 0,
+        message: "".to_owned(),
+      };
+      return Err(Box::from(serde_json::to_string(&err).unwrap()))
+    }
+
     if status_code.is_client_error() {
-      println!("response {}", response.text().await.unwrap());
-      return Err(Box::from(format!("bad request: {}", status_code)))
+      match response.json::<ApiError>().await {
+        Ok(err) => {
+          let err = serde_json::to_string(&err).unwrap();
+          return Err(Box::from(err))
+        }
+        Err(_) => {
+          return Err(Box::from(format!("bad request: {}", status_code)))
+        }
+      }
     }
 
     if !status_code.is_success() {
