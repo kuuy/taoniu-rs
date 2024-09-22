@@ -57,7 +57,7 @@ impl SpotCommand {
       Commands::Indicators(indicators) => indicators.run(ctx).await,
       Commands::Strategies(strategies) => strategies.run(ctx).await,
       Commands::Orders(orders) => orders.run(ctx).await,
-      Commands::Positions(positions) => positions.run(),
+      Commands::Positions(positions) => positions.run(ctx).await,
       Commands::Scalping(scalping) => scalping.run(ctx).await,
     }
   }
