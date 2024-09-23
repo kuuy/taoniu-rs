@@ -7,4 +7,5 @@ pub mod indicators;
 pub mod strategies;
 pub mod plans;
 pub mod positions;
+pub mod gambling;
 pub mod scalping;

@@ -1,12 +1,11 @@
 use axum::{
   extract::{State, Query},
-  routing::{get, post},
+  routing::get,
   http::StatusCode,
   Json, 
   Router,
 };
-use serde::{Deserialize, Serialize};
-use clap::{Parser};
+use serde::Deserialize;
 
 use crate::common::*;
 use crate::api::response::*;
@@ -29,7 +28,7 @@ impl TickersRouter {
     }
   }
 
-  pub async fn gets(
+  async fn gets(
     State(ctx): State<Ctx>,
     request: Query<GetsRequest>,
   ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {

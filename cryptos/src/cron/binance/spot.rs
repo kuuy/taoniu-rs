@@ -40,11 +40,11 @@ impl SpotScheduler {
 
   pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot scheduler dispatch");
-    TickersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    KlinesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    DepthScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    StrategiesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    OrdersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    let _ = TickersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    let _ = KlinesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    let _ = DepthScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    let _ = StrategiesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    let _ = OrdersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
     Ok(())
   }
 }

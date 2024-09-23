@@ -26,7 +26,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers pivot {symbol:} {interval:}");
-    IndicatorsRepository::pivot(ctx.clone(), symbol, interval).await?;
+    let _ = IndicatorsRepository::pivot(ctx.clone(), symbol, interval).await?;
 
     Ok(())
   }
@@ -39,7 +39,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers atr {symbol:} {interval:}");
-    IndicatorsRepository::atr(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::atr(ctx.clone(), symbol, interval, 14, 100).await;
 
     Ok(())
   }
@@ -52,7 +52,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers zlema {symbol:} {interval:}");
-    IndicatorsRepository::zlema(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::zlema(ctx.clone(), symbol, interval, 14, 100).await;
 
     Ok(())
   }
@@ -65,7 +65,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers ha zlema {symbol:} {interval:}");
-    IndicatorsRepository::ha_zlema(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::ha_zlema(ctx.clone(), symbol, interval, 14, 100).await;
 
     Ok(())
   }
@@ -78,7 +78,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers kdj {symbol:} {interval:}");
-    IndicatorsRepository::kdj(ctx.clone(), symbol, interval, 9, 3, 100).await;
+    let _ = IndicatorsRepository::kdj(ctx.clone(), symbol, interval, 9, 3, 100).await;
 
     Ok(())
   }
@@ -91,7 +91,7 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers bbands {symbol:} {interval:}");
-    IndicatorsRepository::bbands(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::bbands(ctx.clone(), symbol, interval, 14, 100).await;
 
     Ok(())
   }
@@ -106,13 +106,13 @@ impl IndicatorsWorker {
     println!("binance spot indicators nats workers ichimoku cloud {symbol:} {interval:}");
 
     if interval == "1m" {
-      IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 129, 374, 748, 1440).await;
+      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 129, 374, 748, 1440).await;
     } else if interval == "15m" {
-      IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 60, 174, 349, 672).await;
+      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 60, 174, 349, 672).await;
     } else if interval == "4h" {
-      IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 11, 32, 65, 126).await;
+      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 11, 32, 65, 126).await;
     } else {
-      IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 9, 26, 52, 100).await;
+      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 9, 26, 52, 100).await;
     }
 
     Ok(())
@@ -137,7 +137,7 @@ impl IndicatorsWorker {
     }
 
     println!("binance spot indicators nats workers volume profile {symbol:} {interval:}");
-    IndicatorsRepository::volume_profile(ctx.clone(), symbol, interval, limit).await;
+    let _ = IndicatorsRepository::volume_profile(ctx.clone(), symbol, interval, limit).await;
 
     Ok(())
   }
@@ -161,7 +161,7 @@ impl IndicatorsWorker {
     }
 
     println!("binance spot indicators nats workers andean oscillator {symbol:} {interval:}");
-    IndicatorsRepository::andean_oscillator(ctx.clone(), symbol, interval, 50, 9, limit).await;
+    let _ = IndicatorsRepository::andean_oscillator(ctx.clone(), symbol, interval, 50, 9, limit).await;
 
     Ok(())
   }
@@ -197,7 +197,7 @@ impl IndicatorsWorker {
     Self::andean_oscillator(ctx.clone(), symbol, interval).await?;
 
     let job = IndicatorsJob::new(ctx.clone());
-    job.update(symbol, interval).await;
+    let _ = job.update(symbol, interval).await;
 
     mutex.unlock().await.unwrap();
 

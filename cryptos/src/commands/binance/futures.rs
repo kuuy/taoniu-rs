@@ -7,6 +7,7 @@ use crate::commands::binance::futures::tickers::*;
 use crate::commands::binance::futures::klines::*;
 use crate::commands::binance::futures::indicators::*;
 use crate::commands::binance::futures::positions::*;
+use crate::commands::binance::futures::gambling::*;
 use crate::commands::binance::futures::scalping::*;
 
 pub mod account;
@@ -15,6 +16,7 @@ pub mod tickers;
 pub mod klines;
 pub mod indicators;
 pub mod positions;
+pub mod gambling;
 pub mod scalping;
 
 #[derive(Parser)]
@@ -31,6 +33,7 @@ enum Commands {
   Klines(KlinesCommand),
   Indicators(IndicatorsCommand),
   Positions(PositionsCommand),
+  Gambling(GamblingCommand),
   Scalping(ScalpingCommand),
 }
 
@@ -47,7 +50,8 @@ impl FuturesCommand {
       Commands::Tickers(tickers) => tickers.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,
       Commands::Indicators(indicators) => indicators.run(ctx).await,
-      Commands::Positions(positions) => positions.run(),
+      Commands::Positions(positions) => positions.run(ctx).await,
+      Commands::Gambling(gambling) => gambling.run(ctx).await,
       Commands::Scalping(scalping) => scalping.run(ctx).await,
     }
   }

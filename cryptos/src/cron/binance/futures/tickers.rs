@@ -31,7 +31,7 @@ impl TickersScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          Self::flush(ctx.clone()).await;
+          let _ = Self::flush(ctx.clone()).await;
         }
       })
     }));

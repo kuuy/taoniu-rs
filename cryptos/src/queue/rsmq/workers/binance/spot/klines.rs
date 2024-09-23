@@ -40,7 +40,7 @@ impl KlinesWorker {
 
     let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
     let timestamp = KlinesRepository::timestamp(interval);
-    KlinesRepository::flush(ctx.clone(), symbols.iter().map(String::as_ref).collect(), interval, timestamp).await;
+    let _ = KlinesRepository::flush(ctx.clone(), symbols.iter().map(String::as_ref).collect(), interval, timestamp).await;
 
     mutex.unlock().await.unwrap();
     Ok(())

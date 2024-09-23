@@ -9,6 +9,7 @@ use crate::commands::binance::spot::indicators::*;
 use crate::commands::binance::spot::strategies::*;
 use crate::commands::binance::spot::orders::*;
 use crate::commands::binance::spot::positions::*;
+use crate::commands::binance::spot::gambling::*;
 use crate::commands::binance::spot::scalping::*;
 
 pub mod account;
@@ -20,6 +21,7 @@ pub mod strategies;
 pub mod plans;
 pub mod orders;
 pub mod positions;
+pub mod gambling;
 pub mod scalping;
 pub mod tradings;
 
@@ -39,6 +41,7 @@ enum Commands {
   Strategies(StrategiesCommand),
   Orders(OrdersCommand),
   Positions(PositionsCommand),
+  Gambling(GamblingCommand),
   Scalping(ScalpingCommand),
 }
 
@@ -58,6 +61,7 @@ impl SpotCommand {
       Commands::Strategies(strategies) => strategies.run(ctx).await,
       Commands::Orders(orders) => orders.run(ctx).await,
       Commands::Positions(positions) => positions.run(ctx).await,
+      Commands::Gambling(gambling) => gambling.run(ctx).await,
       Commands::Scalping(scalping) => scalping.run(ctx).await,
     }
   }

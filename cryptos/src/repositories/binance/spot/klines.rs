@@ -250,7 +250,7 @@ impl KlinesRepository
 
       if success {
         let job = KlinesJob::new(ctx.clone());
-        job.update(symbol, interval).await;
+        let _ = job.update(symbol, interval).await;
       }
     }
     Ok(())

@@ -165,7 +165,7 @@ impl KlinesCommand {
           // tokio::io::stdout().write(&data).await.unwrap();
           match serde_json::from_slice::<KlineEvent>(&data) {
             Ok(event) => {
-              Self::process(ctx.clone(), event.data.message).await;
+              let _ = Self::process(ctx.clone(), event.data.message).await;
             }
             Err(err) => println!("error: {}", err)
           }

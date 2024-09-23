@@ -18,3 +18,9 @@ impl std::fmt::Display for ApiError {
 }
 
 impl std::error::Error for ApiError {}
+
+pub struct GamblingPlan {
+  pub take_price: f64,
+  pub take_quantity: f64,
+  pub take_amount: f64,
+}

@@ -27,7 +27,7 @@ impl SpotCommand {
     let nats = Nats::new().await.unwrap();
     let ctx = Ctx::new(rdb, rmq, pool, nats);
 
-    SpotWorkers::new(ctx).subscribe().await;
+    let _ = SpotWorkers::new(ctx).subscribe().await;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;

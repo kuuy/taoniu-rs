@@ -34,10 +34,10 @@ impl KlinesScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          Self::flush(ctx.clone(), "1m").await;
-          Self::flush(ctx.clone(), "15m").await;
-          Self::flush(ctx.clone(), "4h").await;
-          Self::flush(ctx.clone(), "1d").await;
+          let _ = Self::flush(ctx.clone(), "1m").await;
+          let _ = Self::flush(ctx.clone(), "15m").await;
+          let _ = Self::flush(ctx.clone(), "4h").await;
+          let _ = Self::flush(ctx.clone(), "1d").await;
         }
       })
     }));

@@ -25,7 +25,7 @@ impl AccountWorker {
           let _ = match client.receive_message::<String>(Config::RSMQ_QUEUE_ACCOUNT, None).await {
             Ok(Some(message)) => {
               println!("message received: {:?}", message);
-              client.delete_message(Config::RSMQ_QUEUE_ACCOUNT, &message.id).await;
+              let _ = client.delete_message(Config::RSMQ_QUEUE_ACCOUNT, &message.id).await;
             },
             Ok(None) => {
               tokio::time::sleep(std::time::Duration::from_millis(500)).await;

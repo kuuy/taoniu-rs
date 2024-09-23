@@ -41,7 +41,7 @@ impl OrdersScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          Self::sync(ctx.clone()).await;
+          let _ = Self::sync(ctx.clone()).await;
         }
       })
     }));
@@ -50,8 +50,8 @@ impl OrdersScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          Self::open(ctx.clone()).await;
-          Self::flush(ctx.clone()).await;
+          let _ = Self::open(ctx.clone()).await;
+          let _ = Self::flush(ctx.clone()).await;
         }
       })
     }));

@@ -8,5 +8,6 @@ pub mod strategies;
 pub mod plans;
 pub mod orders;
 pub mod positions;
+pub mod gambling;
 pub mod scalping;
 pub mod tradings;

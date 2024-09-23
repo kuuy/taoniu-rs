@@ -31,7 +31,7 @@ impl StrategiesScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          Self::clean(ctx.clone()).await;
+          let _ = Self::clean(ctx.clone()).await;
         }
       })
     }));

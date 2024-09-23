@@ -1,10 +1,4 @@
-use axum::{
-  routing::{get, post},
-  http::StatusCode,
-  Json,
-  Router,
-};
-use clap::{Parser};
+use axum::Router;
 
 use crate::common::*;
 use crate::api::jwt::*;
@@ -28,7 +22,6 @@ impl V1Router {
 
   pub fn routes(&self) -> Router {
     return Router::new()
-      .route("/foo", get(|| async { "Hi! v1 router" }))
       .nest("/tickers", TickersRouter::new(self.ctx.clone()).routes())
       .nest("/positions", PositionsRouter::new(self.ctx.clone()).routes())
       .layer(EncryptionLayer::new())

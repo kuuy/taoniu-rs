@@ -1,11 +1,10 @@
 use axum::{
-  routing::{get, post},
+  routing::get,
   http::StatusCode,
   Json, 
   Router,
 };
-use serde::{Deserialize, Serialize};
-use clap::{Parser};
+use serde::Serialize;
 
 use crate::common::*;
 use crate::api::response::*;

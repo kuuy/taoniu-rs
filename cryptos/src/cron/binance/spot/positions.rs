@@ -29,7 +29,7 @@ impl PositionsScheduler {
       Box::pin({
         let context = context.clone();
         async move {
-          Self::flush(context.clone()).await;
+          let _ = Self::flush(context.clone()).await;
         }
       })
     }));

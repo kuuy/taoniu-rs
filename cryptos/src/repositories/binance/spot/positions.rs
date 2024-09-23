@@ -101,33 +101,6 @@ impl PositionsRepository {
     buy_quantity.to_f64().unwrap()
   }
 
-  pub fn sell_quantity(
-    sell_amount: f64,
-    entry_price: f64,
-    entry_amount: f64,
-  ) -> f64 {
-    let mut ipart = entry_amount.floor() as i64;
-    let mut places = 1;
-    while ipart >= 10 {
-      places += 1;
-      ipart /= 10;
-    }
-
-    let sell_amount = Decimal::from_f64(sell_amount).unwrap();
-    let mut entry_price = Decimal::from_f64(entry_price).unwrap();
-    let mut entry_amount = Decimal::from_f64(entry_amount).unwrap();
-
-    let mut sell_quantity = dec!(0.0);
-    for i in 0..places {
-      let lost = entry_amount * dec!(0.0085);
-      entry_price = entry_price * dec!(1.0085);
-      sell_quantity = (sell_amount - lost) / entry_price;
-      entry_amount = entry_amount + lost;
-    }
-
-    sell_quantity.to_f64().unwrap()
-  }
-
   pub fn sell_price(entry_price: f64, entry_amount: f64) -> f64 {
     let mut ipart = entry_amount.floor() as i64;
     let mut places = 1;
