@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::futures::positions::*;
 
-#[derive(Queryable, Selectable, Insertable, Deserialize, Serialize, Debug)]
+#[derive(Queryable, Selectable, Insertable, Deserialize, Serialize, Clone, Debug)]
 #[diesel(table_name = positions)]
 pub struct Position {
   pub id: String,

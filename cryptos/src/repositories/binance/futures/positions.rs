@@ -20,6 +20,7 @@ impl PositionsRepository
   pub async fn get<T>(
     ctx: Ctx,
     symbol: T,
+    side: i32,
   ) -> Result<Option<Position>, Box<dyn std::error::Error>>
   where
     T: AsRef<str>
@@ -32,6 +33,8 @@ impl PositionsRepository
     match positions::table
       .select(Position::as_select())
       .filter(positions::symbol.eq(symbol))
+      .filter(positions::side.eq(side))
+      .filter(positions::status.eq(1))
       .first(&mut conn) {
       Ok(position) => Ok(Some(position)),
       Err(diesel::result::Error::NotFound) => Ok(None),
@@ -82,7 +85,8 @@ impl PositionsRepository
   pub async fn update<V>(
     ctx: Ctx,
     id: String,
-    value: V,
+    version: i64,
+    values: V,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
     V: diesel::AsChangeset<Target = positions::table>,
@@ -90,7 +94,10 @@ impl PositionsRepository
   {
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
-    match diesel::update(positions::table.find(id)).set(value).execute(&mut conn) {
+    match diesel::update(positions::table.find(id))
+      .filter(positions::version.eq(version))
+      .set(values)
+      .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(e) => Err(e.into()),
     }

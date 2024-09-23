@@ -4,12 +4,18 @@ use std::collections::HashMap;
 use url::Url;
 use sha2::Sha256;
 use hmac::{Hmac, Mac};
-use serde::{Deserialize, Deserializer};
 use chrono::prelude::Utc;
+use diesel::prelude::*;
+use diesel::query_builder::QueryFragment;
+use diesel::ExpressionMethods;
 use reqwest::header;
 use redis::AsyncCommands;
+use serde::{Deserialize, Deserializer};
 
 use crate::common::*;
+use crate::repositories::binance::futures::positions::*;
+use crate::models::binance::futures::position::*;
+use crate::schema::binance::futures::positions::*;
 use crate::config::binance::futures::config as Config;
 
 pub struct AccountRepository {}
@@ -17,7 +23,7 @@ pub struct AccountRepository {}
 #[derive(Deserialize)]
 struct AccountInfo {
   assets: Vec<Asset>,
-  positions: Vec<Position>,
+  positions: Vec<AccountPosition>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -38,7 +44,7 @@ struct Asset {
 }
 
 #[derive(Debug, Deserialize)]
-struct Position {
+struct AccountPosition {
   symbol: String,
   #[serde(alias = "positionSide")]
   position_side: String,
@@ -71,14 +77,6 @@ where
 {
   let s: &str = Deserialize::deserialize(deserializer)?;
   s.parse::<i32>().map_err(serde::de::Error::custom)
-}
-
-fn to_i64<'de, D>(deserializer: D) -> Result<i64, D::Error>
-where
-  D: Deserializer<'de>,
-{
-  let s: &str = Deserialize::deserialize(deserializer)?;
-  s.parse::<i64>().map_err(serde::de::Error::custom)
 }
 
 impl AccountRepository {
@@ -169,12 +167,92 @@ impl AccountRepository {
         continue
       }
 
-      if position.position_side != "LONG" || position.position_side != "SHORT" {
+      if position.position_side != "LONG" && position.position_side != "SHORT" {
         continue
       }
-    }
 
-    println!("account flush");
+      let mut side: i32 = 1;
+      if position.position_side == "SHORT" {
+        side = 2;
+      }
+      let mut entry_quantity = position.entry_quantity;
+
+      if side == 1 && entry_quantity < 0.0 {
+        entry_quantity = 0.0;
+      }
+      if side == 2 && entry_quantity > 0.0 {
+        entry_quantity = 0.0;
+      }
+      if entry_quantity < 0.0 {
+        entry_quantity = -entry_quantity;
+      }
+
+      let mut entity: Option<Position> = None;
+      match PositionsRepository::get(ctx.clone(), position.symbol.clone(), side).await {
+        Ok(Some(result)) => {
+          entity = Some(result);
+        },
+        Ok(None) => {},
+        Err(e) => return Err(e.into()),
+      }
+      let mut success = false;
+      if entity.is_none() {
+        if entry_quantity == 0.0 {
+          continue
+        }
+        let id = xid::new().to_string();
+        match PositionsRepository::create(
+          ctx.clone(), 
+          id,
+          position.symbol.clone(),
+          side,
+          position.leverage,
+          position.capital,
+          position.notional,
+          position.entry_price,
+          entry_quantity,
+          Utc::now().timestamp_micros(),
+          1,
+        ).await {
+          Ok(result) => {
+            if result {
+              success = result;
+            }
+            println!("binance futures position {0:} {side:} create success {result:}", position.symbol);
+          }
+          Err(e) => {
+            println!("binance futures position {0:} {side:} create failed {e:?}", position.symbol)
+          },
+        }
+      } else {
+        let entity = entity.clone().unwrap();
+        if entity.entry_price == position.entry_price && entity.entry_quantity == entry_quantity {
+          continue
+        }
+        match PositionsRepository::update(
+          ctx.clone(),
+          entity.id,
+          entity.version,
+          (
+            positions::leverage.eq(position.leverage),
+            positions::capital.eq(position.capital),
+            positions::notional.eq(position.notional),
+            positions::entry_price.eq(position.entry_price),
+            positions::entry_quantity.eq(entry_quantity),
+            positions::timestamp.eq(Utc::now().timestamp_micros()),
+            positions::version.eq(positions::version + 1),
+          ),
+        ).await {
+          Ok(result) => {
+            success = result;
+            println!("binance futures kline {0:} {side:} update success {result:}", position.symbol);
+          }
+          Err(e) => {
+            println!("binance futures kline {0:} {side:} update failed {e:?}", position.symbol)
+          },
+        }
+      }
+    }
     Ok(())
   }
 }
