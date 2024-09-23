@@ -4,8 +4,11 @@ use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
 
 use crate::common::*;
+use crate::commands::binance::futures::gambling::ant::*;
 use crate::repositories::binance::futures::symbols::*;
 use crate::repositories::binance::futures::gambling::*;
+
+pub mod ant;
 
 #[derive(Parser)]
 pub struct GamblingCommand {
@@ -15,6 +18,7 @@ pub struct GamblingCommand {
 
 #[derive(Subcommand)]
 enum Commands {
+  Ant(AntCommand),
   /// gambling calc
   Calc(CalcArgs),
 }
@@ -40,7 +44,7 @@ impl GamblingCommand {
     entry_price: f64,
     entry_quantity: f64,
   ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance futures gambling calc");
+    println!("binance futures gambling ant calc");
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let entry_quantity = Decimal::from_f64(entry_quantity).unwrap();
 
@@ -115,7 +119,7 @@ impl GamblingCommand {
         }
         plan_price = plan_take_price;
         plan_quantity -= plan_take_quantity;
-        plan_amount -= plan_take_amount;
+        plan_amount += plan_take_amount;
         plan_profit += take_profit;
         println!("plan {} {} {} {} {}", plan_take_price, plan_take_quantity, take_profit, plan_amount, plan_profit);
       }
@@ -144,6 +148,7 @@ impl GamblingCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
+      Commands::Ant(ant) => ant.run(ctx).await,
       Commands::Calc(args) => self.calc(
         ctx.clone(),
         args.symbol.clone(),
