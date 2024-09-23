@@ -96,7 +96,7 @@ impl KlinesCommand {
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
     let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
     rdb.hset_multiple(
-      &redis_key[..],
+      &redis_key,
       &[
         ("symbol", message.symbol),
         ("open", message.open.to_string()),

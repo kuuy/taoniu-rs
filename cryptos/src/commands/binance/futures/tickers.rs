@@ -17,8 +17,16 @@ impl Default for TickersCommand {
 
 #[derive(Subcommand)]
 enum Commands {
+  /// tickers price
+  Price(PriceArgs),
   /// tickers flush
   Flush,
+}
+
+#[derive(Args)]
+struct PriceArgs {
+  /// symbol
+  symbol: String,
 }
 
 impl TickersCommand {
@@ -26,6 +34,19 @@ impl TickersCommand {
     Self {
       ..Default::default()
     }
+  }
+  
+  async fn price(&self, ctx: Ctx, symbol: String) -> Result<(), Box<dyn std::error::Error>> {
+    println!("tickers price {symbol:}");
+    let price = match TickersRepository::price(
+      ctx,
+      &symbol,
+    ).await {
+      Ok(price) => price,
+      Err(e) => return Err(e.into()),
+    };
+    println!("price {}", price);
+    Ok(())
   }
 
   async fn flush(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
@@ -40,6 +61,7 @@ impl TickersCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
+      Commands::Price(args) => self.price(ctx.clone(), args.symbol.clone()).await,
       Commands::Flush => self.flush(ctx.clone()).await,
     }
   }

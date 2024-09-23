@@ -1,9 +1,50 @@
+use chrono::{DateTime, Utc, Local, Timelike};
+use redis::AsyncCommands;
+
 use crate::common::*;
+use crate::config::binance::spot::config as Config;
 
 #[derive(Default)]
 pub struct TickersRepository {}
 
 impl TickersRepository {
+  pub async fn price<T>(
+    ctx: Ctx,
+    symbol: T,
+  ) -> Result<f64, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+
+    let timestamp = Utc::now().timestamp_millis();
+    let redis_key = format!("{}:{}", Config::REDIS_KEY_TICKERS, symbol);
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+    let fields = vec!["price", "timestamp"];
+
+    let (price, lasttime): (Option<f64>, Option<i64>) = match redis::cmd("HMGET")
+      .arg(&redis_key)
+      .arg(&fields)
+      .query_async(&mut rdb)
+      .await
+    {
+      Ok((Some(price), Some(lasttime))) => (price, lasttime),
+      Ok(_) => return Err(Box::from(format!("ticker of {symbol:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+
+    let price = price.unwrap();
+    let lasttime = lasttime.unwrap();
+
+    if timestamp-lasttime > 30000 {
+      rdb.zadd(Config::REDIS_KEY_TICKERS_FLUSH, symbol, timestamp).await?;
+      return Err(Box::from(format!("ticker of {symbol:} has been expired")))
+    }
+
+    Ok(price)
+  }
+
   pub async fn ranking<T>(
     ctx: Ctx,
     symbols: Vec<T>,

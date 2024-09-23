@@ -106,7 +106,11 @@ impl PositionsCommand {
 
     loop {
       let mut capital = dec!(0.0);
-      let _ = match PositionsRepository::capital(max_capital.to_f64().unwrap(), entry_amount.to_f64().unwrap(), places) {
+      let _ = match PositionsRepository::capital(
+        max_capital.to_f64().unwrap(),
+        entry_amount.to_f64().unwrap(),
+        places,
+      ) {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
         },
