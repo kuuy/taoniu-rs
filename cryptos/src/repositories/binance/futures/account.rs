@@ -5,8 +5,6 @@ use url::Url;
 use sha2::Sha256;
 use hmac::{Hmac, Mac};
 use chrono::prelude::Utc;
-use diesel::prelude::*;
-use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use reqwest::header;
 use redis::AsyncCommands;
@@ -161,7 +159,6 @@ impl AccountRepository {
 
     pipe.query_async(&mut rdb).await?;
 
-    let mut ids: Vec<String> = Vec::new();
     for position in account_info.positions.iter() {
       if position.isolated || position.update_time == 0 {
         continue
@@ -195,7 +192,6 @@ impl AccountRepository {
         Ok(None) => {},
         Err(e) => return Err(e.into()),
       }
-      let mut success = false;
       if entity.is_none() {
         if entry_quantity == 0.0 {
           continue
@@ -215,9 +211,6 @@ impl AccountRepository {
           1,
         ).await {
           Ok(result) => {
-            if result {
-              success = result;
-            }
             println!("binance futures position {0:} {side:} create success {result:}", position.symbol);
           }
           Err(e) => {
@@ -244,7 +237,6 @@ impl AccountRepository {
           ),
         ).await {
           Ok(result) => {
-            success = result;
             println!("binance futures kline {0:} {side:} update success {result:}", position.symbol);
           }
           Err(e) => {
@@ -253,6 +245,7 @@ impl AccountRepository {
         }
       }
     }
+
     Ok(())
   }
 }

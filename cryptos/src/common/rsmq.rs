@@ -1,5 +1,5 @@
 use redis::aio::MultiplexedConnection;
-use rsmq_async::{RsmqError, RsmqConnection};
+use rsmq_async::RsmqError;
 
 pub struct Rsmq {}
 

@@ -29,8 +29,9 @@ impl SymbolsRepository {
     }
   }
 
-  pub fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols flush");
+    let _ = ctx.clone();
     if 1 > 0 {
       return Err(Box::from("symbols repository flush failed"))
     }

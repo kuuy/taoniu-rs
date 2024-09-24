@@ -1,9 +1,7 @@
 use std::task::{Context, Poll};
 
 use axum::{
-  body::Body,
-  http::{Request, StatusCode},
-  response::Response,
+  http::Request,
 };
 use tower::{Layer, Service};
 
@@ -45,7 +43,7 @@ where
   }
 
   #[inline]
-  fn call(&mut self, mut request: Request<Body>) -> Self::Future {
+  fn call(&mut self, request: Request<Body>) -> Self::Future {
     println!("Hi jwe middleware");
     self.inner.call(request)
   }

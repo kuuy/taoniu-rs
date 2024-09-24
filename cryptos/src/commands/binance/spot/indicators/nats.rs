@@ -1,9 +1,6 @@
-use std::time::Duration;
-
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
 use crate::queue::nats::jobs::binance::spot::indicators::*;
 
 #[derive(Parser)]
@@ -42,6 +39,7 @@ impl NatsCommand {
 
   async fn subscribe(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot indicators nats subscribe");
+    let _ = ctx.clone();
     Ok(())
   }
 

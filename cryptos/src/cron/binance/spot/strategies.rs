@@ -20,6 +20,7 @@ impl StrategiesScheduler {
 
   pub async fn clean(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot strategies scheduler clean");
+    let _ = ctx.clone();
     Ok(())
   }
 

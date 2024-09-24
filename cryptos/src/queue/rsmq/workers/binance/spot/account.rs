@@ -1,5 +1,4 @@
-use futures_util::StreamExt;
-use rsmq_async::{RsmqMessage, RsmqConnection};
+use rsmq_async::RsmqConnection;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;

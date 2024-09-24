@@ -18,6 +18,7 @@ impl PositionsScheduler {
 
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot positions scheduler flush");
+    let _ = ctx.clone();
     Ok(())
   }
 

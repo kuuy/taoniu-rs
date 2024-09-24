@@ -1,9 +1,6 @@
-use diesel::prelude::*;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use rust_decimal::MathematicalOps;
 
-use crate::common::*;
 use crate::repositories::binance::*;
 
 #[derive(Default)]
@@ -51,7 +48,7 @@ impl GamblingRepository {
     let mut entry_amount = Decimal::from_f64(entry_amount).unwrap();
 
     let mut buy_quantity = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       let lost = entry_amount * dec!(0.0085);
       if side == 1 {
         entry_price = entry_price * dec!(0.9915);
@@ -80,7 +77,7 @@ impl GamblingRepository {
 
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let mut sell_price = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       if side == 1 {
         sell_price = entry_price * dec!(1.0085);
       } else {
@@ -99,7 +96,7 @@ impl GamblingRepository {
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let tick_size = Decimal::from_f64(tick_size).unwrap();
 
-    let mut take_price = dec!(0.0);
+    let take_price;
     if side == 1 {
       take_price = (entry_price * dec!(1.0344) / tick_size).ceil() * tick_size;
     } else {
@@ -117,7 +114,7 @@ impl GamblingRepository {
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let tick_size = Decimal::from_f64(tick_size).unwrap();
 
-    let mut stop_price = dec!(0.0);
+    let stop_price;
     if side == 1 {
       stop_price = (entry_price * dec!(0.9828) / tick_size).floor() * tick_size;
     } else {
@@ -141,16 +138,13 @@ impl GamblingRepository {
 
     let entry_amount = entry_price * entry_quantity;
 
-    let mut take_price = dec!(0.0);
-    let mut take_quantity = dec!(0.0);
-    let mut take_amount = dec!(0.0);
     let mut plans = Vec::new();
     for factor in Self::factors(side, entry_amount.to_f64().unwrap()).iter() {
       let price_factor = Decimal::from_f64(factor[0]).unwrap();
       let quantity_factor = Decimal::from_f64(factor[1]).unwrap();
-      take_quantity = entry_quantity * quantity_factor;
+      let mut take_quantity = entry_quantity * quantity_factor;
       take_quantity = (take_quantity / step_size).ceil() * step_size;
-      take_price = entry_price * price_factor;
+      let mut take_price = entry_price * price_factor;
       if side == 1 {
         take_price = (take_price / tick_size).ceil() * tick_size;
       } else {
@@ -160,7 +154,7 @@ impl GamblingRepository {
         break
       }
       entry_quantity = entry_quantity - take_quantity;
-      take_amount = take_price * take_quantity;
+      let take_amount = take_price * take_quantity;
       plans.push(GamblingPlan{
         take_price: take_price.to_f64().unwrap(),
         take_quantity: take_quantity.to_f64().unwrap(),

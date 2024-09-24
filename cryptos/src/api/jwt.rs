@@ -3,13 +3,10 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use axum::{
-  body::Body,
-  http::{Request, StatusCode},
-  response::Response,
+  http::Request,
 };
 use tower::{Layer, Service};
 
-use crate::api::response::*;
 use crate::repositories::auth::token::*;
 
 #[derive(Clone)]
@@ -51,10 +48,8 @@ where
   }
 
   #[inline]
-  fn call(&mut self, mut request: Request<Body>) -> Self::Future {
-    let bearer = request.headers().get("Authorization")
-      .and_then(|header| header.to_str().ok());
-    let is_authorized = match request.headers().get("Authorization")
+  fn call(&mut self, request: Request<Body>) -> Self::Future {
+    let _ = match request.headers().get("Authorization")
       .and_then(|header| header.to_str().ok()) {
       Some(bearer) => {
         if bearer.starts_with("Taoniu") {

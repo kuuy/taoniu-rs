@@ -1,7 +1,6 @@
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::futures::scalping::*;
 use crate::schema::binance::futures::scalping::*;
 
 #[derive(Default)]

@@ -1,7 +1,6 @@
 use clap::{Parser, Args, Subcommand};
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use rust_decimal::MathematicalOps;
 
 use crate::common::*;
 use crate::repositories::binance::futures::symbols::*;
@@ -69,11 +68,10 @@ impl AntCommand {
     let mut plan_quantity = entry_quantity;
     let mut plan_amount = entry_amount;
     let mut plan_profit = dec!(0.0);
-    let mut last_price = dec!(0.0);
+    let mut last_price;
     let mut last_profit = dec!(0.0);
-    let mut take_profit = dec!(0.0);
-
     let mut quantities = Vec::new();
+
     loop {
       let plans = GamblingRepository::calc(
         side,
@@ -82,11 +80,11 @@ impl AntCommand {
         tick_size.to_f64().unwrap(),
         step_size.to_f64().unwrap(),
       );
+
       for plan in plans.iter() {
         let plan_take_price = Decimal::from_f64(plan.take_price).unwrap();
         let plan_take_quantity = Decimal::from_f64(plan.take_quantity).unwrap();
-        let plan_take_amount = Decimal::from_f64(plan.take_amount).unwrap();
- 
+
         if plan_take_quantity < step_size {
           if side == 1 {
             last_profit = (take_price - entry_price) * plan_quantity;
@@ -103,17 +101,13 @@ impl AntCommand {
           last_profit = (entry_price - take_price) * plan_quantity;
           break
         }
-        if side == 1 {
-          take_profit = (plan_take_price - entry_price) * plan_take_quantity;
-        } else {
-          take_profit = (entry_price - plan_take_price) * plan_take_quantity;
-        }
         plan_price = plan_take_price;
         plan_quantity -= plan_take_quantity;
         quantities.push(plan.take_quantity);
       }
+
       if plans.is_empty() || last_profit > dec!(0.0) {
-        break;
+        break
       }
     }
 
@@ -123,10 +117,8 @@ impl AntCommand {
     }
 
     for quantity in quantities.into_iter() {
-      let last_quantitiy = Decimal::from_f64(quantity).unwrap();
-
       plan_price = take_price;
-      plan_quantity = last_quantitiy;
+      plan_quantity = Decimal::from_f64(quantity).unwrap();
       last_price = take_price;
       take_price = Decimal::from_f64(
         GamblingRepository::take_price(
@@ -135,7 +127,9 @@ impl AntCommand {
           tick_size.to_f64().unwrap(),
         )
       ).unwrap();
+
       last_profit = dec!(0.0);
+
       loop {
         let plans = GamblingRepository::calc(
           side,
@@ -165,6 +159,7 @@ impl AntCommand {
             last_profit = (entry_price - take_price) * plan_quantity;
             break
           }
+          let take_profit;
           if side == 1 {
             take_profit = (plan_take_price - entry_price) * plan_take_quantity;
           } else {
@@ -180,7 +175,9 @@ impl AntCommand {
           break;
         }
       }
+
       if plan_quantity > dec!(0.0) {
+        let take_profit;
         if side == 1 {
           take_profit = (take_price - entry_price) * plan_quantity;
         } else {

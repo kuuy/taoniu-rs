@@ -1,8 +1,7 @@
 use diesel::prelude::*;
-use chrono::{DateTime, Utc, Local, Timelike};
+use chrono::Local;
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
 use crate::schema::binance::spot::symbols::*;
 use crate::models::binance::spot::symbol::Filters;
 
@@ -20,10 +19,13 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
+    let _ = ctx.clone();
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let day = Local::now().format("%m%d").to_string();
+    let _ = Local::now().format("%m%d").to_string();
+
+    println!("atr {symbol:} {interval:} {period:} {limit:}");
 
     Ok(())
   }

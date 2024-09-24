@@ -1,7 +1,6 @@
 use clap::{Parser, Args, Subcommand};
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use rust_decimal::MathematicalOps;
 
 use crate::common::*;
 use crate::commands::binance::futures::gambling::ant::*;
@@ -81,7 +80,7 @@ impl GamblingCommand {
     let mut plan_amount = entry_amount;
     let mut plan_profit = dec!(0.0);
     let mut last_profit = dec!(0.0);
-    let mut take_profit = dec!(0.0);
+    let mut take_profit;
 
     loop {
       let plans = GamblingRepository::calc(

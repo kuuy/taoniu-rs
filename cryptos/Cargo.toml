@@ -19,6 +19,7 @@ erased-serde = "0.4.5"
 futures-util = "0.3.30"
 hex = "0.4.3"
 hmac = "0.12.1"
+home = "0.5.9"
 josekit = "0.8.7"
 log = "0.4.22"
 redis = { version = "0.25.4", features = ["tokio-comp"] }

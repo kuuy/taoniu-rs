@@ -1,9 +1,6 @@
-use diesel::prelude::*;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
-
-use crate::common::*;
 
 #[derive(Default)]
 pub struct PositionsRepository {}
@@ -91,7 +88,7 @@ impl PositionsRepository {
     let mut entry_amount = Decimal::from_f64(entry_amount).unwrap();
 
     let mut buy_quantity = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       let lost = entry_amount * dec!(0.0085);
       entry_price = entry_price * dec!(0.9915);
       buy_quantity = (buy_amount + lost) / entry_price;
@@ -111,7 +108,7 @@ impl PositionsRepository {
 
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let mut sell_price = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       sell_price = entry_price * dec!(1.0085);
     }
 
@@ -140,7 +137,6 @@ impl PositionsRepository {
       ipart /= 10;
     }
 
-    let mut capital = dec!(0.0);
     let price = Decimal::from_f64(price).unwrap();
     let mut entry_price = Decimal::from_f64(entry_price).unwrap();
     let mut entry_quantity = Decimal::from_f64(entry_quantity).unwrap();
@@ -148,16 +144,17 @@ impl PositionsRepository {
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
 
-    let mut buy_price = dec!(0.0);
-    let mut buy_quantity = dec!(0.0);
-    let mut buy_amount = dec!(0.0);
+    let mut capital;
+    let mut buy_price;
+    let mut buy_quantity;
+    let mut buy_amount;
 
     loop {
       let _ = match Self::capital(max_capital, entry_amount.to_f64().unwrap(), places) {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
         },
-        Err(e) => return Err(e.into())
+        Err(_) => break
       };
       let ratio = Decimal::from_f64(
         Self::ratio(

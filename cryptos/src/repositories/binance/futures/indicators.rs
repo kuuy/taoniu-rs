@@ -5,12 +5,11 @@ use std::collections::HashMap;
 use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_STOCH, TA_BBANDS, TA_RetCode};
 
 use diesel::prelude::*;
-use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
-use chrono::{DateTime, Utc, Local, Timelike};
+use chrono::{prelude::Utc, DateTime, Local, Timelike};
 
 use redis::AsyncCommands;
 
@@ -828,13 +827,8 @@ impl IndicatorsRepository {
         return Err(Box::from(format!("[{symbol:}] {interval:} klines lost")))
       }
 
-      let avg_price = avg_price.to_f64().unwrap();
-      let high = high.to_f64().unwrap();
-      let low = low.to_f64().unwrap();
-
-      avg_prices.push(avg_price);
-
       last_timestamp = timestamp;
+      avg_prices.push(avg_price.to_f64().unwrap());
     }
 
     let dt = DateTime::from_timestamp_millis(first_timestamp).unwrap();
@@ -842,8 +836,6 @@ impl IndicatorsRepository {
       return Err(Box::from(format!("[{symbol:}] {interval:} timestamp is not today")))
     }
     let day = Local::now().format("%m%d").to_string();
-
-    let result: String;
 
     let tenkan_period = tenkan_period as usize;
     let kijun_period = kijun_period as usize;
@@ -1056,7 +1048,7 @@ impl IndicatorsRepository {
             item.prices[1] = *avg_price;
           }
 
-          if let Some(position) = item.offsets.iter().position(|&r| r == offsets[i]) {
+          if let Some(_) = item.offsets.iter().position(|&r| r == offsets[i]) {
             item.volume += volumes[i];
           } else {
             item.offsets.push(offsets[i]);

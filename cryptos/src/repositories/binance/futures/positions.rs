@@ -1,12 +1,9 @@
-use std::ops::Sub;
-use std::time::Duration;
-
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use chrono::{prelude::Utc, Timelike};
+use chrono::prelude::Utc;
 
 use crate::common::*;
 use crate::models::binance::futures::position::*;
@@ -186,7 +183,7 @@ impl PositionsRepository
     let mut entry_amount = Decimal::from_f64(entry_amount).unwrap();
 
     let mut buy_quantity = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       let lost = entry_amount * dec!(0.0085);
       if side == 1 {
         entry_price = entry_price * dec!(0.9915);
@@ -215,7 +212,7 @@ impl PositionsRepository
 
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let mut sell_price = dec!(0.0);
-    for i in 0..places {
+    for _ in 0..places {
       if side == 1 {
         sell_price = entry_price * dec!(1.0085);
       } else {
@@ -234,13 +231,13 @@ impl PositionsRepository
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let tick_size = Decimal::from_f64(tick_size).unwrap();
 
-    let mut take_price = dec!(0.0);
+    let take_price;
     if side == 1 {
       take_price = (entry_price * dec!(1.02) / tick_size).ceil() * tick_size;
     } else {
       take_price = (entry_price * dec!(0.98) / tick_size).floor() * tick_size;
     }
-    
+
     take_price.to_f64().unwrap()
   }
 
@@ -260,7 +257,6 @@ impl PositionsRepository
       ipart /= 10;
     }
 
-    let mut capital = dec!(0.0);
     let price = Decimal::from_f64(price).unwrap();
     let mut entry_price = Decimal::from_f64(entry_price).unwrap();
     let mut entry_quantity = Decimal::from_f64(entry_quantity).unwrap();
@@ -268,16 +264,16 @@ impl PositionsRepository
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
 
-    let mut buy_price = dec!(0.0);
-    let mut buy_quantity = dec!(0.0);
-    let mut buy_amount = dec!(0.0);
-
+    let mut capital;
+    let mut buy_price;
+    let mut buy_quantity;
+    let mut buy_amount;
     loop {
       let _ = match Self::capital(max_capital, entry_amount.to_f64().unwrap(), places) {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
         },
-        Err(e) => return Err(e.into())
+        Err(_) => break
       };
       let ratio = Decimal::from_f64(
         Self::ratio(
@@ -319,7 +315,7 @@ impl PositionsRepository
     }
 
     let stop_amount = entry_amount * dec!(0.1);
-    let mut stop_price = dec!(0.0);
+    let mut stop_price;
     if side == 1 {
       stop_price = entry_price - (stop_amount / entry_quantity);
       stop_price = (stop_price / tick_size).floor() * tick_size;

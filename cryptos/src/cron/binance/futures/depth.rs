@@ -20,6 +20,7 @@ impl DepthScheduler {
 
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures depth scheduler flush");
+    let _ = ctx.clone();
     Ok(())
   }
 

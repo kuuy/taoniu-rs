@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{prelude::Utc, DateTime};
 use diesel::{Queryable, Selectable};
 use diesel_as_jsonb::AsJsonb;
 use serde::{Deserialize, Serialize};

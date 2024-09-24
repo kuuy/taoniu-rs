@@ -1,5 +1,4 @@
 use std::sync::Arc;
-use std::marker::PhantomData;
 use tokio::sync::{Mutex, RwLock};
 
 use redis::aio::MultiplexedConnection;

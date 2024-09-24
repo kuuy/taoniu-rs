@@ -2,9 +2,10 @@ use std::time::Duration;
 use std::collections::HashMap;
 
 use url::Url;
+use base64::{engine::general_purpose, Engine as _};
 use sha2::{Digest, Sha256};
 use hmac::{Hmac, Mac};
-use chrono::{prelude::Utc, Timelike};
+use chrono::prelude::Utc;
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
 use diesel::ExpressionMethods;
@@ -192,11 +193,11 @@ impl OrdersRepository {
       rsa::pkcs1v15::Pkcs1v15Sign::new::<rsa::sha2::Sha256>(),
       &Sha256::digest(payload.as_bytes()),
     )?;
-    let signature = base64::encode(signature);
+    let signature = general_purpose::STANDARD.encode(signature);
 
     params.insert("signature", &signature);
 
-    let mut url = Url::parse(format!("{}/api/v3/order", Env::var("BINANCE_SPOT_API_ENDPOINT")).as_str())?;
+    let url = Url::parse(format!("{}/api/v3/order", Env::var("BINANCE_SPOT_API_ENDPOINT")).as_str())?;
 
     let mut headers = header::HeaderMap::new();
     headers.insert("X-MBX-APIKEY", Env::var("BINANCE_SPOT_TRADE_API_KEY").parse().unwrap());
@@ -237,29 +238,24 @@ impl OrdersRepository {
     let trade = response.json::<TradeInfo>().await.unwrap();
     println!("response {:?}", trade.order_id);
 
-    let mut success = false;
-
     let id = xid::new().to_string();
     match Self::create(
       ctx.clone(),
       id,
-      symbol.to_owned(),
+      trade.symbol.to_owned(),
       trade.order_id,
       trade.order_type.clone(),
-      side.to_owned(),
-      price,
+      trade.side.to_owned(),
+      trade.price,
       0.0,
-      quantity,
-      0.0,
+      trade.quantity,
+      trade.executed_quantity,
       trade.transact_time,
       0,
       trade.status.clone(),
       "".to_owned(),
     ).await {
       Ok(result) => {
-        if result {
-          success = result;
-        }
         println!("binance spot order {0:} {1:} create success {result:}", symbol, trade.order_id);
       }
       Err(e) => {
@@ -338,7 +334,6 @@ impl OrdersRepository {
         Ok(None) => {},
         Err(e) => return Err(e.into()),
       }
-      let mut success = false;
       if entity.is_none() {
         let id = xid::new().to_string();
         match Self::create(
@@ -358,9 +353,6 @@ impl OrdersRepository {
           "".to_string(),
         ).await {
           Ok(result) => {
-            if result {
-              success = result;
-            }
             println!("binance spot order {0:} {1:} create success {result:}", order.symbol, order.order_id);
           }
           Err(e) => {
@@ -369,17 +361,27 @@ impl OrdersRepository {
         }
       } else {
         let entity = entity.unwrap();
+        if entity.price == order.price
+          && entity.stop_price == order.stop_price
+          && entity.quantity == order.quantity
+          && entity.executed_quantity == order.executed_quantity
+          && entity.update_time == order.update_time
+          && entity.status == order.status {
+          continue
+        }
         match Self::update(
           ctx.clone(),
           entity.id,
           (
+            orders::price.eq(order.price.clone()),
+            orders::stop_price.eq(order.stop_price.clone()),
+            orders::quantity.eq(order.quantity.clone()),
             orders::executed_quantity.eq(order.executed_quantity.clone()),
             orders::update_time.eq(order.update_time.clone()),
             orders::status.eq(order.status.clone()),
           ),
         ).await {
           Ok(result) => {
-            success = result;
             println!("binance spot order {0:} {1:} update success {result:}", order.symbol, order.order_id);
           }
           Err(e) => {

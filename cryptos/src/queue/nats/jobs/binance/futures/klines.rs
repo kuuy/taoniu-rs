@@ -1,6 +1,3 @@
-use futures_util::StreamExt;
-use rsmq_async::{RsmqError, RsmqConnection};
-
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
 use crate::queue::nats::payload::binance::futures::klines::*;

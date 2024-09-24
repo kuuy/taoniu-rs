@@ -1,7 +1,7 @@
 use std::time::SystemTime;
 
 use josekit::{
-  jwe::{self, Dir, A128GCMKW},
+  jwe::{self, Dir},
   jws::{JwsHeader, RS256},
   jwt::{self, JwtPayload},
 };
@@ -28,14 +28,14 @@ impl TokenRepository
 
     let jwt_key = Env::var("JWT_KEY");
     let decrypter = Dir.decrypter_from_bytes(&jwt_key)?;
-    let (payload, header) = jwe::deserialize_compact(&token, &decrypter)?;
+    let (payload, _) = jwe::deserialize_compact(&token, &decrypter)?;
 
-    let public_key = std::fs::read(std::env::home_dir().unwrap().join(".ssh/jwt_rsa.pub")).unwrap();
+    let public_key = std::fs::read(home::home_dir().unwrap().join(".ssh/jwt_rsa.pub")).unwrap();
     let verifier = RS256.verifier_from_pem(&public_key)?;
-    let (payload, header) = jwt::decode_with_verifier(&payload, &verifier)?;
+    let (payload, _) = jwt::decode_with_verifier(&payload, &verifier)?;
 
     let now = SystemTime::now();
-    let expires_at = match payload.expires_at() {
+    let _ = match payload.expires_at() {
       Some(expires_at) => {
         if expires_at <= now {
           return Err(Box::from("token has been expired"))
@@ -53,6 +53,7 @@ impl TokenRepository
       },
       None => return Err(Box::from("invalid token"))
     };
+
     Ok(uid.into())
   }
 }

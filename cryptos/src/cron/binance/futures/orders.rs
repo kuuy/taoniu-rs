@@ -20,16 +20,19 @@ impl OrdersScheduler {
 
   pub async fn open(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures orders scheduler open");
+    let _ = ctx.clone();
     Ok(())
   }
 
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures orders scheduler flush");
+    let _ = ctx.clone();
     Ok(())
   }
 
   pub async fn sync(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures orders scheduler sync");
+    let _ = ctx.clone();
     Ok(())
   }
 

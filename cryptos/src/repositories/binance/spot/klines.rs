@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::ops::Sub;
 use std::time::Duration;
 
@@ -88,7 +87,7 @@ impl KlinesRepository
       .arg(fields.as_slice())
       .invoke_async::<_, Vec<redis::Value>>(&mut rdb).await {
       Ok(values) => {
-        values.iter().enumerate().for_each(|(i, value)| {
+        values.iter().enumerate().for_each(|(_, value)| {
           if let redis::Value::Bulk(bulk) = value {
             let mut var = Vec::new();
             bulk.iter().for_each(|item| {

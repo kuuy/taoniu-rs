@@ -38,11 +38,11 @@ enum Commands {
 impl IndicatorsCommand {
   async fn pivot(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators pivot");
-    match (IndicatorsRepository::pivot(
+    match IndicatorsRepository::pivot(
       ctx,
       "BTCUSDT",
       "15m",
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -50,13 +50,13 @@ impl IndicatorsCommand {
 
   async fn atr(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators atr");
-    match (IndicatorsRepository::atr(
+    match IndicatorsRepository::atr(
       ctx,
       "BTCUSDT",
       "15m",
       14,
       100,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -64,13 +64,13 @@ impl IndicatorsCommand {
 
   async fn zlema(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators zlema");
-    match (IndicatorsRepository::zlema(
+    match IndicatorsRepository::zlema(
       ctx,
       "BTCUSDT",
       "15m",
       14,
       100,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -78,13 +78,13 @@ impl IndicatorsCommand {
 
   async fn ha_zlema(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators ha zlema");
-    match (IndicatorsRepository::ha_zlema(
+    match IndicatorsRepository::ha_zlema(
       ctx,
       "BTCUSDT",
       "15m",
       14,
       100,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -92,14 +92,14 @@ impl IndicatorsCommand {
 
   async fn kdj(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators kdj");
-    match (IndicatorsRepository::kdj(
+    match IndicatorsRepository::kdj(
       ctx,
       "BTCUSDT",
       "15m",
       9,
       3,
       100,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -107,13 +107,13 @@ impl IndicatorsCommand {
 
   async fn bbands(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators bbands");
-    match (IndicatorsRepository::bbands(
+    match IndicatorsRepository::bbands(
       ctx,
       "BTCUSDT",
       "15m",
       14,
       100,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -121,7 +121,7 @@ impl IndicatorsCommand {
 
   async fn ichimoku_cloud(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators ichimoku cloud");
-    match (IndicatorsRepository::ichimoku_cloud(
+    match IndicatorsRepository::ichimoku_cloud(
       ctx,
       "BTCUSDT",
       "15m",
@@ -129,7 +129,7 @@ impl IndicatorsCommand {
       174,
       349,
       672,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -137,12 +137,12 @@ impl IndicatorsCommand {
 
   async fn volume_profile(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators volume profile");
-    match (IndicatorsRepository::volume_profile(
+    match IndicatorsRepository::volume_profile(
       ctx,
       "BTCUSDT",
       "15m",
       672,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
@@ -150,14 +150,14 @@ impl IndicatorsCommand {
 
   async fn andean_oscillator(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators andean oscillator");
-    match (IndicatorsRepository::andean_oscillator(
+    match IndicatorsRepository::andean_oscillator(
       ctx,
       "BTCUSDT",
       "15m",
       50,
       9,
       672,
-    ).await) {
+    ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }

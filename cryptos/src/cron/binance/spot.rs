@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tokio_cron::{Scheduler, Job};
+use tokio_cron::Scheduler;
 use chrono::offset::Local;
 
 use crate::common::*;

@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use futures_util::StreamExt;
-use rsmq_async::{RsmqMessage, RsmqConnection};
+use rsmq_async::RsmqConnection;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;
@@ -37,11 +36,16 @@ impl KlinesWorker {
     if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
       return Err(Box::from(format!("mutex failed {}", redis_key)));
     }
-
+ 
     let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
     let timestamp = KlinesRepository::timestamp(interval);
-    let _ = KlinesRepository::flush(ctx.clone(), symbols.iter().map(String::as_ref).collect(), interval, timestamp).await;
-
+    let _ = KlinesRepository::flush(
+      ctx.clone(),
+      symbols.iter().map(String::as_ref).collect(),
+      interval,
+      timestamp,
+    ).await;
+ 
     mutex.unlock().await.unwrap();
     Ok(())
   }

@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use tokio_cron::{Scheduler, Job};
+use tokio_cron::Scheduler;
 use clap::{Parser};
 
 use crate::common::*;
@@ -36,7 +34,5 @@ impl FuturesCommand {
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
-
-    Ok(())
   }
 }

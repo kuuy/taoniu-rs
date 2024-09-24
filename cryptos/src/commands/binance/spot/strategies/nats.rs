@@ -1,9 +1,6 @@
-use std::time::Duration;
-
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
 
 #[derive(Parser)]
 pub struct NatsCommand {
@@ -34,11 +31,13 @@ impl NatsCommand {
 
   async fn publish(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot strategies nats publish");
+    let _ = ctx.clone();
     Ok(())
   }
 
   async fn subscribe(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot strategies nats subscribe");
+    let _ = ctx.clone();
     Ok(())
   }
 

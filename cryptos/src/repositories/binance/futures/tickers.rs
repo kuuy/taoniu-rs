@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc, Local, Timelike};
+use chrono::prelude::Utc;
 use redis::AsyncCommands;
 
 use crate::common::*;
@@ -82,7 +82,7 @@ impl TickersRepository {
       .arg(fields.as_slice())
       .invoke_async::<_, Vec<redis::Value>>(&mut rdb).await {
       Ok(values) => {
-        values.iter().enumerate().for_each(|(i, value)| {
+        values.iter().enumerate().for_each(|(_, value)| {
           if let redis::Value::Bulk(bulk) = value {
             let mut var = Vec::new();
             bulk.iter().for_each(|item| {
@@ -109,6 +109,7 @@ impl TickersRepository {
   {
     let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
     println!("tickers flush {symbols:?}");
+    let _ = ctx.clone();
     Ok(())
   }
 }

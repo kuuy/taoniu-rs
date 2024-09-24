@@ -1,7 +1,6 @@
 use clap::{Parser, Args, Subcommand};
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use rust_decimal::MathematicalOps;
 
 use crate::common::*;
 use crate::repositories::binance::futures::symbols::*;
@@ -66,11 +65,11 @@ impl PositionsCommand {
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
 
-    let mut buy_price = dec!(0.0);
-    let mut buy_quantity = dec!(0.0);
-    let mut buy_amount = dec!(0.0);
-    let mut sell_price = dec!(0.0);
-    let mut take_price = dec!(0.0);
+    let mut buy_price;
+    let mut buy_quantity;
+    let mut buy_amount;
+    let mut sell_price;
+    let take_price;
 
     if entry_amount < dec!(5.0) {
       buy_price = entry_price;
@@ -79,13 +78,6 @@ impl PositionsCommand {
       buy_amount = buy_price * buy_quantity;
       entry_quantity = buy_quantity;
       entry_amount = buy_amount;
-      sell_price = Decimal::from_f64(
-        PositionsRepository::sell_price(
-          side,
-          entry_price.to_f64().unwrap(),
-          entry_amount.to_f64().unwrap(),
-        ),
-      ).unwrap();
       take_price = Decimal::from_f64(
         PositionsRepository::take_price(
           side,
@@ -111,7 +103,7 @@ impl PositionsCommand {
     }
 
     loop {
-      let mut capital = dec!(0.0);
+      let capital;
       let _ = match PositionsRepository::capital(
         max_capital.to_f64().unwrap(),
         entry_amount.to_f64().unwrap(),
@@ -120,7 +112,7 @@ impl PositionsCommand {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
         },
-        Err(e) => break
+        Err(_) => break
       };
       let ratio = Decimal::from_f64(
         PositionsRepository::ratio(
@@ -169,7 +161,7 @@ impl PositionsCommand {
     }
 
     let stop_amount = (entry_amount / leverage) * dec!(0.1);
-    let mut stop_price = dec!(0.0);
+    let mut stop_price;
     if side == 1 {
       stop_price = entry_price - stop_amount / entry_quantity;
       stop_price = (stop_price / tick_size).floor() * tick_size;

@@ -1,7 +1,6 @@
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::models::binance::spot::scalping::*;
 use crate::schema::binance::spot::scalping::*;
 
 #[derive(Default)]

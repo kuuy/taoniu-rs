@@ -32,7 +32,5 @@ impl FuturesCommand {
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
-
-    Ok(())
   }
 }

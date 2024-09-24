@@ -1,4 +1,3 @@
-use futures_util::StreamExt;
 use rsmq_async::{RsmqError, RsmqConnection};
 
 use crate::common::*;

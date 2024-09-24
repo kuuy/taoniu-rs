@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use futures_util::StreamExt;
-use rsmq_async::{RsmqMessage, RsmqConnection};
+use rsmq_async::RsmqConnection;
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
