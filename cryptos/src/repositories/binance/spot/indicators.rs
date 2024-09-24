@@ -4,12 +4,12 @@ use std::collections::HashMap;
 
 use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_STOCH, TA_BBANDS, TA_RetCode};
 
+use chrono::{prelude::Utc, DateTime, Local, Timelike};
 use diesel::prelude::*;
 use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
-use chrono::{prelude::Utc, DateTime, Local, Timelike};
 
 use redis::AsyncCommands;
 
@@ -119,7 +119,7 @@ impl IndicatorsRepository {
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
     let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
     rdb.hset_multiple(
-      &redis_key[..],
+      &redis_key,
       &[
         ("r3", r3.to_string()),
         ("r2", r2.to_string()),

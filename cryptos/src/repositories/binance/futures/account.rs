@@ -12,7 +12,6 @@ use serde::{Deserialize, Deserializer};
 
 use crate::common::*;
 use crate::repositories::binance::futures::positions::*;
-use crate::models::binance::futures::position::*;
 use crate::schema::binance::futures::positions::*;
 use crate::config::binance::futures::config as Config;
 
@@ -184,14 +183,11 @@ impl AccountRepository {
         entry_quantity = -entry_quantity;
       }
 
-      let mut entity: Option<Position> = None;
-      match PositionsRepository::get(ctx.clone(), position.symbol.clone(), side).await {
-        Ok(Some(result)) => {
-          entity = Some(result);
-        },
-        Ok(None) => {},
+      let entity = match PositionsRepository::get(ctx.clone(), position.symbol.clone(), side).await {
+        Ok(Some(result)) => Some(result),
+        Ok(None) => None,
         Err(e) => return Err(e.into()),
-      }
+      };
       if entity.is_none() {
         if entry_quantity == 0.0 {
           continue
@@ -218,7 +214,7 @@ impl AccountRepository {
           },
         }
       } else {
-        let entity = entity.clone().unwrap();
+        let entity = entity.unwrap();
         if entity.entry_price == position.entry_price && entity.entry_quantity == entry_quantity {
           continue
         }

@@ -43,7 +43,7 @@ impl GamblingCommand {
     entry_price: f64,
     entry_quantity: f64,
   ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance futures gambling ant calc");
+    println!("binance futures gambling calc");
     let entry_price = Decimal::from_f64(entry_price).unwrap();
     let entry_quantity = Decimal::from_f64(entry_quantity).unwrap();
 
