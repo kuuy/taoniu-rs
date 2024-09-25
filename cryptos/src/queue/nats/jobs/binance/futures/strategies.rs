@@ -1,4 +1,6 @@
 use crate::common::*;
+use crate::config::binance::futures::config as Config;
+use crate::queue::nats::payload::binance::futures::strategies::*;
 
 pub struct StrategiesJob {
   ctx: Ctx,
@@ -11,9 +13,17 @@ impl StrategiesJob {
     }
   }
 
-  pub async fn publish(&self) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance futures strategies nats job publish");
-    let _ = self.ctx.nats.clone();
+  pub async fn update<T>(&self, symbol: T, interval: T) -> Result<(), Box<dyn std::error::Error>> 
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+    let payload = StrategiesUpdatePayload::new(symbol, interval);
+    let message = serde_json::to_string(&payload).unwrap();
+    let client = self.ctx.nats.clone();
+    client.publish(Config::NATS_EVENTS_STRATEGIES_UPDATE, message.into()).await?;
+    client.flush().await?;
     Ok(())
   }
 }

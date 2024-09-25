@@ -188,19 +188,16 @@ impl KlinesRepository
       let volume = data[4].parse::<f64>().unwrap();
       let quota = data[4].parse::<f64>().unwrap();
 
-      let mut kline: Option<Kline> = None;
-      match Self::get(ctx.clone(), symbol, interval, timestamp).await {
-        Ok(Some(result)) => {
-          kline = Some(result);
-        },
-        Ok(None) => {},
+      let kline: Option<Kline> = match Self::get(ctx.clone(), symbol, interval, timestamp).await {
+        Ok(Some(result)) => Some(result),
+        Ok(None) => None,
         Err(e) => return Err(e.into()),
-      }
+      };
 
-      let mut success = false;
+      let success;
       if kline.is_none() {
         let id = xid::new().to_string();
-        match Self::create(
+        success = match Self::create(
           ctx.clone(), 
           id,
           symbol.to_string(),
@@ -213,18 +210,11 @@ impl KlinesRepository
           quota,
           timestamp,
         ).await {
-          Ok(result) => {
-            if result {
-              success = result;
-            }
-            println!("binance futures kline {symbol:} {interval:} {timestamp:} create success {result:}");
-          }
-          Err(e) => {
-            println!("binance futures kline {symbol:} {interval:} {timestamp:} create failed {e:?}")
-          },
+          Ok(result) => result,
+          Err(e) => return Err(e.into()),
         }
       } else {
-        match Self::update(
+        success = match Self::update(
           ctx.clone(),
           kline.unwrap().id,
           (
@@ -236,13 +226,8 @@ impl KlinesRepository
             klines::quota.eq(quota),
           ),
         ).await {
-          Ok(result) => {
-            success = result;
-            println!("binance futures kline {symbol:} {interval:} {timestamp:} update success {result:}");
-          }
-          Err(e) => {
-            println!("binance futures kline {symbol:} {interval:} {timestamp:} update failed {e:?}")
-          },
+          Ok(result) => result,
+          Err(e) => return Err(e.into()),
         }
       }
 

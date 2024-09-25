@@ -1,5 +1,7 @@
-use chrono::Local;
+use chrono::{prelude::Utc, Local};
 use diesel::prelude::*;
+use diesel::query_builder::QueryFragment;
+use diesel::ExpressionMethods;
 use redis::AsyncCommands;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
@@ -8,13 +10,96 @@ use crate::common::*;
 use crate::config::binance::spot::config as Config;
 use crate::repositories::binance::spot::tickers::*;
 use crate::repositories::binance::spot::symbols::*;
-use crate::schema::binance::spot::symbols::*;
 use crate::models::binance::spot::symbol::Filters;
+use crate::schema::binance::spot::symbols::*;
+use crate::models::binance::spot::strategy::*;
+use crate::schema::binance::spot::strategies::*;
 
 #[derive(Default)]
 pub struct StrategiesRepository {}
 
 impl StrategiesRepository {
+  pub async fn get<T>(
+    ctx: Ctx,
+    symbol: T,
+    indicator: T,
+    interval: T,
+  ) -> Result<Option<Strategy>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let indicator = indicator.as_ref();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    match strategies::table
+      .select(Strategy::as_select())
+      .filter(strategies::symbol.eq(symbol))
+      .filter(strategies::indicator.eq(indicator))
+      .filter(strategies::interval.eq(interval))
+      .order(strategies::timestamp.desc())
+      .first(&mut conn) {
+      Ok(strategy) => Ok(Some(strategy)),
+      Err(diesel::result::Error::NotFound) => Ok(None),
+      Err(e) => Err(e.into()),
+    }
+  }
+
+  pub async fn create(
+    ctx: Ctx,
+    id: String,
+    symbol: String,
+    indicator: String,
+    interval: String,
+    price: f64,
+    signal: i32,
+    timestamp: i64,
+    remark: String,
+  ) -> Result<bool, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.write().await;
+    let mut conn = pool.get().unwrap();
+
+    let now = Utc::now();
+    let kline = Strategy::new(
+      id,
+      symbol,
+      indicator,
+      interval,
+      price,
+      signal,
+      timestamp,
+      remark,
+      now,
+      now,
+    );
+    match diesel::insert_into(strategies::table)
+      .values(&kline)
+      .execute(&mut conn) {
+      Ok(effective_rows) => Ok(effective_rows > 0),
+      Err(e) => Err(e.into()),
+    }
+  }
+
+  pub async fn update<V>(
+    ctx: Ctx,
+    id: String,
+    value: V,
+  ) -> Result<bool, Box<dyn std::error::Error>> 
+  where
+    V: diesel::AsChangeset<Target = strategies::table>,
+    <V as diesel::AsChangeset>::Changeset: QueryFragment<diesel::pg::Pg>,
+  {
+    let pool = ctx.pool.write().await;
+    let mut conn = pool.get().unwrap();
+    match diesel::update(strategies::table.find(id)).set(value).execute(&mut conn) {
+      Ok(effective_rows) => Ok(effective_rows > 0),
+      Err(e) => Err(e.into()),
+    }
+  }
+
   pub async fn atr<T>(
     ctx: Ctx,
     symbol: T,
@@ -25,11 +110,12 @@ impl StrategiesRepository {
   {
     let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "atr";
     let interval = interval.as_ref();
 
     let day = Local::now().format("%m%d").to_string();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let atr: Option<f64> = match rdb.hget(&redis_key, "atr").await {
+    let atr: Option<f64> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(atr)) => atr,
       Ok(None) => return Err(Box::from(format!("atr of {symbol:} {interval:} not exists"))),
       Err(e) => return Err(e.into()),
@@ -45,13 +131,10 @@ impl StrategiesRepository {
     };
     let price = Decimal::from_f64(price).unwrap();
 
-    let tick_size: f64;
-    match SymbolsRepository::filters(ctx.clone(), symbol).await {
-      Ok(result) => {
-        (tick_size, _) = result;
-      },
+    let (tick_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
+      Ok(result) => result,
       Err(e) => return Err(e.into()),
-    }
+    };
     let tick_size = Decimal::from_f64(tick_size).unwrap();
 
     let profit_target = price * dec!(2) - atr * dec!(1.5);
@@ -87,13 +170,70 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
-    let _ = ctx.clone();
+    let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "zlema";
     let interval = interval.as_ref();
 
-    let _ = Local::now().format("%m%d").to_string();
+    let day = Local::now().format("%m%d").to_string();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
+      Ok(Some(result)) => result,
+      Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+    let data = data.unwrap();
+    let values: Vec<&str> = data.split(",").collect();
 
-    println!("zlema {symbol:} {interval:}");
+    let price = values[2].parse::<f64>().unwrap();
+    let zlema1 = values[0].parse::<f64>().unwrap();
+    let zlema2 = values[1].parse::<f64>().unwrap();
+    let timestamp = values[3].parse::<i64>().unwrap();
+
+    if zlema1 * zlema2 >= 0.0 {
+      return Ok(())
+    }
+
+    let signal: i32;
+    if zlema2 > 0.0 {
+      signal = 1;
+    } else {
+      signal = 2;
+    }
+
+    let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
+      Ok(Some(result)) => Some(result),
+      Ok(None) => None,
+      Err(e) => return Err(e.into()),
+    };
+
+    if !strategy.is_none() {
+      let strategy = strategy.unwrap();
+      if strategy.signal == signal {
+        return Ok(())
+      }
+      if strategy.timestamp >= timestamp {
+        return Ok(())
+      }
+    }
+
+    let id = xid::new().to_string();
+    match Self::create(
+      ctx.clone(), 
+      id,
+      symbol.to_string(),
+      indicator.to_string(),
+      interval.to_string(),
+      price,
+      signal,
+      timestamp,
+      "".to_string(),
+    ).await {
+      Ok(_) => {},
+      Err(e) => {
+        println!("binance spot strategy {symbol:} {indicator:} {interval:} create failed {e:?}")
+      },
+    }
 
     Ok(())
   }
@@ -106,13 +246,68 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
-    let _ = ctx.clone();
+    let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "ha_zlema";
     let interval = interval.as_ref();
 
-    let _ = Local::now().format("%m%d").to_string();
+    let day = Local::now().format("%m%d").to_string();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
+      Ok(Some(result)) => result,
+      Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+    let data = data.unwrap();
+    let values: Vec<&str> = data.split(",").collect();
 
-    println!("ha zlema {symbol:} {interval:}");
+    let price = values[2].parse::<f64>().unwrap();
+    let zlema1 = values[0].parse::<f64>().unwrap();
+    let zlema2 = values[1].parse::<f64>().unwrap();
+    let timestamp = values[3].parse::<i64>().unwrap();
+
+    if zlema1 * zlema2 >= 0.0 {
+      return Ok(())
+    }
+
+    let signal: i32;
+    if zlema2 > 0.0 {
+      signal = 1;
+    } else {
+      signal = 2;
+    }
+
+    let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
+      Ok(Some(result)) => Some(result),
+      Ok(None) => None,
+      Err(e) => return Err(e.into()),
+    };
+
+    if !strategy.is_none() {
+      let strategy = strategy.unwrap();
+      if strategy.signal == signal {
+        return Ok(())
+      }
+      if strategy.timestamp >= timestamp {
+        return Ok(())
+      }
+    }
+
+    let id = xid::new().to_string();
+    let _ = match Self::create(
+      ctx.clone(), 
+      id,
+      symbol.to_string(),
+      indicator.to_string(),
+      interval.to_string(),
+      price,
+      signal,
+      timestamp,
+      "".to_string(),
+    ).await {
+      Ok(result) => result,
+      Err(e) => return Err(e.into()),
+    };
 
     Ok(())
   }
@@ -125,13 +320,67 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
-    let _ = ctx.clone();
+    let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "kdj";
     let interval = interval.as_ref();
 
-    let _ = Local::now().format("%m%d").to_string();
+    let day = Local::now().format("%m%d").to_string();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
+      Ok(Some(result)) => result,
+      Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+    let data = data.unwrap();
+    let values: Vec<&str> = data.split(",").collect();
 
-    println!("kdj {symbol:} {interval:}");
+    let k = values[0].parse::<f64>().unwrap();
+    let d = values[1].parse::<f64>().unwrap();
+    let j = values[2].parse::<f64>().unwrap();
+    let price = values[3].parse::<f64>().unwrap();
+    let timestamp = values[4].parse::<i64>().unwrap();
+
+    let signal: i32;
+    if k < 20.0 && d > 60.0 && j < 60.0 {
+      signal = 1;
+    } else if k > 80.0 && d > 70.0 && j > 90.0 {
+      signal = 2;
+    } else {
+      return Ok(())
+    }
+
+    let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
+      Ok(Some(result)) => Some(result),
+      Ok(None) => None,
+      Err(e) => return Err(e.into()),
+    };
+
+    if !strategy.is_none() {
+      let strategy = strategy.unwrap();
+      if strategy.signal == signal {
+        return Ok(())
+      }
+      if strategy.timestamp >= timestamp {
+        return Ok(())
+      }
+    }
+
+    let id = xid::new().to_string();
+    let _ = match Self::create(
+      ctx.clone(), 
+      id,
+      symbol.to_string(),
+      indicator.to_string(),
+      interval.to_string(),
+      price,
+      signal,
+      timestamp,
+      "".to_string(),
+    ).await {
+      Ok(result) => result,
+      Err(e) => return Err(e.into()),
+    };
 
     Ok(())
   }
@@ -144,13 +393,80 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
-    let _ = ctx.clone();
+    let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "bbands";
     let interval = interval.as_ref();
 
-    let _ = Local::now().format("%m%d").to_string();
+    let day = Local::now().format("%m%d").to_string();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
+      Ok(Some(result)) => result,
+      Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+    let data = data.unwrap();
+    let values: Vec<&str> = data.split(",").collect();
 
-    println!("bbands {symbol:} {interval:}");
+    let b1 = values[0].parse::<f64>().unwrap();
+    let b2 = values[1].parse::<f64>().unwrap();
+    let b3 = values[2].parse::<f64>().unwrap();
+    let w1 = values[3].parse::<f64>().unwrap();
+    let w2 = values[4].parse::<f64>().unwrap();
+    let w3 = values[5].parse::<f64>().unwrap();
+    let price = values[6].parse::<f64>().unwrap();
+    let timestamp = values[7].parse::<i64>().unwrap();
+
+    let signal: i32;
+    if b1 < 0.5 && b2 < 0.5 && b3 > 0.5 {
+      signal = 1;
+    } else if b1 > 0.5 && b2 < 0.5 && b3 < 0.5 {
+      signal = 2;
+    } else if b1 > 0.8 && b2 > 0.8 && b3 > 0.8 {
+      signal = 1;
+    } else if b1 > 0.8 && b2 > 0.8 && b3 < 0.8 {
+      signal = 2;
+    } else {
+      return Ok(())
+    }
+
+    if w1 < 0.1 && w2 < 0.1 && w3 < 0.1 {
+      if w1 < 0.03 || w2 < 0.03 || w3 > 0.03 {
+        return Ok(())
+      } 
+    }
+
+    let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
+      Ok(Some(result)) => Some(result),
+      Ok(None) => None,
+      Err(e) => return Err(e.into()),
+    };
+
+    if !strategy.is_none() {
+      let strategy = strategy.unwrap();
+      if strategy.signal == signal {
+        return Ok(())
+      }
+      if strategy.timestamp >= timestamp {
+        return Ok(())
+      }
+    }
+
+    let id = xid::new().to_string();
+    let _ = match Self::create(
+      ctx.clone(), 
+      id,
+      symbol.to_string(),
+      indicator.to_string(),
+      interval.to_string(),
+      price,
+      signal,
+      timestamp,
+      "".to_string(),
+    ).await {
+      Ok(result) => result,
+      Err(e) => return Err(e.into()),
+    };
 
     Ok(())
   }
@@ -163,13 +479,60 @@ impl StrategiesRepository {
   where
     T: AsRef<str>
   {
-    let _ = ctx.clone();
+    let mut rdb = ctx.rdb.lock().await.clone();
     let symbol = symbol.as_ref();
+    let indicator = "ichimoku_cloud";
     let interval = interval.as_ref();
 
-    let _ = Local::now().format("%m%d").to_string();
+    let day = Local::now().format("%m%d").to_string();
+    let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
+    let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
+      Ok(Some(result)) => result,
+      Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
+      Err(e) => return Err(e.into()),
+    };
+    let data = data.unwrap();
+    let values: Vec<&str> = data.split(",").collect();
 
-    println!("ichimoku cloud {symbol:} {interval:}");
+    let signal = values[0].parse::<i32>().unwrap();
+    let price = values[6].parse::<f64>().unwrap();
+    let timestamp = values[7].parse::<i64>().unwrap();
+
+    if signal == 0 {
+      return Ok(())
+    }
+
+    let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
+      Ok(Some(result)) => Some(result),
+      Ok(None) => None,
+      Err(e) => return Err(e.into()),
+    };
+
+    if !strategy.is_none() {
+      let strategy = strategy.unwrap();
+      if strategy.signal == signal {
+        return Ok(())
+      }
+      if strategy.timestamp >= timestamp {
+        return Ok(())
+      }
+    }
+
+    let id = xid::new().to_string();
+    let _ = match Self::create(
+      ctx.clone(), 
+      id,
+      symbol.to_string(),
+      indicator.to_string(),
+      interval.to_string(),
+      price,
+      signal,
+      timestamp,
+      "".to_string(),
+    ).await {
+      Ok(result) => result,
+      Err(e) => return Err(e.into()),
+    };
 
     Ok(())
   }

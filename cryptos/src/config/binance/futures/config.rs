@@ -38,7 +38,7 @@ pub const NATS_EVENTS_ACCOUNT_UPDATE: &str = "binance.futures.account.update";
 pub const NATS_EVENTS_TICKERS_UPDATE: &str = "binance.futures.tickers.update";
 pub const NATS_EVENTS_KLINES_UPDATE: &str = "binance.futures.klines.update";
 pub const NATS_EVENTS_INDICATORS_UPDATE: &str = "binance.futures.indicators.update";
-pub const NATS_EVENTS_STRATEGIES_UPDAT: &str = "binance.futures.strategies.update";
+pub const NATS_EVENTS_STRATEGIES_UPDATE: &str = "binance.futures.strategies.update";
 pub const NATS_EVENTS_PLANS_UPDATE: &str = "binance.futures.plans.update";
 pub const NATS_EVENTS_ORDERS_UPDATE: &str = "binance.futures.orders.update";
 pub const NATS_EVENTS_TRADINGS_SCALPING_PLACE: &str = "binance.futures.tradings.scalping.place";
@@ -46,5 +46,6 @@ pub const LOCKS_ACCOUNT_FLUSH: &str = "locks:binance:futures:account:flush";
 pub const LOCKS_SYMBOLS_FLUSH: &str = "locks:binance:futures:symbols:flush";
 pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:futures:klines:flush";
 pub const LOCKS_INDICATORS_FLUSH: &str = "locks:binance:futures:indicators:flush";
+pub const LOCKS_STRATEGIES_FLUSH: &str = "locks:binance:futures:strategies:flush";
 
 // pub const REDIS_QUEUE_TICKERS: &str  = "binance.futures.tickers";

@@ -13,8 +13,8 @@ pub struct Context {}
 pub struct Strategy {
   pub id: String,
   pub symbol: String,
-  pub interval: String,
   pub indicator: String,
+  pub interval: String,
   pub price: f64,
   pub signal: i32,
   pub timestamp: i64,
@@ -27,8 +27,8 @@ impl Strategy {
   pub fn new(
     id: String,
     symbol: String,
-    interval: String,
     indicator: String,
+    interval: String,
     price: f64,
     signal: i32,
     timestamp: i64,
@@ -39,8 +39,8 @@ impl Strategy {
     Self {
       id: id,
       symbol: symbol,
-      interval: interval,
       indicator: indicator,
+      interval: interval,
       price: price,
       signal: signal,
       timestamp: timestamp,

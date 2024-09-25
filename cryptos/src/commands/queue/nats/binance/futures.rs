@@ -21,9 +21,9 @@ impl FuturesCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("queue nats binance futures");
-    let rdb = Rdb::new(1).await.unwrap();
-    let rmq = Rmq::new(1).await.unwrap();
-    let pool = Pool::new(1).unwrap();
+    let rdb = Rdb::new(2).await.unwrap();
+    let rmq = Rmq::new(2).await.unwrap();
+    let pool = Pool::new(2).unwrap();
     let nats = Nats::new().await.unwrap();
     let ctx = Ctx::new(rdb, rmq, pool, nats);
 

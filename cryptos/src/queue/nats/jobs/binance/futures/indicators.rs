@@ -1,6 +1,6 @@
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
-use crate::queue::nats::payload::binance::spot::indicators::*;
+use crate::config::binance::futures::config as Config;
+use crate::queue::nats::payload::binance::futures::indicators::*;
 
 pub struct IndicatorsJob {
   ctx: Ctx,

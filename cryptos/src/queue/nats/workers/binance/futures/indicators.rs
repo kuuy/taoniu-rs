@@ -178,8 +178,8 @@ impl IndicatorsWorker {
     let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_INDICATORS_FLUSH, interval, symbol);
     let mut mutex = Mutex::new(
       rdb,
-      &redis_lock_key[..],
-      &mutex_id[..],
+      &redis_lock_key,
+      &mutex_id,
     );
     if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
       return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
