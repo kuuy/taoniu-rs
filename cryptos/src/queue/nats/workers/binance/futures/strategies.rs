@@ -116,7 +116,7 @@ impl StrategiesWorker {
       return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
     }
 
-    println!("binance futures strategiess nats workers process {symbol:} {interval:}");
+    println!("binance futures strategies nats workers process {symbol:} {interval:}");
     Self::atr(ctx.clone(), symbol, interval).await?;
     Self::zlema(ctx.clone(), symbol, interval).await?;
     Self::ha_zlema(ctx.clone(), symbol, interval).await?;
