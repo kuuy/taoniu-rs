@@ -4,12 +4,12 @@ use std::collections::HashMap;
 
 use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_STOCH, TA_BBANDS, TA_RetCode};
 
+use chrono::{prelude::Utc, DateTime, Local, Timelike};
 use diesel::prelude::*;
 use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
-use chrono::{prelude::Utc, DateTime, Local, Timelike};
 
 use redis::AsyncCommands;
 
@@ -117,9 +117,9 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset_multiple(
-      &redis_key[..],
+      &redis_key,
       &[
         ("r3", r3.to_string()),
         ("r2", r2.to_string()),
@@ -130,7 +130,7 @@ impl IndicatorsRepository {
       ],
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
 
     Ok(())
@@ -226,14 +226,14 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "atr",
       result.to_string(),
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     println!("result {result:}");
 
@@ -343,14 +343,14 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "zlema",
       result.clone(),
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     println!("result {result:}");
 
@@ -466,14 +466,14 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "ha_zlema",
       result.clone(),
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     println!("result {result:}");
 
@@ -603,14 +603,14 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "kdj",
       result.to_string(),
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     println!("result {result:}");
 
@@ -759,14 +759,14 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "bbands",
       result,
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
 
     Ok(())
@@ -884,7 +884,7 @@ impl IndicatorsRepository {
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
 
     if signal == 0 {
-      let value: Option<String> = rdb.hget(&redis_key[..], "ichimoku_cloud").await?;
+      let value: Option<String> = rdb.hget(&redis_key, "ichimoku_cloud").await?;
       match value {
         Some(value) => {
           let data: Vec<&str> = value.split(",").collect();
@@ -929,14 +929,14 @@ impl IndicatorsRepository {
       first_timestamp,
     );
 
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset(
-      &redis_key[..],
+      &redis_key,
       "ichimoku_cloud",
       result.to_string(),
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     println!("result {result:}");
 
@@ -1136,9 +1136,9 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset_multiple(
-      &redis_key[..],
+      &redis_key,
       &[
         ("vah", vah.to_string()),
         ("val", val.to_string()),
@@ -1147,7 +1147,7 @@ impl IndicatorsRepository {
       ],
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
 
     Ok(())
@@ -1289,9 +1289,9 @@ impl IndicatorsRepository {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
-    let is_exists: bool = rdb.exists(&redis_key[..]).await.unwrap();
+    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset_multiple(
-      &redis_key[..],
+      &redis_key,
       &[
         ("ao_bull", bulls.last().unwrap().to_string()),
         ("ao_bear", bears.last().unwrap().to_string()),
@@ -1299,7 +1299,7 @@ impl IndicatorsRepository {
       ],
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key[..], ttl.as_secs().try_into().unwrap()).await?;
+      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
 
     Ok(())

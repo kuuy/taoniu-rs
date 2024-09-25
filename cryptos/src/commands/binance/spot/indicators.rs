@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 use crate::common::*;
 use crate::commands::binance::spot::indicators::nats::*;
@@ -15,45 +15,53 @@ pub struct IndicatorsCommand {
 #[derive(Subcommand)]
 enum Commands {
   /// indicators pivot
-  Pivot,
+  Pivot(CmdArgs),
   /// indicators atr
-  Atr,
+  Atr(CmdArgs),
   /// indicators zlema
-  Zlema,
+  Zlema(CmdArgs),
   /// indicators ha_zlema
-  HaZlema,
+  HaZlema(CmdArgs),
   /// indicators kdj
-  Kdj,
+  Kdj(CmdArgs),
   /// indicators bbands
-  Bbands,
+  Bbands(CmdArgs),
   /// indicators ichimoku cloud
-  IchimokuCloud,
+  IchimokuCloud(CmdArgs),
   /// indicators volume profile
-  VolumeProfile,
+  VolumeProfile(CmdArgs),
   /// indicators andean oscillator
-  AndeanOscillator,
+  AndeanOscillator(CmdArgs),
   Nats(NatsCommand),
 }
 
+#[derive(Args)]
+struct CmdArgs {
+  /// symbol
+  symbol: String,
+  /// interval
+  interval: String,
+}
+
 impl IndicatorsCommand {
-  async fn pivot(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn pivot(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators pivot");
     match IndicatorsRepository::pivot(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
     ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
   }
 
-  async fn atr(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn atr(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators atr");
     match IndicatorsRepository::atr(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
       14,
       100,
     ).await {
@@ -62,12 +70,12 @@ impl IndicatorsCommand {
     }
   }
 
-  async fn zlema(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn zlema(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators zlema");
     match IndicatorsRepository::zlema(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
       14,
       100,
     ).await {
@@ -76,12 +84,12 @@ impl IndicatorsCommand {
     }
   }
 
-  async fn ha_zlema(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn ha_zlema(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators ha zlema");
     match IndicatorsRepository::ha_zlema(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
       14,
       100,
     ).await {
@@ -90,12 +98,12 @@ impl IndicatorsCommand {
     }
   }
 
-  async fn kdj(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn kdj(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators kdj");
     match IndicatorsRepository::kdj(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
       9,
       3,
       100,
@@ -105,12 +113,12 @@ impl IndicatorsCommand {
     }
   }
 
-  async fn bbands(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn bbands(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators bbands");
     match IndicatorsRepository::bbands(
-      ctx,
-      "BTCUSDT",
-      "15m",
+      ctx.clone(),
+      &symbol,
+      &interval,
       14,
       100,
     ).await {
@@ -119,41 +127,81 @@ impl IndicatorsCommand {
     }
   }
 
-  async fn ichimoku_cloud(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn ichimoku_cloud(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators ichimoku cloud");
+
+    let tenkan_period: i32;
+    let kijun_period: i32;
+    let senkou_period: i32;
+    let limit: i64;
+
+    if &interval == "1m" {
+      tenkan_period = 129;
+      kijun_period = 374;
+      senkou_period = 748;
+      limit = 1440;
+    } else if &interval == "15m" {
+      tenkan_period = 60;
+      kijun_period = 174;
+      senkou_period = 349;
+      limit = 672;
+    } else if &interval == "4h" {
+      tenkan_period = 11;
+      kijun_period = 32;
+      senkou_period = 65;
+      limit = 126;
+    } else {
+      tenkan_period = 9;
+      kijun_period = 26;
+      senkou_period = 52;
+      limit = 100;
+    }
+
     match IndicatorsRepository::ichimoku_cloud(
-      ctx,
-      "BTCUSDT",
-      "15m",
-      60,
-      174,
-      349,
-      672,
+      ctx.clone(),
+      &symbol,
+      &interval,
+      tenkan_period,
+      kijun_period,
+      senkou_period,
+      limit,
     ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
   }
 
-  async fn volume_profile(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn volume_profile(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators volume profile");
+
+    let limit: i64;
+    if &interval == "1m" {
+      limit = 1440
+    } else if &interval == "15m" {
+      limit = 672
+    } else if &interval == "4h" {
+      limit = 126
+    } else {
+      limit = 100
+    }
+
     match IndicatorsRepository::volume_profile(
       ctx,
-      "BTCUSDT",
-      "15m",
-      672,
+      &symbol,
+      &interval,
+      limit,
     ).await {
       Ok(_) => Ok(()),
       Err(e) => Err(e.into()),
     }
   }
 
-  async fn andean_oscillator(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn andean_oscillator(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators andean oscillator");
     match IndicatorsRepository::andean_oscillator(
       ctx,
-      "BTCUSDT",
-      "15m",
+      &symbol,
+      &interval,
       50,
       9,
       672,
@@ -165,15 +213,51 @@ impl IndicatorsCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Pivot => self.pivot(ctx.clone()).await,
-      Commands::Atr => self.atr(ctx.clone()).await,
-      Commands::Zlema => self.zlema(ctx.clone()).await,
-      Commands::HaZlema => self.ha_zlema(ctx.clone()).await,
-      Commands::Kdj => self.kdj(ctx.clone()).await,
-      Commands::Bbands => self.bbands(ctx.clone()).await,
-      Commands::IchimokuCloud => self.ichimoku_cloud(ctx.clone()).await,
-      Commands::VolumeProfile => self.volume_profile(ctx.clone()).await,
-      Commands::AndeanOscillator => self.andean_oscillator(ctx.clone()).await,
+      Commands::Pivot(args) => self.pivot(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::Atr(args) => self.atr(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::Zlema(args) => self.zlema(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::HaZlema(args) => self.ha_zlema(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::Kdj(args) => self.kdj(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::Bbands(args) => self.bbands(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::IchimokuCloud(args) => self.ichimoku_cloud(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::VolumeProfile(args) => self.volume_profile(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
+      Commands::AndeanOscillator(args) => self.andean_oscillator(
+        ctx.clone(),
+        args.symbol.clone(),
+        args.interval.clone(),
+      ).await,
       Commands::Nats(nats) => nats.run(ctx).await,
     }
   }

@@ -26,7 +26,11 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers pivot {symbol:} {interval:}");
-    let _ = IndicatorsRepository::pivot(ctx.clone(), symbol, interval).await?;
+    let _ = IndicatorsRepository::pivot(
+      ctx.clone(),
+      symbol,
+      interval,
+    ).await?;
 
     Ok(())
   }
@@ -39,7 +43,13 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers atr {symbol:} {interval:}");
-    let _ = IndicatorsRepository::atr(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::atr(
+      ctx.clone(),
+      symbol,
+      interval,
+      14,
+      100,
+    ).await;
 
     Ok(())
   }
@@ -52,7 +62,13 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers zlema {symbol:} {interval:}");
-    let _ = IndicatorsRepository::zlema(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::zlema(
+      ctx.clone(),
+      symbol,
+      interval,
+      14,
+      100,
+    ).await;
 
     Ok(())
   }
@@ -65,7 +81,13 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers ha zlema {symbol:} {interval:}");
-    let _ = IndicatorsRepository::ha_zlema(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::ha_zlema(
+      ctx.clone(),
+      symbol,
+      interval,
+      14,
+      100,
+    ).await;
 
     Ok(())
   }
@@ -78,7 +100,14 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers kdj {symbol:} {interval:}");
-    let _ = IndicatorsRepository::kdj(ctx.clone(), symbol, interval, 9, 3, 100).await;
+    let _ = IndicatorsRepository::kdj(
+      ctx.clone(),
+      symbol,
+      interval,
+      9,
+      3,
+      100,
+    ).await;
 
     Ok(())
   }
@@ -91,7 +120,13 @@ impl IndicatorsWorker {
     let interval = interval.as_ref();
 
     println!("binance spot indicators nats workers bbands {symbol:} {interval:}");
-    let _ = IndicatorsRepository::bbands(ctx.clone(), symbol, interval, 14, 100).await;
+    let _ = IndicatorsRepository::bbands(
+      ctx.clone(),
+      symbol,
+      interval,
+      14,
+      100,
+    ).await;
 
     Ok(())
   }
@@ -103,17 +138,41 @@ impl IndicatorsWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance spot indicators nats workers ichimoku cloud {symbol:} {interval:}");
-
+    let tenkan_period: i32;
+    let kijun_period: i32;
+    let senkou_period: i32;
+    let limit: i64;
     if interval == "1m" {
-      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 129, 374, 748, 1440).await;
+      tenkan_period = 129;
+      kijun_period = 374;
+      senkou_period = 748;
+      limit = 1440;
     } else if interval == "15m" {
-      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 60, 174, 349, 672).await;
+      tenkan_period = 60;
+      kijun_period = 174;
+      senkou_period = 349;
+      limit = 672;
     } else if interval == "4h" {
-      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 11, 32, 65, 126).await;
+      tenkan_period = 11;
+      kijun_period = 32;
+      senkou_period = 65;
+      limit = 126;
     } else {
-      let _ = IndicatorsRepository::ichimoku_cloud(ctx.clone(), symbol, interval, 9, 26, 52, 100).await;
+      tenkan_period = 9;
+      kijun_period = 26;
+      senkou_period = 52;
+      limit = 100;
     }
+    println!("binance spot indicators nats workers ichimoku cloud {symbol:} {interval:}");
+    let _ = IndicatorsRepository::ichimoku_cloud(
+      ctx.clone(),
+      symbol,
+      interval,
+      tenkan_period,
+      kijun_period,
+      senkou_period,
+      limit,
+    ).await;
 
     Ok(())
   }
@@ -137,7 +196,12 @@ impl IndicatorsWorker {
     }
 
     println!("binance spot indicators nats workers volume profile {symbol:} {interval:}");
-    let _ = IndicatorsRepository::volume_profile(ctx.clone(), symbol, interval, limit).await;
+    let _ = IndicatorsRepository::volume_profile(
+      ctx.clone(),
+      symbol,
+      interval,
+      limit,
+    ).await;
 
     Ok(())
   }
