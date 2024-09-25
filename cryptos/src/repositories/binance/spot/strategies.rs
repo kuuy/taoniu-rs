@@ -185,9 +185,9 @@ impl StrategiesRepository {
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
 
-    let price = values[2].parse::<f64>().unwrap();
     let zlema1 = values[0].parse::<f64>().unwrap();
     let zlema2 = values[1].parse::<f64>().unwrap();
+    let price = values[2].parse::<f64>().unwrap();
     let timestamp = values[3].parse::<i64>().unwrap();
 
     if zlema1 * zlema2 >= 0.0 {
@@ -261,9 +261,9 @@ impl StrategiesRepository {
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
 
-    let price = values[2].parse::<f64>().unwrap();
     let zlema1 = values[0].parse::<f64>().unwrap();
     let zlema2 = values[1].parse::<f64>().unwrap();
+    let price = values[2].parse::<f64>().unwrap();
     let timestamp = values[3].parse::<i64>().unwrap();
 
     if zlema1 * zlema2 >= 0.0 {
