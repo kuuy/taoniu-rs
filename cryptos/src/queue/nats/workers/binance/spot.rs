@@ -18,9 +18,8 @@ impl SpotWorkers {
 
   pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot nats workers subscribe");
-    let ctx = self.ctx.clone();
-    IndicatorsWorker::new(ctx.clone()).subscribe().await?;
-    StrategiesWorker::new(ctx.clone()).subscribe().await?;
+    IndicatorsWorker::new(self.ctx.clone()).subscribe().await?;
+    StrategiesWorker::new(self.ctx.clone()).subscribe().await?;
     Ok(())
   }
 }

@@ -63,7 +63,7 @@ impl StrategiesRepository {
     let mut conn = pool.get().unwrap();
 
     let now = Utc::now();
-    let kline = Strategy::new(
+    let strategy = Strategy::new(
       id,
       symbol,
       indicator,
@@ -76,7 +76,7 @@ impl StrategiesRepository {
       now,
     );
     match diesel::insert_into(strategies::table)
-      .values(&kline)
+      .values(&strategy)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(e) => Err(e.into()),
@@ -230,9 +230,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(_) => {},
-      Err(e) => {
-        println!("binance futures strategy {symbol:} {indicator:} {interval:} create failed {e:?}")
-      },
+      Err(e) => return Err(e.into()),
     }
 
     Ok(())
