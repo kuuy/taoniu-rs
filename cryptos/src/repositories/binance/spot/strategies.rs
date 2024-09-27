@@ -42,10 +42,41 @@ impl StrategiesRepository {
       .filter(strategies::interval.eq(interval))
       .order(strategies::timestamp.desc())
       .first(&mut conn) {
-      Ok(strategy) => Ok(Some(strategy)),
-      Err(diesel::result::Error::NotFound) => Ok(None),
-      Err(e) => Err(e.into()),
-    }
+        Ok(strategy) => Ok(Some(strategy)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
+  }
+
+  pub async fn last<T>(
+    ctx: Ctx,
+    symbol: T,
+    indicators: Vec<T>,
+    interval: T,
+    timestamp: i64,
+  ) -> Result<Option<Strategy>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let indicators = indicators.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    match strategies::table
+      .select(Strategy::as_select())
+      .filter(strategies::symbol.eq(symbol))
+      .filter(strategies::indicator.eq_any(indicators.as_slice()))
+      .filter(strategies::interval.eq(interval))
+      .filter(strategies::timestamp.ge(timestamp))
+      .order(strategies::timestamp.desc())
+      .first(&mut conn) {
+        Ok(strategy) => Ok(Some(strategy)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
   }
 
   pub async fn create(

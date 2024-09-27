@@ -7,6 +7,7 @@ use crate::commands::binance::spot::tickers::*;
 use crate::commands::binance::spot::klines::*;
 use crate::commands::binance::spot::indicators::*;
 use crate::commands::binance::spot::strategies::*;
+use crate::commands::binance::spot::plans::*;
 use crate::commands::binance::spot::orders::*;
 use crate::commands::binance::spot::positions::*;
 use crate::commands::binance::spot::gambling::*;
@@ -40,6 +41,7 @@ enum Commands {
   Klines(KlinesCommand),
   Indicators(IndicatorsCommand),
   Strategies(StrategiesCommand),
+  Plans(PlansCommand),
   Orders(OrdersCommand),
   Positions(PositionsCommand),
   Gambling(GamblingCommand),
@@ -54,16 +56,17 @@ impl SpotCommand {
     let nats = Nats::new().await.unwrap();
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
-      Commands::Account(account) => account.run(ctx).await,
-      Commands::Symbols(symbols) => symbols.run(ctx).await,
-      Commands::Tickers(tickers) => tickers.run(ctx).await,
-      Commands::Klines(klines) => klines.run(ctx).await,
-      Commands::Indicators(indicators) => indicators.run(ctx).await,
-      Commands::Strategies(strategies) => strategies.run(ctx).await,
-      Commands::Orders(orders) => orders.run(ctx).await,
-      Commands::Positions(positions) => positions.run(ctx).await,
-      Commands::Gambling(gambling) => gambling.run(ctx).await,
-      Commands::Scalping(scalping) => scalping.run(ctx).await,
+      Commands::Account(account) => account.run(ctx.clone()).await,
+      Commands::Symbols(symbols) => symbols.run(ctx.clone()).await,
+      Commands::Tickers(tickers) => tickers.run(ctx.clone()).await,
+      Commands::Klines(klines) => klines.run(ctx.clone()).await,
+      Commands::Indicators(indicators) => indicators.run(ctx.clone()).await,
+      Commands::Strategies(strategies) => strategies.run(ctx.clone()).await,
+      Commands::Plans(plans) => plans.run(ctx.clone()).await,
+      Commands::Orders(orders) => orders.run(ctx.clone()).await,
+      Commands::Positions(positions) => positions.run(ctx.clone()).await,
+      Commands::Gambling(gambling) => gambling.run(ctx.clone()).await,
+      Commands::Scalping(scalping) => scalping.run(ctx.clone()).await,
     }
   }
 }

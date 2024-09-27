@@ -47,3 +47,4 @@ pub const LOCKS_SYMBOLS_FLUSH: &str = "locks:binance:futures:symbols:flush";
 pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:futures:klines:flush";
 pub const LOCKS_INDICATORS_FLUSH: &str = "locks:binance:futures:indicators:flush";
 pub const LOCKS_STRATEGIES_FLUSH: &str = "locks:binance:futures:strategies:flush";
+pub const LOCKS_PLANS_FLUSH: &str = "locks:binance:futures:plans:flush";

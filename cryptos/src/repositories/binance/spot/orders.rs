@@ -89,10 +89,10 @@ impl OrdersRepository {
       .filter(orders::symbol.eq(symbol))
       .filter(orders::order_id.eq(order_id))
       .first(&mut conn) {
-      Ok(order) => Ok(Some(order)),
-      Err(diesel::result::Error::NotFound) => Ok(None),
-      Err(e) => Err(e.into()),
-    }
+        Ok(order) => Ok(Some(order)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
   }
 
   pub async fn create(

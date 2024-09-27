@@ -39,10 +39,10 @@ impl KlinesRepository
       .filter(klines::interval.eq(interval))
       .filter(klines::timestamp.eq(timestamp))
       .first(&mut conn) {
-      Ok(kline) => Ok(Some(kline)),
-      Err(diesel::result::Error::NotFound) => Ok(None),
-      Err(e) => Err(e.into()),
-    }
+        Ok(kline) => Ok(Some(kline)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
   }
 
   pub async fn gets<T>(

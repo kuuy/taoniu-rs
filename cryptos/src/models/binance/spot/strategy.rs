@@ -1,12 +1,8 @@
 use chrono::{prelude::Utc, DateTime};
 use diesel::{Queryable, Selectable, Insertable};
-use diesel_as_jsonb::AsJsonb;
 use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::spot::strategies::*;
-
-#[derive(Debug, Serialize, Deserialize, AsJsonb)]
-pub struct Context {}
 
 #[derive(Queryable, Selectable, Insertable, Deserialize, Serialize, Debug)]
 #[diesel(table_name = strategies)]

@@ -23,10 +23,10 @@ impl SymbolsRepository {
       .select(Symbol::as_select())
       .filter(symbols::symbol.eq(symbol))
       .first(&mut conn) {
-      Ok(symbol) => Ok(Some(symbol)),
-      Err(diesel::result::Error::NotFound) => Ok(None),
-      Err(e) => Err(e.into()),
-    }
+        Ok(symbol) => Ok(Some(symbol)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
   }
 
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
