@@ -43,8 +43,8 @@ impl NatsCommand {
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Publish => self.publish(ctx).await,
-      Commands::Subscribe => self.subscribe(ctx).await,
+      Commands::Publish => self.publish(ctx.clone()).await,
+      Commands::Subscribe => self.subscribe(ctx.clone()).await,
     }
   }
 }

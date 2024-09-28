@@ -41,7 +41,7 @@ impl StrategiesCommand {
   async fn atr(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies atr");
     match StrategiesRepository::atr(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {
@@ -53,7 +53,7 @@ impl StrategiesCommand {
   async fn zlema(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies zlema");
     match StrategiesRepository::zlema(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {
@@ -65,7 +65,7 @@ impl StrategiesCommand {
   async fn ha_zlema(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies ha zlema");
     match StrategiesRepository::ha_zlema(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {
@@ -77,7 +77,7 @@ impl StrategiesCommand {
   async fn kdj(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies kdj");
     match StrategiesRepository::kdj(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {
@@ -89,7 +89,7 @@ impl StrategiesCommand {
   async fn bbands(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies bbands");
     match StrategiesRepository::bbands(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {
@@ -101,7 +101,7 @@ impl StrategiesCommand {
   async fn ichimoku_cloud(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("strategies ichimoku cloud");
     match StrategiesRepository::ichimoku_cloud(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
     ).await {

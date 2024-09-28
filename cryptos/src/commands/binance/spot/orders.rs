@@ -83,7 +83,7 @@ impl OrdersCommand {
     limit: i64,
   ) -> Result<(), Box<dyn std::error::Error>> {
     println!("orders sync");
-    let values = OrdersRepository::sync(ctx, &symbol, 0, limit).await;
+    let values = OrdersRepository::sync(ctx.clone(), &symbol, 0, limit).await;
     println!("orders sync {:?}", values);
     Ok(())
   }

@@ -52,15 +52,15 @@ impl SymbolsCommand {
 
   async fn count(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("symbols count");
-    let count = SymbolsRepository::count(ctx).await.unwrap();
+    let count = SymbolsRepository::count(ctx.clone()).await.unwrap();
     println!("symbols count {}", count);
     Ok(())
   }
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Flush => self.flush(ctx).await,
-      Commands::Count => self.count(ctx).await,
+      Commands::Flush => self.flush(ctx.clone()).await,
+      Commands::Count => self.count(ctx.clone()).await,
     }
   }
 }

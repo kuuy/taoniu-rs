@@ -11,6 +11,8 @@ use crate::commands::binance::futures::plans::*;
 use crate::commands::binance::futures::positions::*;
 use crate::commands::binance::futures::gambling::*;
 use crate::commands::binance::futures::scalping::*;
+use crate::commands::binance::futures::triggers::*;
+use crate::commands::binance::futures::tradings::*;
 
 pub mod account;
 pub mod symbols;
@@ -22,6 +24,8 @@ pub mod plans;
 pub mod positions;
 pub mod gambling;
 pub mod scalping;
+pub mod triggers;
+pub mod tradings;
 
 #[derive(Parser)]
 pub struct FuturesCommand {
@@ -41,6 +45,8 @@ enum Commands {
   Positions(PositionsCommand),
   Gambling(GamblingCommand),
   Scalping(ScalpingCommand),
+  Triggers(TriggersCommand),
+  Tradings(TradingsCommand),
 }
 
 impl FuturesCommand {
@@ -61,6 +67,8 @@ impl FuturesCommand {
       Commands::Positions(positions) => positions.run(ctx.clone()).await,
       Commands::Gambling(gambling) => gambling.run(ctx.clone()).await,
       Commands::Scalping(scalping) => scalping.run(ctx.clone()).await,
+      Commands::Triggers(triggers) => triggers.run(ctx.clone()).await,
+      Commands::Tradings(tradings) => tradings.run(ctx.clone()).await,
     }
   }
 }

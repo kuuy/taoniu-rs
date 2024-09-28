@@ -186,7 +186,7 @@ impl IndicatorsCommand {
     }
 
     match IndicatorsRepository::volume_profile(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
       limit,
@@ -199,7 +199,7 @@ impl IndicatorsCommand {
   async fn andean_oscillator(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("indicators andean oscillator");
     match IndicatorsRepository::andean_oscillator(
-      ctx,
+      ctx.clone(),
       &symbol,
       &interval,
       50,

@@ -49,7 +49,7 @@ impl AccountCommand {
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Flush => self.flush(ctx.clone()).await,
-      Commands::Rsmq(nats) => nats.run(ctx).await,
+      Commands::Rsmq(nats) => nats.run(ctx.clone()).await,
     }
   }
 }

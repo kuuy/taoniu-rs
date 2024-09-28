@@ -39,7 +39,7 @@ impl TickersCommand {
   async fn price(&self, ctx: Ctx, symbol: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("tickers price {symbol:}");
     let price = match TickersRepository::price(
-      ctx,
+      ctx.clone(),
       &symbol,
     ).await {
       Ok(price) => price,
@@ -52,7 +52,7 @@ impl TickersCommand {
   async fn flush(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("tickers flush");
     let values = TickersRepository::flush(
-      ctx,
+      ctx.clone(),
       ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "AUD"].to_vec(),
     ).await;
     println!("tickers flush {:?}", values);

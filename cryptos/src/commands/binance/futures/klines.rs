@@ -43,7 +43,7 @@ impl KlinesCommand {
   async fn gets(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("klines gets");
     let values = KlinesRepository::gets(
-      ctx,
+      ctx.clone(),
       ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "AUD"].to_vec(),
       ["open", "close", "high", "low", "volume", "quota", "timestamp"].to_vec(),
       "1m",
@@ -67,7 +67,7 @@ impl KlinesCommand {
     match &self.commands {
       Commands::Gets => self.gets(ctx.clone()).await,
       Commands::Timestamp(args) => self.timestamp(args.interval.clone()).await,
-      Commands::Rsmq(nats) => nats.run(ctx).await,
+      Commands::Rsmq(nats) => nats.run(ctx.clone()).await,
     }
   }
 }

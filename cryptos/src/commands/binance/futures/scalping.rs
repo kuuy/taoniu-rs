@@ -30,14 +30,14 @@ impl ScalpingCommand {
 
   async fn scan(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("scalping scan");
-    let symbols = ScalpingRepository::scan(ctx).await?;
+    let symbols = ScalpingRepository::scan(ctx.clone()).await?;
     println!("scalping scan symbols {:?}", symbols);
     Ok(())
   }
 
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Scan => self.scan(ctx).await,
+      Commands::Scan => self.scan(ctx.clone()).await,
     }
   }
 }

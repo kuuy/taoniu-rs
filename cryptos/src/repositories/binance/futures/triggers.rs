@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 
 use crate::common::*;
-use crate::schema::binance::spot::triggers::*;
+use crate::schema::binance::futures::triggers::*;
 
 #[derive(Default)]
 pub struct TriggersRepository {}

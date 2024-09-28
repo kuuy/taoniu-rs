@@ -6,7 +6,7 @@ use chrono::prelude::Utc;
 use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use serde::{Deserialize, Deserializer};
-use tokio_tungstenite::connect_async;
+use tokio_tungstenite::{tungstenite::Message, connect_async};
 use clap::{Parser};
 
 use crate::common::*;
@@ -159,13 +159,16 @@ impl KlinesCommand {
       let mut read = read.lock_owned().await;
       async move {
         while let Some(message) = read.next().await {
-          let data = message.unwrap().into_data();
-          // tokio::io::stdout().write(&data).await.unwrap();
-          match serde_json::from_slice::<KlineEvent>(&data) {
-            Ok(event) => {
-              let _ = Self::process(ctx.clone(), event.data.message).await;
-            }
-            Err(err) => println!("error: {}", err)
+          match message.unwrap() {
+            Message::Text(content) => {
+              match serde_json::from_str::<KlineEvent>(&content) {
+                Ok(event) => {
+                  let _ = Self::process(ctx.clone(), event.data.message).await;
+                }
+                Err(err) => println!("error: {}", err)
+              }
+            },
+            _ => break,
           }
         }
       }
