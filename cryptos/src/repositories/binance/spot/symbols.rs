@@ -49,6 +49,24 @@ impl SymbolsRepository {
     Ok(count)
   }
 
+  pub async fn pairs<T>(ctx: Ctx, symbol: T) -> Result<(String, String), Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    match symbols::table
+      .select((symbols::base_asset, symbols::quote_asset))
+      .filter(symbols::symbol.eq(symbol))
+      .first::<(String, String)>(&mut conn) {
+      Ok(result) => Ok(result),
+      Err(e) => return Err(e.into()),
+    }
+  }
+
   pub async fn filters<T>(ctx: Ctx, symbol: T) -> Result<(f64, f64), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>

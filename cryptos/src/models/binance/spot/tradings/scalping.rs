@@ -1,10 +1,10 @@
 use chrono::{prelude::Utc, DateTime};
-use diesel::{Queryable, Selectable};
+use diesel::{Queryable, Selectable, Insertable};
 use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::spot::tradings::scalping::*;
 
-#[derive(Queryable, Selectable, Deserialize, Serialize)]
+#[derive(Queryable, Selectable, Insertable, Deserialize, Serialize, Debug)]
 #[diesel(table_name = scalping)]
 pub struct Scalping {
   pub id: String,

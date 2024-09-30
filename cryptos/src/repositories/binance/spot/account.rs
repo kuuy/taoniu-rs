@@ -37,6 +37,28 @@ where
 }
 
 impl AccountRepository {
+  pub async fn balance<T>(ctx: Ctx, asset: T) -> Result<(f64, f64), Box<dyn std::error::Error>> 
+  where
+    T: AsRef<str>
+  {
+    let asset = asset.as_ref();
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+
+    let redis_key = format!("{}:{}", Config::REDIS_KEY_BALANCE, asset);
+    let fields = vec!["free", "locked"];
+    match redis::cmd("HMGET")
+      .arg(&redis_key)
+      .arg(&fields)
+      .query_async(&mut rdb)
+      .await
+    {
+      Ok((Some(free), Some(locked))) => Ok((free, locked)),
+      Ok(_) => return Err(Box::from(format!("balance of {asset:} not exists"))),
+      Err(e) => return Err(e.into()),
+    }
+  }
+
   pub async fn flush(ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     let timestamp = Utc::now().timestamp_millis().to_string();
 
