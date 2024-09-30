@@ -23,7 +23,7 @@ impl SymbolsRepository {
       .select(Symbol::as_select())
       .filter(symbols::symbol.eq(symbol))
       .first(&mut conn) {
-        Ok(symbol) => Ok(Some(symbol)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }

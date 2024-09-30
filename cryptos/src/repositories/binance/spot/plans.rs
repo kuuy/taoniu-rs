@@ -4,7 +4,6 @@ use std::time::Duration;
 use chrono::{prelude::Utc, Timelike};
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 
@@ -35,7 +34,7 @@ impl PlansRepository {
       .find(id)
       .select(Plan::as_select())
       .first(&mut conn) {
-        Ok(plan) => Ok(Some(plan)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }
@@ -62,7 +61,7 @@ impl PlansRepository {
       .filter(plans::interval.eq(interval))
       .filter(plans::timestamp.eq(timestamp))
       .first(&mut conn) {
-        Ok(plan) => Ok(Some(plan)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }

@@ -6,7 +6,6 @@ use talib_sys::{TA_Integer, TA_Real, TA_ATR, TA_MA, TA_MAType_TA_MAType_EMA, TA_
 
 use chrono::{prelude::Utc, DateTime, Local, Timelike};
 use diesel::prelude::*;
-use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;

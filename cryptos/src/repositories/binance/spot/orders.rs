@@ -8,7 +8,6 @@ use hmac::{Hmac, Mac};
 use chrono::prelude::Utc;
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 use reqwest::header;
 use rsa::{pkcs8::DecodePrivateKey, RsaPrivateKey};
 use serde::{Deserialize, Deserializer};
@@ -89,7 +88,7 @@ impl OrdersRepository {
       .filter(orders::symbol.eq(symbol))
       .filter(orders::order_id.eq(order_id))
       .first(&mut conn) {
-        Ok(order) => Ok(Some(order)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }
@@ -326,14 +325,11 @@ impl OrdersRepository {
     let orders = response.json::<Vec<OrderInfo>>().await.unwrap();
 
     for order in orders.iter() {
-      let mut entity: Option<Order> = None;
-      match Self::get(ctx.clone(), order.symbol.clone(), order.order_id).await {
-        Ok(Some(result)) => {
-          entity = Some(result);
-        },
-        Ok(None) => {},
+      let entity: Option<Order> = match Self::get(ctx.clone(), order.symbol.clone(), order.order_id).await {
+        Ok(Some(result)) => Some(result),
+        Ok(None) => None,
         Err(e) => return Err(e.into()),
-      }
+      };
       if entity.is_none() {
         let id = xid::new().to_string();
         match Self::create(

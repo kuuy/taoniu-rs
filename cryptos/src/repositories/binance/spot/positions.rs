@@ -1,11 +1,39 @@
+use diesel::prelude::*;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use rust_decimal::MathematicalOps;
+
+use crate::common::*;
+use crate::models::binance::spot::position::*;
+use crate::schema::binance::spot::positions::*;
 
 #[derive(Default)]
 pub struct PositionsRepository {}
 
 impl PositionsRepository {
+  pub async fn get<T>(
+    ctx: Ctx,
+    symbol: T,
+  ) -> Result<Option<Position>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    match positions::table
+      .select(Position::as_select())
+      .filter(positions::symbol.eq(symbol))
+      .filter(positions::status.eq(1))
+      .first(&mut conn) {
+        Ok(result) => Ok(Some(result)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
+  }
+
   pub fn capital(
     capital: f64,
     entry_amount: f64,

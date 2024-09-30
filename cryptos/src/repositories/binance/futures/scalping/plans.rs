@@ -1,6 +1,4 @@
 use diesel::prelude::*;
-use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 
 use crate::common::Ctx;
 use crate::models::binance::futures::scalping::plan::*;
@@ -36,7 +34,7 @@ impl PlansRepository {
       .select(Plan::as_select())
       .filter(plans::plan_id.eq(plan_id))
       .first(&mut conn) {
-        Ok(plan) => Ok(Some(plan)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }
@@ -62,18 +60,20 @@ impl PlansRepository {
     }
   }
 
-  pub async fn update<V>(
+  pub async fn delete<T>(
     ctx: Ctx,
-    id: String,
-    value: V,
+    plan_id: T,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
-    V: diesel::AsChangeset<Target = plans::table>,
-    <V as diesel::AsChangeset>::Changeset: QueryFragment<diesel::pg::Pg>,
+    T: AsRef<str>
   {
+    let plan_id = plan_id.as_ref();
+
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
-    match diesel::update(plans::table.find(id)).set(value).execute(&mut conn) {
+    match diesel::delete(plans::table)
+      .filter(plans::plan_id.eq(plan_id))
+      .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(e) => Err(e.into()),
     }

@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use chrono::{prelude::Utc, Timelike};
@@ -38,7 +37,7 @@ impl KlinesRepository
       .filter(klines::interval.eq(interval))
       .filter(klines::timestamp.eq(timestamp))
       .first(&mut conn) {
-      Ok(kline) => Ok(Some(kline)),
+      Ok(result) => Ok(Some(result)),
       Err(diesel::result::Error::NotFound) => Ok(None),
       Err(e) => Err(e.into()),
     }

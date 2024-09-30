@@ -1,6 +1,5 @@
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 use chrono::prelude::Utc;
@@ -33,7 +32,7 @@ impl PositionsRepository
       .filter(positions::side.eq(side))
       .filter(positions::status.eq(1))
       .first(&mut conn) {
-      Ok(position) => Ok(Some(position)),
+      Ok(result) => Ok(Some(result)),
       Err(diesel::result::Error::NotFound) => Ok(None),
       Err(e) => Err(e.into()),
     }

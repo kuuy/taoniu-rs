@@ -1,7 +1,6 @@
 use chrono::{prelude::Utc, Local};
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
-use diesel::ExpressionMethods;
 use redis::AsyncCommands;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
@@ -42,7 +41,7 @@ impl StrategiesRepository {
       .filter(strategies::interval.eq(interval))
       .order(strategies::timestamp.desc())
       .first(&mut conn) {
-        Ok(strategy) => Ok(Some(strategy)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }
@@ -73,7 +72,7 @@ impl StrategiesRepository {
       .filter(strategies::timestamp.ge(timestamp))
       .order(strategies::timestamp.desc())
       .first(&mut conn) {
-        Ok(strategy) => Ok(Some(strategy)),
+        Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => Err(e.into()),
       }
@@ -147,7 +146,7 @@ impl StrategiesRepository {
     let day = Local::now().format("%m%d").to_string();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_INDICATORS, interval, symbol, day);
     let atr: Option<f64> = match rdb.hget(&redis_key, indicator).await {
-      Ok(Some(atr)) => atr,
+      Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("atr of {symbol:} {interval:} not exists"))),
       Err(e) => return Err(e.into()),
     };

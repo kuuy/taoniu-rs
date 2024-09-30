@@ -4,9 +4,10 @@ use std::collections::HashMap;
 use url::Url;
 use sha2::Sha256;
 use hmac::{Hmac, Mac};
-use chrono::prelude::Utc;
-use diesel::ExpressionMethods;
 use reqwest::header;
+
+use chrono::prelude::Utc;
+use diesel::prelude::*;
 use redis::AsyncCommands;
 use serde::{Deserialize, Deserializer};
 
