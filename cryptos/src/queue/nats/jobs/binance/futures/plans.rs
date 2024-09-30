@@ -13,12 +13,12 @@ impl PlansJob {
     }
   }
 
-  pub async fn update<T>(&self, id: T, amount: f64) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn update<T>(&self, id: T, side: i32, amount: f64) -> Result<(), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
     let id = id.as_ref();
-    let payload = PlansUpdatePayload::new(id, amount);
+    let payload = PlansUpdatePayload::new(id, side, amount);
     let message = serde_json::to_string(&payload).unwrap();
     let client = self.ctx.nats.clone();
     client.publish(Config::NATS_EVENTS_PLANS_UPDATE, message.into()).await?;

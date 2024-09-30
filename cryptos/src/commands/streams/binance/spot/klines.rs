@@ -168,7 +168,8 @@ impl KlinesCommand {
                 Err(err) => println!("error: {}", err)
               }
             },
-            _ => break,
+            Message::Close(_) => break,
+            _ => continue,
           }
         }
       }

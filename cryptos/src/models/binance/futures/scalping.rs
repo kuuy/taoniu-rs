@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::schema::binance::futures::scalping::*;
 
+pub mod plan;
+
 #[derive(Queryable, Selectable, Deserialize, Serialize)]
 #[diesel(table_name = scalping)]
 pub struct Scalping {

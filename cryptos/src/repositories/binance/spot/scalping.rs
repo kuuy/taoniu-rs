@@ -3,6 +3,8 @@ use diesel::prelude::*;
 use crate::common::*;
 use crate::schema::binance::spot::scalping::*;
 
+pub mod plans;
+
 #[derive(Default)]
 pub struct ScalpingRepository {}
 

@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
+use crate::repositories::binance::futures::scalping::plans::*;
 
 #[derive(Parser)]
 pub struct ScalpingCommand {
@@ -29,8 +30,12 @@ impl ScalpingCommand {
     }
   }
 
-  async fn place(&self, _: Ctx) -> Result<(), Box<dyn std::error::Error>> {
+  async fn place(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures tradings scalping place");
+    let plan_ids = PlansRepository::scan(ctx.clone()).await.unwrap();
+    for plan_id in plan_ids.iter() {
+      println!("plan_id {plan_id:}");
+    }
     Ok(())
   }
 

@@ -1,3 +1,5 @@
+pub mod plans;
+
 diesel::table! {
   #[sql_name = "binance_spot_scalping"]
   scalping (id) {

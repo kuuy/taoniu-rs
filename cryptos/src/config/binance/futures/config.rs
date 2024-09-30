@@ -48,3 +48,7 @@ pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:futures:klines:flush";
 pub const LOCKS_INDICATORS_FLUSH: &str = "locks:binance:futures:indicators:flush";
 pub const LOCKS_STRATEGIES_FLUSH: &str = "locks:binance:futures:strategies:flush";
 pub const LOCKS_PLANS_FLUSH: &str = "locks:binance:futures:plans:flush";
+pub const LOCKS_TRADINGS_SCALPING_PLACE: &str = "locks:binance:futures:tradings:scalping:place";
+pub const LOCKS_TRADINGS_SCALPING_FLUSH: &str = "locks:binance:futures:tradings:scalping:flush";
+pub const LOCKS_TRADINGS_TRIGGERS_PLACE: &str = "locks:binance:futures:tradings:triggers:place";
+pub const LOCKS_TRADINGS_TRIGGERS_FLUSH: &str = "locks:binance:futures:tradings:triggers:flush";

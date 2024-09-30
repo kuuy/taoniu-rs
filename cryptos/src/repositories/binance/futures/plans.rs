@@ -19,6 +19,28 @@ use crate::queue::nats::jobs::binance::futures::plans::*;
 pub struct PlansRepository {}
 
 impl PlansRepository {
+  pub async fn find<T>(
+    ctx:Ctx,
+    id: T,
+  ) -> Result<Option<Plan>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let id = id.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    match plans::table
+      .find(id)
+      .select(Plan::as_select())
+      .first(&mut conn) {
+        Ok(plan) => Ok(Some(plan)),
+        Err(diesel::result::Error::NotFound) => Ok(None),
+        Err(e) => Err(e.into()),
+      }
+  }
+
   pub async fn get<T>(
     ctx: Ctx,
     symbol: T,
@@ -176,13 +198,20 @@ impl PlansRepository {
       return Err(Box::from(format!("plan {symbol:} {interval:} has been taken")))
     }
 
+    let side: i32;
+    if strategy.signal == 1 {
+      side = 1;
+    } else {
+      side = 2;
+    }
+
     let id = xid::new().to_string();
     let success = match Self::create(
       ctx.clone(),
       id.clone(),
       symbol.to_string(),
       interval.to_string(),
-      strategy.signal,
+      side,
       price.to_f64().unwrap(),
       quantity.to_f64().unwrap(),
       amount.to_f64().unwrap(),
@@ -196,7 +225,7 @@ impl PlansRepository {
 
     if success {
       let job = PlansJob::new(ctx.clone());
-      let _ = job.update(id.to_owned(), amount.to_f64().unwrap()).await;
+      let _ = job.update(id.to_owned(), side, amount.to_f64().unwrap()).await;
     }
 
     Ok(())
