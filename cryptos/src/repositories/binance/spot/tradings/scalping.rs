@@ -330,6 +330,10 @@ impl ScalpingRepository {
       _ => 0.0,
     };
 
+    if cached_buy_price >= buy_price * 0.9615 {
+      return false
+    }
+
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
 
