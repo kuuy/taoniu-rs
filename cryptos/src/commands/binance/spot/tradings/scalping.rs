@@ -36,8 +36,7 @@ impl ScalpingCommand {
 
   async fn place(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot tradings scalping place");
-    let _ = PlansRepository::scan(ctx.clone()).await.unwrap();
-    let plan_ids = vec!["crpna32ddc80ep2upjg0"];
+    let plan_ids = PlansRepository::scan(ctx.clone()).await.unwrap();
     for plan_id in plan_ids.iter() {
       let rdb = ctx.rdb.lock().await.clone();
       let mutex_id = xid::new().to_string();
