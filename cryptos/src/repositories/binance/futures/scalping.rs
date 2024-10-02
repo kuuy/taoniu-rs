@@ -13,6 +13,7 @@ impl ScalpingRepository {
   pub async fn get<T>(
     ctx: Ctx,
     symbol: T,
+    side: i32,
   ) -> Result<Option<Scalping>, Box<dyn std::error::Error>>
   where
     T: AsRef<str>
@@ -25,6 +26,7 @@ impl ScalpingRepository {
     match scalping::table
       .select(Scalping::as_select())
       .filter(scalping::symbol.eq(symbol))
+      .filter(scalping::side.eq(side))
       .filter(scalping::status.eq(1))
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),

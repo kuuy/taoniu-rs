@@ -24,7 +24,7 @@ impl KlinesJob {
     let content = serde_json::to_string(&payload).unwrap();
     let message = serde_json::to_string(&[
       Config::RSMQ_JOBS_KLINES_FLUSH,
-      &content[..],
+      &content,
     ]).unwrap();
     let rmq = self.ctx.rmq.lock().await.clone();
     let mut client = Rsmq::new(rmq.clone()).await?;

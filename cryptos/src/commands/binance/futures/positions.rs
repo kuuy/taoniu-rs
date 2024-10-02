@@ -58,7 +58,7 @@ impl PositionsCommand {
     let step_size: f64;
     match SymbolsRepository::filters(ctx.clone(), symbol.clone()).await {
       Ok(data) => {
-        (tick_size, step_size) = data;
+        (tick_size, step_size, _) = data;
       },
       Err(e) => return Err(e.into()),
     }

@@ -30,8 +30,8 @@ impl KlinesWorker {
     let redis_key = format!("{}:{}", Config::LOCKS_KLINES_FLUSH, interval);
     let mut mutex = Mutex::new(
       rdb,
-      &redis_key[..],
-      &mutex_id[..],
+      &redis_key,
+      &mutex_id,
     );
     if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
       return Err(Box::from(format!("mutex failed {}", redis_key)));

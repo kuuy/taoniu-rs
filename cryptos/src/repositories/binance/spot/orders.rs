@@ -214,7 +214,7 @@ impl OrdersRepository {
     if status_code.is_server_error() {
       return Err(Box::new(ApiError{
         code: status_code.as_u16().into(),
-        message: "".to_string(),
+        message: "".to_owned(),
       }))
     }
 
@@ -225,7 +225,7 @@ impl OrdersRepository {
         }
         Err(_) => return Err(Box::new(ApiError{
           code: status_code.as_u16().into(),
-          message: "".to_string(),
+          message: "".to_owned(),
         }))
       }
     }
@@ -243,7 +243,7 @@ impl OrdersRepository {
       id,
       trade.symbol.to_owned(),
       trade.order_id,
-      trade.order_type.clone(),
+      trade.order_type.to_owned(),
       trade.side.to_owned(),
       trade.price,
       0.0,
@@ -335,17 +335,17 @@ impl OrdersRepository {
         match Self::create(
           ctx.clone(), 
           id,
-          symbol.to_string(),
+          symbol.to_owned(),
           order.order_id,
-          order.order_type.clone(),
-          order.side.clone(),
+          order.order_type.to_owned(),
+          order.side.to_owned(),
           order.price,
           order.stop_price,
           order.quantity,
           order.executed_quantity,
           order.open_time,
           order.update_time,
-          order.status.clone(),
+          order.status.to_owned(),
           "".to_string(),
         ).await {
           Ok(result) => {
@@ -369,12 +369,12 @@ impl OrdersRepository {
           ctx.clone(),
           entity.id,
           (
-            orders::price.eq(order.price.clone()),
-            orders::stop_price.eq(order.stop_price.clone()),
-            orders::quantity.eq(order.quantity.clone()),
-            orders::executed_quantity.eq(order.executed_quantity.clone()),
-            orders::update_time.eq(order.update_time.clone()),
-            orders::status.eq(order.status.clone()),
+            orders::price.eq(order.price),
+            orders::stop_price.eq(order.stop_price),
+            orders::quantity.eq(order.quantity),
+            orders::executed_quantity.eq(order.executed_quantity),
+            orders::update_time.eq(order.update_time),
+            orders::status.eq(order.status.to_owned()),
           ),
         ).await {
           Ok(result) => {

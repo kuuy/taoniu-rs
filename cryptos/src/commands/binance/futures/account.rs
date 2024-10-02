@@ -30,7 +30,7 @@ impl AccountCommand {
     let mut mutex = Mutex::new(
       rdb,
       Config::LOCKS_ACCOUNT_FLUSH,
-      &mutex_id[..],
+      &mutex_id,
     );
     if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
       return Err(Box::from(format!("mutex failed {}", Config::LOCKS_ACCOUNT_FLUSH)));

@@ -161,7 +161,7 @@ impl StrategiesRepository {
     };
     let price = Decimal::from_f64(price).unwrap();
 
-    let (tick_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
+    let (tick_size, _, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
       Ok(result) => result,
       Err(e) => return Err(e.into()),
     };

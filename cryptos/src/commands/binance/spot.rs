@@ -52,9 +52,9 @@ enum Commands {
 
 impl SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    let rdb = Rdb::new(2).await?;
-    let rmq = Rmq::new(2).await?;
-    let pool = Pool::new(2)?;
+    let rdb = Rdb::new(1).await?;
+    let rmq = Rmq::new(1).await?;
+    let pool = Pool::new(1)?;
     let nats = Nats::new().await?;
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {

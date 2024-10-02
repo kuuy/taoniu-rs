@@ -45,14 +45,10 @@ impl AntCommand {
 
     let entry_amount = entry_price * entry_quantity;
 
-    let tick_size: f64;
-    let step_size: f64;
-    match SymbolsRepository::filters(ctx.clone(), symbol.clone()).await {
-      Ok(data) => {
-        (tick_size, step_size) = data;
-      },
+    let (tick_size, step_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol.to_owned()).await {
+      Ok(result) => result,
       Err(e) => return Err(e.into()),
-    }
+    };
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
 

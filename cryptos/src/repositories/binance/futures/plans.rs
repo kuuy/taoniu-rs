@@ -174,7 +174,7 @@ impl PlansRepository {
       }
     }
 
-    let (tick_size, step_size) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
+    let (tick_size, step_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
       Ok(result) => result,
       Err(e) => return Err(e.into()),
     };

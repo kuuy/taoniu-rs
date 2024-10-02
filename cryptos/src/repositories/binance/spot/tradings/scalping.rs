@@ -160,7 +160,7 @@ impl ScalpingRepository {
 
     if plan.price > scalping.price {
       let _ = ScalpingPlansRepository::delete(ctx.clone(), plan_id).await;
-      return Err(Box::from(format!("plan of {0:} high then scalping price {1:}", plan.symbol, scalping.price)))
+      return Err(Box::from(format!("plan of {0:} higher than scalping price {1:}", plan.symbol, scalping.price)))
     }
 
     let price = match TickersRepository::price(
@@ -187,18 +187,18 @@ impl ScalpingRepository {
     buy_price = (buy_price / tick_size).floor() * tick_size;
 
     if price > buy_price {
-      return Err(Box::from(format!("price of {0:} high then buy price {buy_price:}", plan.symbol)))
+      return Err(Box::from(format!("plan of {0:} higher than buy price {buy_price:}", plan.symbol)))
     }
 
     let entry_price = match PositionsRepository::get(ctx.clone(), scalping.symbol.clone()).await {
       Ok(Some(position)) => Decimal::from_f64(position.entry_price).unwrap(),
-      Ok(None) => return Err(Box::from(format!("positions of {0:} not exists", plan.symbol))),
+      Ok(None) => dec!(0.0),
       Err(e) => return Err(e.into()),
     };
 
     if entry_price > dec!(0.0) && price > entry_price {
       let _ = ScalpingPlansRepository::delete(ctx.clone(), plan_id).await;
-      return Err(Box::from(format!("plan of {0:} high then entry price {entry_price:}", plan.symbol)))
+      return Err(Box::from(format!("plan of {0:} higher than entry price {entry_price:}", scalping.symbol)))
     }
 
     let mut sell_price = dec!(0.0);
@@ -296,7 +296,7 @@ impl ScalpingRepository {
     };
 
     if success {
-      println!("scalping of {0:} places {buy_price:} {buy_quantity:} success", plan.symbol);
+      println!("scalping of {0:} place {buy_price:} {buy_quantity:} success", plan.symbol);
     }
 
     Ok(())

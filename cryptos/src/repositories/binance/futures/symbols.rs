@@ -26,7 +26,7 @@ impl SymbolsRepository {
     Ok(count)
   }
 
-  pub async fn filters<T>(ctx: Ctx, symbol: T) -> Result<(f64, f64), Box<dyn std::error::Error>> 
+  pub async fn pairs<T>(ctx: Ctx, symbol: T) -> Result<(String, String), Box<dyn std::error::Error>>
   where
     T: AsRef<str>
   {
@@ -35,7 +35,25 @@ impl SymbolsRepository {
     let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
-    let (tick_size, step_size): (f64, f64);
+    match symbols::table
+      .select((symbols::base_asset, symbols::quote_asset))
+      .filter(symbols::symbol.eq(symbol))
+      .first::<(String, String)>(&mut conn) {
+      Ok(result) => Ok(result),
+      Err(e) => return Err(e.into()),
+    }
+  }
+
+  pub async fn filters<T>(ctx: Ctx, symbol: T) -> Result<(f64, f64, f64), Box<dyn std::error::Error>> 
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    let (tick_size, step_size, notional): (f64, f64, f64);
     match symbols::table
       .select(symbols::filters)
       .filter(symbols::symbol.eq(symbol))
@@ -45,10 +63,11 @@ impl SymbolsRepository {
         tick_size = values[2].parse::<f64>().unwrap();
         let values: Vec<&str> = filters.quote.split(",").collect();
         step_size = values[2].parse::<f64>().unwrap();
+        notional = filters.notional.parse::<f64>().unwrap();
       },
       Err(e) => return Err(e.into()),
     };
 
-    Ok((tick_size, step_size))
+    Ok((tick_size, step_size, notional))
   }
 }

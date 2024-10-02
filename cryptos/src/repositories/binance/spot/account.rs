@@ -64,7 +64,7 @@ impl AccountRepository {
 
     let mut params = HashMap::<&str, &str>::new();
     params.insert("recvWindow", "60000");
-    params.insert("timestamp", &timestamp[..]);
+    params.insert("timestamp", &timestamp);
 
     let mut url = Url::parse_with_params(format!("{}/api/v3/account", Env::var("BINANCE_SPOT_API_ENDPOINT")).as_str(), &params)?;
     let query: &str = match url.query() {
@@ -120,7 +120,7 @@ impl AccountRepository {
           ("locked", coin.locked.to_string()),
         ],
       );
-      pipe.sadd(Config::REDIS_KEY_CURRENCIES, &coin.asset[..]);
+      pipe.sadd(Config::REDIS_KEY_CURRENCIES, &coin.asset);
       currencies.push(coin.asset.clone());
       println!("coin balance {} {} {}", coin.asset, coin.free, coin.locked);
     });
@@ -129,7 +129,7 @@ impl AccountRepository {
       if currencies.iter().any(|asset| asset == last_asset) {
         return;
       }
-      pipe.srem(Config::REDIS_KEY_CURRENCIES, &last_asset[..]);
+      pipe.srem(Config::REDIS_KEY_CURRENCIES, &last_asset);
       pipe.del(format!("{}:{}", Config::REDIS_KEY_BALANCE, last_asset));
       println!("coin balance remove {}", last_asset);
     });

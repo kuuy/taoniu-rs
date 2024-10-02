@@ -9,6 +9,7 @@ use crate::schema::binance::futures::symbols::*;
 pub struct Filters {
   pub price: String,
   pub quote: String,
+  pub notional: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, AsJsonb)]

@@ -6,6 +6,7 @@ pub mod tickers;
 pub mod indicators;
 pub mod strategies;
 pub mod plans;
+pub mod orders;
 pub mod positions;
 pub mod gambling;
 pub mod scalping;
