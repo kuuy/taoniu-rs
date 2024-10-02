@@ -24,18 +24,15 @@ struct OrderInfo {
   order_id: i64,
   #[serde(alias = "type")]
   order_type: String,
+  #[serde(alias = "positionSide")]
   position_side: String,
   side: String,
   #[serde(deserialize_with = "to_f64")]
   price: f64,
   #[serde(alias = "avgPrice", deserialize_with = "to_f64")]
   avg_price: f64,
-  #[serde(alias = "activatePrice", deserialize_with = "to_f64")]
-  activate_price: f64,
   #[serde(alias = "stopPrice", deserialize_with = "to_f64")]
   stop_price: f64,
-  #[serde(alias = "priceRate", deserialize_with = "to_f64")]
-  price_rate: f64,
   #[serde(alias = "origQty", deserialize_with = "to_f64")]
   quantity: f64,
   #[serde(alias = "executedQty", deserialize_with = "to_f64")]
@@ -44,7 +41,7 @@ struct OrderInfo {
   open_time: i64,
   #[serde(alias = "updateTime")]
   update_time: i64,
-  #[serde(alias = "updateTime")]
+  #[serde(alias = "workingType")]
   working_type: String,
   #[serde(alias = "priceProtect")]
   price_protect: bool,
@@ -62,15 +59,29 @@ struct TradeInfo {
   order_id: i64,
   #[serde(alias = "type")]
   order_type: String,
+  #[serde(alias = "positionSide")]
+  position_side: String,
   side: String,
   #[serde(deserialize_with = "to_f64")]
   price: f64,
+  #[serde(alias = "avgPrice", deserialize_with = "to_f64")]
+  avg_price: f64,
+  #[serde(alias = "stopPrice", deserialize_with = "to_f64")]
+  stop_price: f64,
   #[serde(alias = "origQty", deserialize_with = "to_f64")]
   quantity: f64,
   #[serde(alias = "executedQty", deserialize_with = "to_f64")]
   executed_quantity: f64,
-  #[serde(alias = "transactTime")]
-  transact_time: i64,
+  #[serde(alias = "workingType")]
+  working_type: String,
+  #[serde(alias = "priceProtect")]
+  price_protect: bool,
+  #[serde(alias = "reduceOnly")]
+  reduce_only: bool,
+  #[serde(alias = "closePosition")]
+  close_position: bool,
+  #[serde(alias = "updateTime")]
+  update_time: i64,
   status: String,
 }
 
@@ -119,9 +130,7 @@ impl OrdersRepository {
     side: String,
     price: f64,
     avg_price: f64,
-    activate_price: f64,
     stop_price: f64,
-    price_rate: f64,
     quantity: f64,
     executed_quantity: f64,
     open_time: i64,
@@ -146,9 +155,7 @@ impl OrdersRepository {
       side,
       price,
       avg_price,
-      activate_price,
       stop_price,
-      price_rate,
       quantity,
       executed_quantity,
       open_time,
@@ -277,21 +284,19 @@ impl OrdersRepository {
       trade.symbol.to_owned(),
       trade.order_id,
       trade.order_type.to_owned(),
-      position_side.to_owned(),
+      trade.position_side.to_owned(),
       trade.side.to_owned(),
       trade.price,
-      0.0,
-      0.0,
-      0.0,
-      0.0,
+      trade.avg_price,
+      trade.stop_price,
       trade.quantity,
       trade.executed_quantity,
-      trade.transact_time,
+      trade.update_time,
       0,
-      "".to_owned(),
-      false,
-      false,
-      false,
+      trade.working_type.to_owned(),
+      trade.price_protect,
+      trade.reduce_only,
+      trade.close_position,
       trade.status.to_owned(),
       "".to_owned(),
     ).await {
@@ -383,8 +388,6 @@ impl OrdersRepository {
           order.side.to_owned(),
           order.price,
           order.avg_price,
-          order.activate_price,
-          order.price_rate,
           order.stop_price,
           order.quantity,
           order.executed_quantity,
@@ -408,8 +411,6 @@ impl OrdersRepository {
         let entity = entity.unwrap();
         if entity.price == order.price
           && entity.avg_price == order.avg_price
-          && entity.activate_price == order.activate_price
-          && entity.price_rate == order.price_rate
           && entity.stop_price == order.stop_price
           && entity.quantity == order.quantity
           && entity.executed_quantity == order.executed_quantity
@@ -427,8 +428,6 @@ impl OrdersRepository {
           (
             orders::price.eq(order.price),
             orders::avg_price.eq(order.avg_price),
-            orders::activate_price.eq(order.activate_price),
-            orders::price_rate.eq(order.price_rate),
             orders::stop_price.eq(order.stop_price),
             orders::quantity.eq(order.quantity),
             orders::executed_quantity.eq(order.executed_quantity),

@@ -8,6 +8,7 @@ use crate::commands::binance::futures::klines::*;
 use crate::commands::binance::futures::indicators::*;
 use crate::commands::binance::futures::strategies::*;
 use crate::commands::binance::futures::plans::*;
+use crate::commands::binance::futures::orders::*;
 use crate::commands::binance::futures::positions::*;
 use crate::commands::binance::futures::gambling::*;
 use crate::commands::binance::futures::scalping::*;
@@ -21,6 +22,7 @@ pub mod klines;
 pub mod indicators;
 pub mod strategies;
 pub mod plans;
+pub mod orders;
 pub mod positions;
 pub mod gambling;
 pub mod scalping;
@@ -42,6 +44,7 @@ enum Commands {
   Indicators(IndicatorsCommand),
   Strategies(StrategiesCommand),
   Plans(PlansCommand),
+  Orders(OrdersCommand),
   Positions(PositionsCommand),
   Gambling(GamblingCommand),
   Scalping(ScalpingCommand),
@@ -64,6 +67,7 @@ impl FuturesCommand {
       Commands::Indicators(indicators) => indicators.run(ctx.clone()).await,
       Commands::Strategies(strategies) => strategies.run(ctx.clone()).await,
       Commands::Plans(plans) => plans.run(ctx.clone()).await,
+      Commands::Orders(orders) => orders.run(ctx.clone()).await,
       Commands::Positions(positions) => positions.run(ctx.clone()).await,
       Commands::Gambling(gambling) => gambling.run(ctx.clone()).await,
       Commands::Scalping(scalping) => scalping.run(ctx.clone()).await,
