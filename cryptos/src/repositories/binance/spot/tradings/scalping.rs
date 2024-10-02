@@ -330,7 +330,7 @@ impl ScalpingRepository {
       _ => 0.0,
     };
 
-    if cached_buy_price >= buy_price * 0.9615 {
+    if price >= cached_buy_price * 0.9615 {
       return false
     }
 

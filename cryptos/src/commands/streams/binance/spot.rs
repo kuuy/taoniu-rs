@@ -22,10 +22,10 @@ enum Commands {
 
 impl SpotCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-    let rdb = Rdb::new(1).await.unwrap();
-    let rmq = Rmq::new(1).await.unwrap();
-    let pool = Pool::new(1).unwrap();
-    let nats = Nats::new().await.unwrap();
+    let rdb = Rdb::new(1).await.expect("bad rdb connection");
+    let rmq = Rmq::new(1).await.expect("bad rmq connection");
+    let pool = Pool::new(1).expect("bad pool connection");
+    let nats = Nats::new().await.expect("bad nats connection");
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
       Commands::Tickers(tickers) => tickers.run(ctx).await,

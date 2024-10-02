@@ -21,10 +21,10 @@ impl SpotCommand {
 
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("queue rsmq binance spot");
-    let rdb = Rdb::new(1).await.unwrap();
-    let rmq = Rmq::new(1).await.unwrap();
-    let pool = Pool::new(1).unwrap();
-    let nats = Nats::new().await.unwrap();
+    let rdb = Rdb::new(1).await?;
+    let rmq = Rmq::new(1).await?;
+    let pool = Pool::new(1)?;
+    let nats = Nats::new().await?;
     let ctx = Ctx::new(rdb, rmq, pool, nats);
 
     let _ = SpotWorkers::new(ctx.clone()).subscribe().await;

@@ -3,7 +3,7 @@ use futures_util::StreamExt;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;
-use crate::queue::nats::payload::binance::spot::indicators::*;
+use crate::queue::nats::payload::binance::spot::strategies::*;
 use crate::repositories::binance::spot::plans::*;
 
 pub struct PlansWorker {
@@ -55,7 +55,7 @@ impl PlansWorker {
         let client = ctx.nats.clone();
         let mut subscriber = client.subscribe(Config::NATS_EVENTS_STRATEGIES_UPDATE).await.unwrap();
         while let Some(message) = subscriber.next().await {
-          if let Ok(payload) = serde_json::from_slice::<IndicatorsUpdatePayload<&str>>(message.payload.as_ref()) {
+          if let Ok(payload) = serde_json::from_slice::<StrategiesUpdatePayload<&str>>(message.payload.as_ref()) {
             if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
               println!("nats worders binance spot plans process failed {} {} {:?}", payload.symbol, payload.interval, e);
             }
