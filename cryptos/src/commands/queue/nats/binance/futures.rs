@@ -27,7 +27,7 @@ impl FuturesCommand {
     let nats = Nats::new().await?;
     let ctx = Ctx::new(rdb, rmq, pool, nats);
 
-    let _ = FuturesWorkers::new(ctx.clone()).subscribe().await;
+    let _ = FuturesWorker::new(ctx.clone()).subscribe().await;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;
