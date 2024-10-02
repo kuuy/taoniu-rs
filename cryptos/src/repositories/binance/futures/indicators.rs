@@ -1090,9 +1090,8 @@ impl IndicatorsRepository {
               end_index = j;
               best_volume = area_volume;
             }
+            break
           }
-        } else {
-          break
         }
       }
     }
