@@ -1,5 +1,6 @@
 use std::time::Duration;
 use futures_util::StreamExt;
+use tokio::task::JoinSet;
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
@@ -204,13 +205,13 @@ impl StrategiesWorker {
     Ok(())
   }
 
-  pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures strategies nats workers subscribe");
 
-    tokio::spawn(Box::pin({
+    workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
+      let client = self.ctx.nats.clone();
       async move {
-        let client = ctx.nats.clone();
         let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await.unwrap();
         while let Some(message) = subscriber.next().await {
           if let Ok(payload) = serde_json::from_slice::<IndicatorsUpdatePayload<&str>>(message.payload.as_ref()) {

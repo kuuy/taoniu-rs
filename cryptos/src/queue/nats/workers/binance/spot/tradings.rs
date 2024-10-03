@@ -1,3 +1,5 @@
+use tokio::task::JoinSet;
+
 use crate::common::*;
 use crate::queue::nats::workers::binance::spot::tradings::scalping::*;
 
@@ -14,9 +16,9 @@ impl TradingsWorker {
     }
   }
 
-  pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot nats tradings workers subscribe");
-    ScalpingWorker::new(self.ctx.clone()).subscribe().await?;
+    ScalpingWorker::new(self.ctx.clone()).subscribe(workers).await?;
     Ok(())
   }
 }

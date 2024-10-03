@@ -1,3 +1,5 @@
+use tokio::task::JoinSet;
+
 use crate::common::*;
 use crate::queue::nats::workers::binance::futures::indicators::*;
 use crate::queue::nats::workers::binance::futures::strategies::*;
@@ -20,12 +22,12 @@ impl FuturesWorker {
     }
   }
 
-  pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures nats workers subscribe");
-    IndicatorsWorker::new(self.ctx.clone()).subscribe().await?;
-    StrategiesWorker::new(self.ctx.clone()).subscribe().await?;
-    PlansWorker::new(self.ctx.clone()).subscribe().await?;
-    TradingsWorker::new(self.ctx.clone()).subscribe().await?;
+    IndicatorsWorker::new(self.ctx.clone()).subscribe(workers).await?;
+    StrategiesWorker::new(self.ctx.clone()).subscribe(workers).await?;
+    PlansWorker::new(self.ctx.clone()).subscribe(workers).await?;
+    TradingsWorker::new(self.ctx.clone()).subscribe(workers).await?;
     Ok(())
   }
 }
