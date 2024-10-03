@@ -30,7 +30,7 @@ impl FuturesCommand {
 
     let mut workers = JoinSet::new();
     FuturesWorker::new(ctx.clone()).subscribe(&mut workers).await?;
-    while let Some(_) = workers.join_next().await {}
+    let _ = workers.join_next().await;
 
     Ok(())
   }

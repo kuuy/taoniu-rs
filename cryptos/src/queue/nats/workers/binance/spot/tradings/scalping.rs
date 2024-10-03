@@ -47,22 +47,25 @@ impl ScalpingWorker {
   }
 
   pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance spot tradings scalping nats workers subscribe");
-
     workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
       let client = self.ctx.nats.clone();
       async move {
-        let mut subscriber = client.subscribe(Config::NATS_EVENTS_PLANS_UPDATE).await.unwrap();
-        while let Some(message) = subscriber.next().await {
-          if let Ok(payload) = serde_json::from_slice::<PlansUpdatePayload<&str>>(message.payload.as_ref()) {
-            if payload.side != 1 {
-              continue
-            }
-            if let Err(e) = Self::process(ctx.clone(), payload.id).await {
-              println!("nats worders binance spot tradings scalping process failed {} {:?}", payload.id, e);
+        loop {
+          println!("binance spot tradings scalping nats workers subscribe");
+          let mut subscriber = client.subscribe(Config::NATS_EVENTS_PLANS_UPDATE).await.unwrap();
+          while let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
+            if let Ok(payload) = serde_json::from_slice::<PlansUpdatePayload<&str>>(message.payload.as_ref()) {
+              if payload.side != 1 {
+                continue
+              }
+              if let Err(e) = Self::process(ctx.clone(), payload.id).await {
+                println!("nats worders binance spot tradings scalping process failed {} {:?}", payload.id, e);
+              }
             }
           }
+          subscriber.unsubscribe().await.unwrap();
+          tokio::time::sleep(Duration::from_secs(3)).await;
         }
       }
     }));

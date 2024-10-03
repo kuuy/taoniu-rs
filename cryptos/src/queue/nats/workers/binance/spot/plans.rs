@@ -48,19 +48,22 @@ impl PlansWorker {
   }
 
   pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance spot plans nats workers subscribe");
-
     workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
       let client = self.ctx.nats.clone();
       async move {
-        let mut subscriber = client.subscribe(Config::NATS_EVENTS_STRATEGIES_UPDATE).await.unwrap();
-        while let Some(message) = subscriber.next().await {
-          if let Ok(payload) = serde_json::from_slice::<StrategiesUpdatePayload<&str>>(message.payload.as_ref()) {
-            if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
-              println!("nats worders binance spot plans process failed {} {} {:?}", payload.symbol, payload.interval, e);
+        loop {
+          println!("binance spot plans nats workers subscribe");
+          let mut subscriber = client.subscribe(Config::NATS_EVENTS_STRATEGIES_UPDATE).await.unwrap();
+          while let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
+            if let Ok(payload) = serde_json::from_slice::<StrategiesUpdatePayload<&str>>(message.payload.as_ref()) {
+              if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
+                println!("nats worders binance spot plans process failed {} {} {:?}", payload.symbol, payload.interval, e);
+              }
             }
           }
+          subscriber.unsubscribe().await.unwrap();
+          tokio::time::sleep(Duration::from_secs(3)).await;
         }
       }
     }));
