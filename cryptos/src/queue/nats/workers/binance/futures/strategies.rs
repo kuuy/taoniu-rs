@@ -25,9 +25,23 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers atr {symbol:} {interval:}");
-    let _ = StrategiesRepository::atr(ctx.clone(), symbol, interval).await;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:atr:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(3)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
+    if let Err(e) = StrategiesRepository::atr(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -38,9 +52,23 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers zlema {symbol:} {interval:}");
-    let _ = StrategiesRepository::zlema(ctx.clone(), symbol, interval).await;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:zlema:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
+    if let Err(e) = StrategiesRepository::zlema(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -51,9 +79,23 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers ha zlema {symbol:} {interval:}");
-    let _ = StrategiesRepository::ha_zlema(ctx.clone(), symbol, interval).await;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:ha_zlema:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
+    if let Err(e) = StrategiesRepository::ha_zlema(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -64,9 +106,26 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers kdj {symbol:} {interval:}");
-    let _ = StrategiesRepository::kdj(ctx.clone(), symbol, interval).await;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:kdj:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
+    if let Err(e) = StrategiesRepository::kdj(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
+
+    let job = StrategiesJob::new(ctx.clone());
+    let _ = job.update(symbol, interval).await;
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -77,9 +136,23 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers bbands {symbol:} {interval:}");
-    let _ = StrategiesRepository::bbands(ctx.clone(), symbol, interval).await;
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:bbands:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
+    if let Err(e) = StrategiesRepository::bbands(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -90,10 +163,26 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    println!("binance futures strategies nats workers ichimoku cloud {symbol:} {interval:}");
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:ichimoku_cloud:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
 
-    let _ = StrategiesRepository::ichimoku_cloud(ctx.clone(), symbol, interval).await;
+    if let Err(e) = StrategiesRepository::ichimoku_cloud(ctx.clone(), symbol, interval).await {
+      return Err(e.into())
+    }
 
+    let job = StrategiesJob::new(ctx.clone());
+    let _ = job.update(symbol, interval).await;
+
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -104,18 +193,6 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     println!("binance futures strategies nats workers process {symbol:} {interval:}");
     Self::atr(ctx.clone(), symbol, interval).await?;
     Self::zlema(ctx.clone(), symbol, interval).await?;
@@ -123,11 +200,6 @@ impl StrategiesWorker {
     Self::kdj(ctx.clone(), symbol, interval).await?;
     Self::bbands(ctx.clone(), symbol, interval).await?;
     Self::ichimoku_cloud(ctx.clone(), symbol, interval).await?;
-
-    let job = StrategiesJob::new(ctx.clone());
-    let _ = job.update(symbol, interval).await;
-
-    mutex.unlock().await.unwrap();
 
     Ok(())
   }

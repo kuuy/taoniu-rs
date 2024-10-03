@@ -240,10 +240,10 @@ impl StrategiesRepository {
     if !strategy.is_none() {
       let strategy = strategy.unwrap();
       if strategy.signal == signal {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} waiting for change")))
       }
       if strategy.timestamp >= timestamp {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} exists")))
       }
     }
 
@@ -314,10 +314,10 @@ impl StrategiesRepository {
     if !strategy.is_none() {
       let strategy = strategy.unwrap();
       if strategy.signal == signal {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} waiting for change")))
       }
       if strategy.timestamp >= timestamp {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} exists")))
       }
     }
 
@@ -387,10 +387,10 @@ impl StrategiesRepository {
     if !strategy.is_none() {
       let strategy = strategy.unwrap();
       if strategy.signal == signal {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} waiting for change")))
       }
       if strategy.timestamp >= timestamp {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} exists")))
       }
     }
 
@@ -455,7 +455,7 @@ impl StrategiesRepository {
     } else if b1 > 0.8 && b2 > 0.8 && b3 < 0.8 {
       signal = 2;
     } else {
-      return Ok(())
+      return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} invalid")))
     }
 
     if w1 < 0.1 && w2 < 0.1 && w3 < 0.1 {
@@ -473,10 +473,10 @@ impl StrategiesRepository {
     if !strategy.is_none() {
       let strategy = strategy.unwrap();
       if strategy.signal == signal {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} waiting for change")))
       }
       if strategy.timestamp >= timestamp {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} exists")))
       }
     }
 
@@ -527,7 +527,7 @@ impl StrategiesRepository {
     let timestamp = values[7].parse::<i64>().unwrap();
 
     if signal == 0 {
-      return Ok(())
+      return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} invalid")))
     }
 
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
@@ -539,10 +539,10 @@ impl StrategiesRepository {
     if !strategy.is_none() {
       let strategy = strategy.unwrap();
       if strategy.signal == signal {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} waiting for change")))
       }
       if strategy.timestamp >= timestamp {
-        return Ok(())
+        return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} exists")))
       }
     }
 
