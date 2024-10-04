@@ -95,7 +95,7 @@ impl TickersRepository {
           }
         })
       }
-      _ => {},
+      _ => (),
     }
     vars
   }

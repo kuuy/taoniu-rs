@@ -36,7 +36,7 @@ impl AccountCommand {
       return Err(Box::from(format!("mutex failed {}", Config::LOCKS_ACCOUNT_FLUSH)));
     }
     match AccountRepository::flush(ctx.clone()).await {
-      Ok(_) => {},
+      Ok(_) => (),
       Err(e) => {
         mutex.unlock().await.unwrap();
         return Err(e)

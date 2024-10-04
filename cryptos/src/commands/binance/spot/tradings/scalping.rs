@@ -50,7 +50,7 @@ impl ScalpingCommand {
         panic!("mutex failed {}", redis_lock_key);
       }
       match ScalpingRepository::place(ctx.clone(), plan_id).await {
-        Ok(_) => {},
+        Ok(_) => (),
         Err(err) => println!("error: {}", err),
       }
       mutex.unlock().await.unwrap();

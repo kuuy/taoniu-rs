@@ -26,23 +26,10 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:atr:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(3)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::atr(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -53,23 +40,10 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:zlema:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::zlema(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -80,23 +54,10 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:ha_zlema:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::ha_zlema(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -107,18 +68,6 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:kdj:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::kdj(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
@@ -126,7 +75,6 @@ impl StrategiesWorker {
     let job = StrategiesJob::new(ctx.clone());
     let _ = job.update(symbol, interval).await;
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -137,23 +85,10 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:bbands:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::bbands(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -164,18 +99,6 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:ichimoku_cloud:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
-
     if let Err(e) = StrategiesRepository::ichimoku_cloud(ctx.clone(), symbol, interval).await {
       return Err(e.into())
     }
@@ -183,7 +106,6 @@ impl StrategiesWorker {
     let job = StrategiesJob::new(ctx.clone());
     let _ = job.update(symbol, interval).await;
 
-    mutex.unlock().await.unwrap();
     Ok(())
   }
 
@@ -194,6 +116,18 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
+    let rdb = ctx.rdb.lock().await.clone();
+    let mutex_id = xid::new().to_string();
+    let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
+    let mut mutex = Mutex::new(
+      rdb,
+      &redis_lock_key,
+      &mutex_id,
+    );
+    if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
+      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    }
+
     println!("binance futures strategies nats workers process {symbol:} {interval:}");
     Self::atr(ctx.clone(), symbol, interval).await?;
     Self::zlema(ctx.clone(), symbol, interval).await?;
@@ -202,26 +136,28 @@ impl StrategiesWorker {
     Self::bbands(ctx.clone(), symbol, interval).await?;
     Self::ichimoku_cloud(ctx.clone(), symbol, interval).await?;
 
+    mutex.unlock().await.unwrap();
     Ok(())
   }
 
   pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
     workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
-      let client = self.ctx.nats.clone();
+      let client = ctx.nats.clone();
       async move {
+        println!("binance futures strategies nats workers subscribe");
+        let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await.unwrap();
         loop {
-          println!("binance futures strategies nats workers subscribe");
-          let mut subscriber = client.subscribe(Config::NATS_EVENTS_INDICATORS_UPDATE).await.unwrap();
-          while let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
+          if let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
             if let Ok(payload) = serde_json::from_slice::<IndicatorsUpdatePayload<&str>>(message.payload.as_ref()) {
               if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
                 println!("nats worders binance futures strategies process failed {} {} {:?}", payload.symbol, payload.interval, e);
               }
             }
+          } else {
+            println!("binance futures strategies nats workers sleep");
+            tokio::time::sleep(Duration::from_millis(500)).await;
           }
-          subscriber.unsubscribe().await.unwrap();
-          tokio::time::sleep(Duration::from_secs(3)).await;
         }
       }
     }));

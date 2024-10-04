@@ -33,7 +33,7 @@ impl KlinesJob {
         client.create_queue(Config::RSMQ_QUEUE_KLINES, None, None, None).await?;
         client.send_message(Config::RSMQ_QUEUE_KLINES, message.clone(), None).await?;
       },
-      _ => {},
+      _ => (),
     };
     Ok(())
   }

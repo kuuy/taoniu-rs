@@ -1,3 +1,5 @@
+use tokio::task::JoinSet;
+
 use clap::{Parser};
 
 use crate::common::*;
@@ -27,10 +29,10 @@ impl FuturesCommand {
     let nats = Nats::new().await?;
     let ctx = Ctx::new(rdb, rmq, pool, nats);
 
-    let _ = FuturesWorkers::new(ctx.clone()).subscribe().await;
+    let mut workers = JoinSet::new();
+    let _ = FuturesWorkers::new(ctx.clone()).subscribe(&mut workers).await;
+    let _ = workers.join_next().await;
 
-    loop {
-      tokio::time::sleep(std::time::Duration::from_secs(3)).await;
-    }
+    Ok(())
   }
 }

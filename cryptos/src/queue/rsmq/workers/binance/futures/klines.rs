@@ -1,6 +1,7 @@
 use std::time::Duration;
 
 use rsmq_async::RsmqConnection;
+use tokio::task::JoinSet;
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
@@ -45,17 +46,17 @@ impl KlinesWorker {
     Ok(())
   }
 
-  pub async fn subscribe(&self) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> 
   {
     println!("binance futures klines rsmq workers subscribe");
-    tokio::spawn(Box::pin({
+    workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
       async move {
         let rmq = ctx.rmq.lock().await.clone();
         let mut client = Rsmq::new(rmq).await.unwrap();
         loop {
           println!("binance futures klines rsmq loop");
-          let _ = match client.pop_message::<String>(Config::RSMQ_QUEUE_KLINES).await {
+          match client.pop_message::<String>(Config::RSMQ_QUEUE_KLINES).await {
             Ok(Some(message)) => {
               let (action, content) = serde_json::from_slice::<(String, String)>(message.message.as_bytes()).unwrap();
               match action.as_str() {
@@ -65,14 +66,14 @@ impl KlinesWorker {
                     println!("{e:?}");
                   }
                 }
-                _ => {},
+                _ => (),
               };
             },
             Ok(None) => {
               tokio::time::sleep(std::time::Duration::from_millis(500)).await;
             }
-            Err(_) => {}
-          };
+            Err(_) => ()
+          }
           tokio::time::sleep(std::time::Duration::from_millis(100)).await;
         }
       }

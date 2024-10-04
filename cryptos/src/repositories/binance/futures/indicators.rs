@@ -896,7 +896,7 @@ impl IndicatorsRepository {
             signal = 2
           }
         },
-        None => {},
+        None => (),
       };
     }
 

@@ -4,7 +4,7 @@ use crate::common::*;
 use crate::queue::nats::workers::binance::spot::indicators::*;
 use crate::queue::nats::workers::binance::spot::strategies::*;
 use crate::queue::nats::workers::binance::spot::plans::*;
-use crate::queue::nats::workers::binance::spot::tradings::*;
+// use crate::queue::nats::workers::binance::spot::tradings::*;
 
 pub mod indicators;
 pub mod strategies;
@@ -27,7 +27,7 @@ impl SpotWorker {
     IndicatorsWorker::new(self.ctx.clone()).subscribe(workers).await?;
     StrategiesWorker::new(self.ctx.clone()).subscribe(workers).await?;
     PlansWorker::new(self.ctx.clone()).subscribe(workers).await?;
-    TradingsWorker::new(self.ctx.clone()).subscribe(workers).await?;
+    // TradingsWorker::new(self.ctx.clone()).subscribe(workers).await?;
     Ok(())
   }
 }

@@ -259,7 +259,7 @@ impl StrategiesRepository {
       timestamp,
       "".to_string(),
     ).await {
-      Ok(_) => {},
+      Ok(_) => (),
       Err(e) => return Err(e.into()),
     }
 

@@ -100,7 +100,7 @@ impl KlinesRepository
           }
         })
       }
-      _ => {},
+      _ => (),
     }
     vars
   }

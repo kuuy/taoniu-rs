@@ -50,20 +50,21 @@ impl PlansWorker {
   pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
     workers.spawn(Box::pin({
       let ctx = self.ctx.clone();
-      let client = self.ctx.nats.clone();
+      let client = ctx.nats.clone();
       async move {
+        println!("binance futures plans nats workers subscribe");
+        let mut subscriber = client.subscribe(Config::NATS_EVENTS_STRATEGIES_UPDATE).await.unwrap();
         loop {
-          println!("binance futures plans nats workers subscribe");
-          let mut subscriber = client.subscribe(Config::NATS_EVENTS_STRATEGIES_UPDATE).await.unwrap();
-          while let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
+          if let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
             if let Ok(payload) = serde_json::from_slice::<StrategiesUpdatePayload<&str>>(message.payload.as_ref()) {
               if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
                 println!("nats worders binance futures plans process failed {} {} {:?}", payload.symbol, payload.interval, e);
               }
             }
+          } else {
+            println!("binance futures plans nats workers sleep");
+            tokio::time::sleep(Duration::from_millis(500)).await;
           }
-          subscriber.unsubscribe().await.unwrap();
-          tokio::time::sleep(Duration::from_secs(3)).await;
         }
       }
     }));
