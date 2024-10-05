@@ -1,6 +1,5 @@
 use std::time::Duration;
-use futures_util::StreamExt;
-use tokio::task::JoinSet;
+use std::collections::HashMap;
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
@@ -8,15 +7,11 @@ use crate::queue::nats::payload::binance::futures::klines::*;
 use crate::queue::nats::jobs::binance::futures::indicators::*;
 use crate::repositories::binance::futures::indicators::*;
 
-pub struct IndicatorsWorker {
-  ctx: Ctx,
-}
+pub struct IndicatorsWorker {}
 
 impl IndicatorsWorker {
-  pub fn new(ctx: Ctx) -> Self {
-    Self {
-      ctx: ctx,
-    }
+  pub fn new(_: Ctx) -> Self {
+    Self {}
   }
 
   pub async fn pivot<T>(ctx: Ctx, symbol: T, interval: T) -> Result<(), Box<dyn std::error::Error>>
@@ -231,12 +226,17 @@ impl IndicatorsWorker {
     Ok(())
   }
 
-  pub async fn process<T>(ctx: Ctx, symbol: T, interval: T) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn process<T>(ctx: Ctx, payload: T) -> Result<(), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
-    let symbol = symbol.as_ref();
-    let interval = interval.as_ref();
+    println!("binance futures indicators nats workers process");
+    let (symbol, interval) = match serde_json::from_str::<KlinesUpdatePayload<&str>>(payload.as_ref()) {
+      Ok(result) => {
+        (result.symbol, result.interval)
+      },
+      Err(e) => return Err(e.into()),
+    };
 
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
@@ -269,27 +269,21 @@ impl IndicatorsWorker {
     Ok(())
   }
 
-  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
-    workers.spawn(Box::pin({
-      let ctx = self.ctx.clone();
-      let client = ctx.nats.clone();
-      async move {
-        println!("binance futures indicators nats workers subscribe");
-        let mut subscriber = client.subscribe(Config::NATS_EVENTS_KLINES_UPDATE).await.unwrap();
-        loop {
-          if let Ok(Some(message)) = tokio::time::timeout(Duration::from_millis(100), subscriber.next()).await {
-            if let Ok(payload) = serde_json::from_slice::<KlinesUpdatePayload<&str>>(message.payload.as_ref()) {
-              if let Err(e) = Self::process(ctx.clone(), payload.symbol, payload.interval).await {
-                println!("nats worders binance futures indicators process failed {} {} {:?}", payload.symbol, payload.interval, e);
-              }
-            }
-          } else {
-            println!("binance futures indicators nats workers sleep");
-            tokio::time::sleep(Duration::from_millis(500)).await;
-          }
-        }
+  pub async fn subscribe(&self, callbacks: &mut HashMap<&str, Vec<EventFn>>) -> Result<(), Box<dyn std::error::Error>> {
+    println!("binance futures indicators nats workers subscribe");
+    match callbacks.get_mut(Config::NATS_EVENTS_KLINES_UPDATE) {
+      Some(callback) => {
+        callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
+      },
+      None => {
+        callbacks.insert(
+          Config::NATS_EVENTS_KLINES_UPDATE,
+          vec![
+            Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))),
+          ],
+        );
       }
-    }));
+    };
 
     Ok(())
   }

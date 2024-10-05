@@ -7,6 +7,7 @@ pub mod nats;
 pub mod rsmq;
 pub mod ctx;
 pub mod mutex;
+pub mod func;
 
 pub use env::*;
 pub use rdb::*;
@@ -17,3 +18,4 @@ pub use nats::*;
 pub use rsmq::*;
 pub use ctx::*;
 pub use mutex::*;
+pub use func::*;

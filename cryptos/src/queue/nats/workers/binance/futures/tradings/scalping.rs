@@ -1,28 +1,32 @@
 use std::time::Duration;
-use futures_util::StreamExt;
-use tokio::task::JoinSet;
+use std::collections::HashMap;
 
 use crate::common::*;
 use crate::config::binance::futures::config as Config;
 use crate::queue::nats::payload::binance::futures::plans::*;
 use crate::repositories::binance::futures::tradings::scalping::*;
 
-pub struct ScalpingWorker {
-  ctx: Ctx,
-}
+pub struct ScalpingWorker {}
 
 impl ScalpingWorker {
-  pub fn new(ctx: Ctx) -> Self {
-    Self {
-      ctx: ctx,
-    }
+  pub fn new(_: Ctx) -> Self {
+    Self {}
   }
 
-  pub async fn process<T>(ctx: Ctx, plan_id: T) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn process<T>(ctx: Ctx, payload: T) -> Result<(), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
-    let plan_id = plan_id.as_ref();
+    println!("binance futures tradings scalping nats workers process");
+    let plan_id = match serde_json::from_str::<PlansUpdatePayload<&str>>(payload.as_ref()) {
+      Ok(result) => {
+        if result.side != 1 {
+          return Ok(())
+        }
+        result.id
+      },
+      Err(e) => return Err(e.into()),
+    };
 
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
@@ -46,27 +50,21 @@ impl ScalpingWorker {
     Ok(())
   }
 
-  pub async fn subscribe(&self, workers: &mut JoinSet<()>) -> Result<(), Box<dyn std::error::Error>> {
-    workers.spawn(Box::pin({
-      let ctx = self.ctx.clone();
-      let client = ctx.nats.clone();
-      async move {
-        loop {
-          println!("binance futures tradings scalping nats workers subscribe");
-          let mut subscriber = client.subscribe(Config::NATS_EVENTS_PLANS_UPDATE).await.unwrap();
-          if let Ok(Some(message)) = tokio::time::timeout(tokio::time::Duration::from_millis(100), subscriber.next()).await {
-            if let Ok(payload) = serde_json::from_slice::<PlansUpdatePayload<&str>>(message.payload.as_ref()) {
-              if let Err(e) = Self::process(ctx.clone(), payload.id).await {
-                println!("nats worders binance futures tradings scalping process failed {} {:?}", payload.id, e);
-              }
-            }
-          } else {
-            println!("binance futures tradings scalping nats workers sleep");
-            tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-          }
-        }
+  pub async fn subscribe(&self, callbacks: &mut HashMap<&str, Vec<EventFn>>) -> Result<(), Box<dyn std::error::Error>> {
+    println!("binance futures tradings scalping nats workers subscribe");
+    match callbacks.get_mut(Config::NATS_EVENTS_PLANS_UPDATE) {
+      Some(callback) => {
+        callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
+      },
+      None => {
+        callbacks.insert(
+          Config::NATS_EVENTS_PLANS_UPDATE,
+          vec![
+            Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))),
+          ],
+        );
       }
-    }));
+    };
 
     Ok(())
   }
