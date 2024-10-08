@@ -31,7 +31,7 @@ impl TickersRepository {
     {
       Ok((Some(price), Some(lasttime))) => (price, lasttime),
       Ok(_) => return Err(Box::from(format!("ticker of {symbol:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     let price = price.unwrap();

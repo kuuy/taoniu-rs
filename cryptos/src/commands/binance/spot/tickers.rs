@@ -43,7 +43,7 @@ impl TickersCommand {
       &symbol,
     ).await {
       Ok(price) => price,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     println!("price {}", price);
     Ok(())

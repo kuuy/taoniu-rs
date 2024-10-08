@@ -37,9 +37,9 @@ impl AccountCommand {
     }
     match AccountRepository::flush(ctx.clone()).await {
       Ok(_) => (),
-      Err(e) => {
+      Err(err) => {
         mutex.unlock().await.unwrap();
-        return Err(e)
+        return Err(err)
       }
     }
     mutex.unlock().await.unwrap();

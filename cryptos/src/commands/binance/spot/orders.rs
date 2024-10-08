@@ -63,14 +63,14 @@ impl OrdersCommand {
     match OrdersRepository::submit(ctx, &symbol, &side, price, quantity).await {
       Ok(order_id) => {
         println!("orders submit success {order_id:}");
-      },
+      }
       Err(err) => {
         if err.is::<ApiError>() {
           println!("error {:?}", err);
         } else {
           println!("error {:?}", err);
         }
-      },
+      }
     }
 
     Ok(())

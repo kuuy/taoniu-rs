@@ -90,7 +90,7 @@ impl OrdersRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -136,7 +136,7 @@ impl OrdersRepository {
       .values(&order)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -153,7 +153,7 @@ impl OrdersRepository {
     let mut conn = pool.get().unwrap();
     match diesel::update(orders::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -257,9 +257,9 @@ impl OrdersRepository {
       Ok(result) => {
         println!("binance spot order {0:} {1:} create success {result:}", symbol, trade.order_id);
       }
-      Err(e) => {
-        println!("binance spot order {0:} {1:} create failed {e:?}", symbol, trade.order_id)
-      },
+      Err(err) => {
+        println!("binance spot order {0:} {1:} create failed {err:?}", symbol, trade.order_id)
+      }
     }
 
     Ok(trade.order_id)
@@ -328,7 +328,7 @@ impl OrdersRepository {
       let entity: Option<Order> = match Self::get(ctx.clone(), order.symbol.clone(), order.order_id).await {
         Ok(Some(result)) => Some(result),
         Ok(None) => None,
-        Err(e) => return Err(e.into()),
+        Err(err) => return Err(err.into()),
       };
       if entity.is_none() {
         let id = xid::new().to_string();
@@ -351,9 +351,9 @@ impl OrdersRepository {
           Ok(result) => {
             println!("binance spot order {0:} {1:} create success {result:}", order.symbol, order.order_id);
           }
-          Err(e) => {
-            println!("binance spot order {0:} {1:} create failed {e:?}", order.symbol, order.order_id)
-          },
+          Err(err) => {
+            println!("binance spot order {0:} {1:} create failed {err:?}", order.symbol, order.order_id)
+          }
         }
       } else {
         let entity = entity.unwrap();
@@ -380,9 +380,9 @@ impl OrdersRepository {
           Ok(result) => {
             println!("binance spot order {0:} {1:} update success {result:}", order.symbol, order.order_id);
           }
-          Err(e) => {
-            println!("binance spot order {0:} {1:} update failed {e:?}", order.symbol, order.order_id)
-          },
+          Err(err) => {
+            println!("binance spot order {0:} {1:} update failed {err:?}", order.symbol, order.order_id)
+          }
         }
       }
     }

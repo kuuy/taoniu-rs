@@ -52,7 +52,7 @@ impl IndicatorsCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -66,7 +66,7 @@ impl IndicatorsCommand {
       100,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -80,7 +80,7 @@ impl IndicatorsCommand {
       100,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -94,7 +94,7 @@ impl IndicatorsCommand {
       100,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -109,7 +109,7 @@ impl IndicatorsCommand {
       100,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -123,7 +123,7 @@ impl IndicatorsCommand {
       100,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -167,7 +167,7 @@ impl IndicatorsCommand {
       limit,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -192,7 +192,7 @@ impl IndicatorsCommand {
       limit,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -207,7 +207,7 @@ impl IndicatorsCommand {
       672,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 

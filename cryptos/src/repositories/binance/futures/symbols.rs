@@ -40,7 +40,7 @@ impl SymbolsRepository {
       .filter(symbols::symbol.eq(symbol))
       .first::<(String, String)>(&mut conn) {
       Ok(result) => Ok(result),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     }
   }
 
@@ -64,8 +64,8 @@ impl SymbolsRepository {
         let values: Vec<&str> = filters.quote.split(",").collect();
         step_size = values[2].parse::<f64>().unwrap();
         notional = filters.notional.parse::<f64>().unwrap();
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     Ok((tick_size, step_size, notional))

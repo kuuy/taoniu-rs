@@ -25,7 +25,7 @@ impl SymbolsRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -63,7 +63,7 @@ impl SymbolsRepository {
       .filter(symbols::symbol.eq(symbol))
       .first::<(String, String)>(&mut conn) {
       Ok(result) => Ok(result),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     }
   }
 
@@ -86,8 +86,8 @@ impl SymbolsRepository {
         tick_size = values[2].parse::<f64>().unwrap();
         let values: Vec<&str> = filters.quote.split(",").collect();
         step_size = values[2].parse::<f64>().unwrap();
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     Ok((tick_size, step_size))

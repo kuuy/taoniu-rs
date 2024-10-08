@@ -40,7 +40,7 @@ impl KlinesRepository
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -101,7 +101,7 @@ impl KlinesRepository
           }
         })
       }
-      _ => {},
+      _ => {}
     }
     vars
   }
@@ -141,7 +141,7 @@ impl KlinesRepository
       .values(&kline)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -158,7 +158,7 @@ impl KlinesRepository
     let mut conn = pool.get().unwrap();
     match diesel::update(klines::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -177,7 +177,7 @@ impl KlinesRepository
     let values = Self::gets(ctx.clone(), symbols.clone(), fields, interval, timestamp).await;
     for (i, data) in values.iter().enumerate() {
       if data.len() == 0 {
-        continue;
+        continue
       }
 
       let symbol = symbols.clone()[i];
@@ -191,7 +191,7 @@ impl KlinesRepository
       let kline: Option<Kline> = match Self::get(ctx.clone(), symbol, interval, timestamp).await {
         Ok(Some(result)) => Some(result),
         Ok(None) => None,
-        Err(e) => return Err(e.into()),
+        Err(err) => return Err(err.into()),
       };
 
       let success;
@@ -211,7 +211,7 @@ impl KlinesRepository
           timestamp,
         ).await {
           Ok(result) => result,
-          Err(e) => return Err(e.into()),
+          Err(err) => return Err(err.into()),
         }
       } else {
         success = match Self::update(
@@ -227,7 +227,7 @@ impl KlinesRepository
           ),
         ).await {
           Ok(result) => result,
-          Err(e) => return Err(e.into()),
+          Err(err) => return Err(err.into()),
         }
       }
 

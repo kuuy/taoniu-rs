@@ -24,8 +24,8 @@ impl ScalpingWorker {
           return Ok(())
         }
         result.id
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     let rdb = ctx.rdb.lock().await.clone();
@@ -41,8 +41,8 @@ impl ScalpingWorker {
     }
 
     println!("binance futures tradings scalping nats workers process {plan_id:}");
-    if let Err(e) = ScalpingRepository::place(ctx.clone(), plan_id).await {
-      println!("binance futures tradings scalping {plan_id:} place failed {e:?}")
+    if let Err(err) = ScalpingRepository::place(ctx.clone(), plan_id).await {
+      println!("binance futures tradings scalping {plan_id:} place failed {err:?}")
     }
 
     mutex.unlock().await.unwrap();
@@ -55,7 +55,7 @@ impl ScalpingWorker {
     match callbacks.get_mut(Config::NATS_EVENTS_PLANS_UPDATE) {
       Some(callback) => {
         callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
-      },
+      }
       None => {
         callbacks.insert(
           Config::NATS_EVENTS_PLANS_UPDATE,

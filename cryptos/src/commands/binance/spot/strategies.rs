@@ -46,7 +46,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -58,7 +58,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -70,7 +70,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -82,7 +82,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -94,7 +94,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -106,7 +106,7 @@ impl StrategiesCommand {
       &interval,
     ).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 

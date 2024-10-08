@@ -43,7 +43,7 @@ impl StrategiesRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -74,7 +74,7 @@ impl StrategiesRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -109,7 +109,7 @@ impl StrategiesRepository {
       .values(&strategy)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -126,7 +126,7 @@ impl StrategiesRepository {
     let mut conn = pool.get().unwrap();
     match diesel::update(strategies::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -148,7 +148,7 @@ impl StrategiesRepository {
     let atr: Option<f64> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("atr of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let atr = Decimal::from_f64(atr.unwrap()).unwrap();
 
@@ -157,13 +157,13 @@ impl StrategiesRepository {
       &symbol,
     ).await {
       Ok(price) => price,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let price = Decimal::from_f64(price).unwrap();
 
     let (tick_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let tick_size = Decimal::from_f64(tick_size).unwrap();
 
@@ -210,7 +210,7 @@ impl StrategiesRepository {
     let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
@@ -234,7 +234,7 @@ impl StrategiesRepository {
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !strategy.is_none() {
@@ -260,7 +260,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(_) => (),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     }
 
     Ok(())
@@ -284,7 +284,7 @@ impl StrategiesRepository {
     let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
@@ -308,7 +308,7 @@ impl StrategiesRepository {
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !strategy.is_none() {
@@ -334,7 +334,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     Ok(())
@@ -358,7 +358,7 @@ impl StrategiesRepository {
     let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
@@ -381,7 +381,7 @@ impl StrategiesRepository {
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !strategy.is_none() {
@@ -407,7 +407,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     Ok(())
@@ -431,7 +431,7 @@ impl StrategiesRepository {
     let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
@@ -467,7 +467,7 @@ impl StrategiesRepository {
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !strategy.is_none() {
@@ -493,7 +493,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     Ok(())
@@ -517,7 +517,7 @@ impl StrategiesRepository {
     let data: Option<String> = match rdb.hget(&redis_key, indicator).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("{indicator:} of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let data = data.unwrap();
     let values: Vec<&str> = data.split(",").collect();
@@ -533,7 +533,7 @@ impl StrategiesRepository {
     let strategy: Option<Strategy> = match Self::get(ctx.clone(), symbol, indicator, interval).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !strategy.is_none() {
@@ -559,7 +559,7 @@ impl StrategiesRepository {
       "".to_string(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     Ok(())
@@ -584,8 +584,8 @@ impl StrategiesRepository {
         tick_size = values[2].parse::<f64>().unwrap();
         let values: Vec<&str> = filters.quote.split(",").collect();
         step_size = values[2].parse::<f64>().unwrap();
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     Ok((tick_size, step_size))

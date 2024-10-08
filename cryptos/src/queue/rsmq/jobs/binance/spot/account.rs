@@ -27,7 +27,7 @@ impl AccountJob {
       Err(RsmqError::QueueNotFound) => {
         client.create_queue(Config::RSMQ_QUEUE_ACCOUNT, None, None, None).await?;
         client.send_message(Config::RSMQ_QUEUE_ACCOUNT, message.clone(), None).await?;
-      },
+      }
       _ => (),
     };
     Ok(())

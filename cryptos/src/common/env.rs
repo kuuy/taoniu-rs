@@ -59,7 +59,7 @@ impl Env {
     loop {
       let var = Env::var(format!("{}_{}", key, i));
       if "" == var {
-        break;
+        break
       }
       vars.push(var);
       i += 1;

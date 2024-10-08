@@ -40,7 +40,7 @@ impl PlansCommand {
     println!("plans flush");
     match PlansRepository::flush(ctx.clone(), &symbol, &interval).await {
       Ok(_) => Ok(()),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 

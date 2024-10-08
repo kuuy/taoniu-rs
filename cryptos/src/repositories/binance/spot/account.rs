@@ -55,7 +55,7 @@ impl AccountRepository {
     {
       Ok((Some(free), Some(locked))) => Ok((free, locked)),
       Ok(_) => return Err(Box::from(format!("balance of {asset:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     }
   }
 

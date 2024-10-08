@@ -3,7 +3,7 @@ use std::time::SystemTime;
 use josekit::{
   jwe::{self, Dir},
   jws::{JwsHeader, RS256},
-  jwt::{self, JwtPayload},
+  jwt::{self, JwtPayload}
 };
 use serde_json::Value;
 
@@ -40,7 +40,7 @@ impl TokenRepository
         if expires_at <= now {
           return Err(Box::from("token has been expired"))
         }
-      },
+      }
       _ => return Err(Box::from("invalid token"))
     };
 
@@ -50,7 +50,7 @@ impl TokenRepository
           Value::String(uid) => uid.as_str(),
           _ => return Err(Box::from("invalid token"))
         }
-      },
+      }
       None => return Err(Box::from("invalid token"))
     };
 

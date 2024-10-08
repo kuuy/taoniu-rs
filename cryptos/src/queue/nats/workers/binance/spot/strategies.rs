@@ -21,8 +21,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::atr(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::atr(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     Ok(())
@@ -35,8 +35,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::zlema(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::zlema(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     Ok(())
@@ -49,8 +49,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::ha_zlema(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::ha_zlema(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     Ok(())
@@ -63,8 +63,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::kdj(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::kdj(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     let job = StrategiesJob::new(ctx.clone());
@@ -80,8 +80,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::bbands(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::bbands(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     Ok(())
@@ -94,8 +94,8 @@ impl StrategiesWorker {
     let symbol = symbol.as_ref();
     let interval = interval.as_ref();
 
-    if let Err(e) = StrategiesRepository::ichimoku_cloud(ctx.clone(), symbol, interval).await {
-      return Err(e.into())
+    if let Err(err) = StrategiesRepository::ichimoku_cloud(ctx.clone(), symbol, interval).await {
+      return Err(err.into())
     }
 
     let job = StrategiesJob::new(ctx.clone());
@@ -112,8 +112,8 @@ impl StrategiesWorker {
     let (symbol, interval) = match serde_json::from_str::<IndicatorsUpdatePayload<&str>>(payload.as_ref()) {
       Ok(result) => {
         (result.symbol, result.interval)
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     let rdb = ctx.rdb.lock().await.clone();
@@ -145,7 +145,7 @@ impl StrategiesWorker {
     match callbacks.get_mut(Config::NATS_EVENTS_INDICATORS_UPDATE) {
       Some(callback) => {
         callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
-      },
+      }
       None => {
         callbacks.insert(
           Config::NATS_EVENTS_INDICATORS_UPDATE,

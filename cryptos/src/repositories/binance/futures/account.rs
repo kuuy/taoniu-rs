@@ -110,7 +110,7 @@ impl AccountRepository {
         maint_margin,
       )),
       Ok(_) => return Err(Box::from(format!("balance of {asset:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     }
   }
 
@@ -223,7 +223,7 @@ impl AccountRepository {
       let entity = match PositionsRepository::get(ctx.clone(), position.symbol.clone(), side).await {
         Ok(Some(result)) => Some(result),
         Ok(None) => None,
-        Err(e) => return Err(e.into()),
+        Err(err) => return Err(err.into()),
       };
       if entity.is_none() {
         if entry_quantity == 0.0 {
@@ -246,9 +246,9 @@ impl AccountRepository {
           Ok(result) => {
             println!("binance futures position {0:} {side:} create success {result:}", position.symbol);
           }
-          Err(e) => {
-            println!("binance futures position {0:} {side:} create failed {e:?}", position.symbol)
-          },
+          Err(err) => {
+            println!("binance futures position {0:} {side:} create failed {err:?}", position.symbol)
+          }
         }
       } else {
         let entity = entity.unwrap();
@@ -272,9 +272,9 @@ impl AccountRepository {
           Ok(result) => {
             println!("binance futures kline {0:} {side:} update success {result:}", position.symbol);
           }
-          Err(e) => {
-            println!("binance futures kline {0:} {side:} update failed {e:?}", position.symbol)
-          },
+          Err(err) => {
+            println!("binance futures kline {0:} {side:} update failed {err:?}", position.symbol)
+          }
         }
       }
     }

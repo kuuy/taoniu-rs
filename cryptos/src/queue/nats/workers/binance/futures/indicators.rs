@@ -234,8 +234,8 @@ impl IndicatorsWorker {
     let (symbol, interval) = match serde_json::from_str::<KlinesUpdatePayload<&str>>(payload.as_ref()) {
       Ok(result) => {
         (result.symbol, result.interval)
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     let rdb = ctx.rdb.lock().await.clone();
@@ -274,7 +274,7 @@ impl IndicatorsWorker {
     match callbacks.get_mut(Config::NATS_EVENTS_KLINES_UPDATE) {
       Some(callback) => {
         callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
-      },
+      }
       None => {
         callbacks.insert(
           Config::NATS_EVENTS_KLINES_UPDATE,

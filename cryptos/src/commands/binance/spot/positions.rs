@@ -56,8 +56,8 @@ impl PositionsCommand {
     match SymbolsRepository::filters(ctx.clone(), symbol.clone()).await {
       Ok(data) => {
         (tick_size, step_size) = data;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     }
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
@@ -106,7 +106,7 @@ impl PositionsCommand {
       ) {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
-        },
+        }
         Err(_) => break
       };
       let ratio = Decimal::from_f64(

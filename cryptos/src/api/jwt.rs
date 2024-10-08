@@ -56,14 +56,14 @@ where
           match TokenRepository::uid(&bearer[7..]) {
             Ok(uid) => {
               println!("Hi jwt middleware uid {uid:}");
-            },
-            Err(e) => {
-              println!("jwt middleware error {e:?}");
+            }
+            Err(err) => {
+              println!("jwt middleware error {err:?}");
             }
           }
         }
         false
-      },
+      }
       None => false,
     };
     let future = self.inner.call(request);

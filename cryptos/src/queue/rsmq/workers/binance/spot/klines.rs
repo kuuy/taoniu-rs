@@ -67,8 +67,8 @@ impl KlinesWorker {
               match action.as_str() {
                 Config::RSMQ_JOBS_KLINES_FLUSH => {
                   let payload = serde_json::from_slice::<KlinesFlushPayload<&str>>(content.as_bytes()).unwrap();
-                  if let Err(e) = Self::flush(ctx.clone(), payload.interval).await {
-                    println!("{e:?}");
+                  if let Err(err) = Self::flush(ctx.clone(), payload.interval).await {
+                    println!("{err:?}");
                   }
                 }
                 _ => (),

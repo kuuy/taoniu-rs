@@ -19,6 +19,6 @@ async fn main() {
   Env::load();
   match App::parse().run().await {
     Ok(_) => (),
-    Err(e) => panic!("error {:?}", e),
+    Err(err) => panic!("error {:?}", err),
   }
 }

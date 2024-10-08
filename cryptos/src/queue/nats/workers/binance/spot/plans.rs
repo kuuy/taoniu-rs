@@ -21,8 +21,8 @@ impl PlansWorker {
     let (symbol, interval) = match serde_json::from_str::<StrategiesUpdatePayload<&str>>(payload.as_ref()) {
       Ok(result) => {
         (result.symbol, result.interval)
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     let rdb = ctx.rdb.lock().await.clone();
@@ -38,8 +38,8 @@ impl PlansWorker {
     }
 
     println!("binance spot plans nats workers process {symbol:} {interval:}");
-    if let Err(e) = PlansRepository::flush(ctx.clone(), symbol, interval).await {
-      println!("binance spot plans {symbol:} {interval:} flush failed {e:?}")
+    if let Err(err) = PlansRepository::flush(ctx.clone(), symbol, interval).await {
+      println!("binance spot plans {symbol:} {interval:} flush failed {err:?}")
     }
 
     mutex.unlock().await.unwrap();
@@ -52,7 +52,7 @@ impl PlansWorker {
     match callbacks.get_mut(Config::NATS_EVENTS_STRATEGIES_UPDATE) {
       Some(callback) => {
         callback.push(Box::new(|ctx, payload| Box::pin(Self::process(ctx, payload))))
-      },
+      }
       None => {
         callbacks.insert(
           Config::NATS_EVENTS_STRATEGIES_UPDATE,

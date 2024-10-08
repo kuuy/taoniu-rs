@@ -36,7 +36,7 @@ impl PlansRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -63,7 +63,7 @@ impl PlansRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -102,7 +102,7 @@ impl PlansRepository {
       .values(&plan)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -119,7 +119,7 @@ impl PlansRepository {
     let mut conn = pool.get().unwrap();
     match diesel::update(plans::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -143,7 +143,7 @@ impl PlansRepository {
     ).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("strategy of {symbol:} {interval:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     let mut amount = 10.0;
@@ -176,7 +176,7 @@ impl PlansRepository {
 
     let (tick_size, step_size, _) = match SymbolsRepository::filters(ctx.clone(), symbol).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
@@ -190,7 +190,7 @@ impl PlansRepository {
     let plan: Option<Plan> = match Self::get(ctx.clone(), symbol, interval, strategy.timestamp).await {
       Ok(Some(result)) => Some(result),
       Ok(None) => None,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if !plan.is_none() {
@@ -219,7 +219,7 @@ impl PlansRepository {
       "".to_string(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if success {

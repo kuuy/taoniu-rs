@@ -62,8 +62,8 @@ impl IndicatorsRepository {
     match Self::filters(ctx.clone(), symbol).await {
       Ok(result) => {
         (tick_size, _) = result;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     }
 
     let (close, high, low, timestamp): (f64, f64, f64, i64);
@@ -75,8 +75,8 @@ impl IndicatorsRepository {
       .first::<(f64, f64, f64, i64)>(&mut conn) {
       Ok(result) => {
         (close, high, low, timestamp) = result;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     if timestamp < Self::timestamp(interval) - 60000 {
@@ -217,7 +217,7 @@ impl IndicatorsRepository {
         TA_RetCode::TA_SUCCESS => {
           out.set_len(out_size);
           result = out[out_size-1];
-        },
+        }
         _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
       }
     }
@@ -328,13 +328,13 @@ impl IndicatorsRepository {
         TA_RetCode::TA_SUCCESS => {
           out.set_len(out_size as usize);
           result = format!(
-            "{},{},{},{}",
+            "{}{}{}{}",
             out[out_size-2],
             out[out_size-1],
             first_close,
             current_timestamp,
           );
-        },
+        }
         _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
       }
     }
@@ -451,13 +451,13 @@ impl IndicatorsRepository {
         TA_RetCode::TA_SUCCESS => {
           out.set_len(out_size as usize);
           result = format!(
-            "{},{},{},{}",
+            "{}{}{}{}",
             out[out_size-2],
             out[out_size-1],
             first_avg_price,
             current_timestamp,
           );
-        },
+        }
         _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
       }
     }
@@ -587,14 +587,14 @@ impl IndicatorsRepository {
           let slowd = Decimal::from_f64(out_slowd[out_size-1]).unwrap();
           let slowj = slowk * dec!(3) - slowd * dec!(2);
           result = format!(
-            "{},{},{},{},{}",
+            "{}{}{}{}{}",
             slowk,
             slowd,
             slowj,
             first_avg_price,
             current_timestamp,
           );
-        },
+        }
         _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
       }
     }
@@ -740,7 +740,7 @@ impl IndicatorsRepository {
           let w3 = Decimal::from_f64(out_ubands[out_size-1] - out_lbands[out_size-1]).unwrap() / Decimal::from_f64(out_mbands[out_size-3]).unwrap();
 
           result = format!(
-            "{},{},{},{},{},{},{},{}",
+            "{}{}{}{}{}{}{}{}",
             b1,
             b2,
             b3,
@@ -750,7 +750,7 @@ impl IndicatorsRepository {
             first_avg_price,
             current_timestamp,
           );
-        },
+        }
         _ => return Err(Box::from(format!("[{symbol:}] {interval:} calc failed {ret_code:?}")))
       }
     }
@@ -896,7 +896,7 @@ impl IndicatorsRepository {
           if conversion_line < base_line && last_conversion_line > last_base_line {
             signal = 2
           }
-        },
+        }
         None => (),
       };
     }
@@ -905,8 +905,8 @@ impl IndicatorsRepository {
     match Self::filters(ctx.clone(), symbol).await {
       Ok(data) => {
         (tick_size, _) = data;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     }
 
     let tick_size = Decimal::from_f64(tick_size).unwrap();
@@ -918,7 +918,7 @@ impl IndicatorsRepository {
     let chikou_span = (chikou_span / tick_size).floor() * tick_size;
     let first_avg_price = (first_avg_price / tick_size).floor() * tick_size;
     let result = format!(
-      "{},{},{},{},{},{},{},{}",
+      "{}{}{}{}{}{}{}{}",
       signal,
       conversion_line,
       base_line,
@@ -1059,7 +1059,7 @@ impl IndicatorsRepository {
             poc_index = index;
             poc_volume = item.volume;
           }
-        },
+        }
         None => {
           items.insert(index, VolumeSegment::new(
             vec![*avg_price, *avg_price],
@@ -1079,7 +1079,7 @@ impl IndicatorsRepository {
 
     for i in 0..100 {
       if items.get(&i).is_none() {
-        continue;
+        continue
       }
       let mut area_volume: f64 = 0.0;
       for j in i..100 {
@@ -1105,8 +1105,8 @@ impl IndicatorsRepository {
     match Self::filters(ctx.clone(), symbol).await {
       Ok(data) => {
         (tick_size, _) = data;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     }
 
     let tick_size = Decimal::from_f64(tick_size).unwrap();
@@ -1361,8 +1361,8 @@ impl IndicatorsRepository {
         tick_size = values[2].parse::<f64>().unwrap();
         let values: Vec<&str> = filters.quote.split(",").collect();
         step_size = values[2].parse::<f64>().unwrap();
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     };
 
     Ok((tick_size, step_size))

@@ -30,7 +30,7 @@ impl PositionsRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -181,7 +181,7 @@ impl PositionsRepository {
       let _ = match Self::capital(max_capital, entry_amount.to_f64().unwrap(), places) {
         Ok(result) => {
           capital = Decimal::from_f64(result).unwrap();
-        },
+        }
         Err(_) => break
       };
       let ratio = Decimal::from_f64(

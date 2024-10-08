@@ -54,8 +54,8 @@ impl GamblingCommand {
     match SymbolsRepository::filters(ctx.clone(), symbol.clone()).await {
       Ok(data) => {
         (tick_size, step_size) = data;
-      },
-      Err(e) => return Err(e.into()),
+      }
+      Err(err) => return Err(err.into()),
     }
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
@@ -123,7 +123,7 @@ impl GamblingCommand {
         println!("plan {} {} {} {} {}", plan_take_price, plan_take_quantity, take_profit, plan_amount, plan_profit);
       }
       if plans.is_empty() || last_profit > dec!(0.0) {
-        break;
+        break
       }
     }
 

@@ -41,7 +41,7 @@ impl ScalpingRepository {
       .first(&mut conn) {
         Ok(result) => Ok(Some(result)),
         Err(diesel::result::Error::NotFound) => Ok(None),
-        Err(e) => Err(e.into()),
+        Err(err) => Err(err.into()),
       }
   }
 
@@ -85,7 +85,7 @@ impl ScalpingRepository {
       .values(&entity)
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -102,7 +102,7 @@ impl ScalpingRepository {
     let mut conn = pool.get().unwrap();
     match diesel::update(scalping::table.find(id)).set(value).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -121,7 +121,7 @@ impl ScalpingRepository {
       .filter(scalping::id.eq(id))
       .execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
-      Err(e) => Err(e.into()),
+      Err(err) => Err(err.into()),
     }
   }
 
@@ -134,7 +134,7 @@ impl ScalpingRepository {
     let plan = match PlansRepository::find(ctx.clone(), plan_id).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("plan of {plan_id:} not exists"))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     let timestamp = Utc::now().timestamp();
@@ -160,7 +160,7 @@ impl ScalpingRepository {
     let scalping = match ParentRepositoy::get(ctx.clone(), plan.symbol.clone(), plan.side).await {
       Ok(Some(result)) => result,
       Ok(None) => return Err(Box::from(format!("scalping of {0:}[{position_side:}] not exists", plan.symbol))),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if plan.side == 1 && plan.price > scalping.price {
@@ -178,13 +178,13 @@ impl ScalpingRepository {
       plan.symbol.clone(),
     ).await {
       Ok(price) => price,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let price = Decimal::from_f64(price).unwrap();
 
     let (tick_size, step_size, notional) = match SymbolsRepository::filters(ctx.clone(), scalping.symbol.clone()).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
     let tick_size = Decimal::from_f64(tick_size).unwrap();
     let step_size = Decimal::from_f64(step_size).unwrap();
@@ -214,7 +214,7 @@ impl ScalpingRepository {
     let entry_price = match PositionsRepository::get(ctx.clone(), scalping.symbol.clone(), plan.side).await {
       Ok(Some(position)) => Decimal::from_f64(position.entry_price).unwrap(),
       Ok(None) => dec!(0.0),
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if entry_price > dec!(0.0) {
@@ -295,7 +295,7 @@ impl ScalpingRepository {
       plan.symbol.clone(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     let (_, free, _, _, _, _) = match AccountRepository::balance(
@@ -303,7 +303,7 @@ impl ScalpingRepository {
       &quote_asset,
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if free < Config::SCALPING_MIN_BINANCE {
@@ -319,14 +319,14 @@ impl ScalpingRepository {
       buy_quantity.to_f64().unwrap(),
     ).await {
       Ok(result) => result,
-      Err(e) => {
-        if e.is::<ApiError>() {
-          return Err(e.into())
+      Err(err) => {
+        if err.is::<ApiError>() {
+          return Err(err.into())
         } else {
-          println!("error {:?}", e);
+          println!("error {:?}", err);
           0
         }
-      },
+      }
     };
 
     let id = xid::new().to_string();
@@ -346,7 +346,7 @@ impl ScalpingRepository {
       "".to_owned(),
     ).await {
       Ok(result) => result,
-      Err(e) => return Err(e.into()),
+      Err(err) => return Err(err.into()),
     };
 
     if success {
