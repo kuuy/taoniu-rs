@@ -49,7 +49,7 @@ where
 
   #[inline]
   fn call(&mut self, request: Request<Body>) -> Self::Future {
-    let _ = match request.headers().get("Authorization")
+    match request.headers().get("Authorization")
       .and_then(|header| header.to_str().ok()) {
       Some(bearer) => {
         if bearer.starts_with("Taoniu") {

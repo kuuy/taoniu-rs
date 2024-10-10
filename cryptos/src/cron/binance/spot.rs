@@ -4,20 +4,13 @@ use tokio_cron::Scheduler;
 use chrono::offset::Local;
 
 use crate::common::*;
-use crate::cron::binance::spot::tickers::*;
 use crate::cron::binance::spot::klines::*;
-use crate::cron::binance::spot::depth::*;
-use crate::cron::binance::spot::strategies::*;
-use crate::cron::binance::spot::orders::*;
 
 pub mod account;
 pub mod analysis;
 pub mod tickers;
 pub mod klines;
 pub mod depth;
-pub mod indicators;
-pub mod strategies;
-pub mod plans;
 pub mod orders;
 pub mod positions;
 pub mod scalping;
@@ -40,11 +33,7 @@ impl SpotScheduler {
 
   pub async fn dispatch(&self) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot scheduler dispatch");
-    let _ = TickersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    let _ = KlinesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    let _ = DepthScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    let _ = StrategiesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
-    let _ = OrdersScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await;
+    KlinesScheduler::new(self.ctx.clone(), self.scheduler.clone()).dispatch().await?;
     Ok(())
   }
 }

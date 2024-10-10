@@ -197,7 +197,7 @@ impl ScalpingRepository {
     };
 
     if entry_price > dec!(0.0) && price > entry_price {
-      let _ = ScalpingPlansRepository::delete(ctx.clone(), plan_id).await;
+      ScalpingPlansRepository::delete(ctx.clone(), plan_id).await?;
       return Err(Box::from(format!("plan of {0:} higher than entry price {entry_price:}", scalping.symbol)))
     }
 

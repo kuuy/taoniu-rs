@@ -327,7 +327,7 @@ impl IndicatorsRepository {
         TA_RetCode::TA_SUCCESS => {
           out.set_len(out_size as usize);
           result = format!(
-            "{}{}{}{}",
+            "{},{},{},{}",
             out[out_size-2],
             out[out_size-1],
             first_close,
@@ -450,7 +450,7 @@ impl IndicatorsRepository {
         TA_RetCode::TA_SUCCESS => {
           out.set_len(out_size as usize);
           result = format!(
-            "{}{}{}{}",
+            "{},{},{},{}",
             out[out_size-2],
             out[out_size-1],
             first_avg_price,
@@ -586,7 +586,7 @@ impl IndicatorsRepository {
           let slowd = Decimal::from_f64(out_slowd[out_size-1]).unwrap();
           let slowj = slowk * dec!(3) - slowd * dec!(2);
           result = format!(
-            "{}{}{}{}{}",
+            "{},{},{},{},{}",
             slowk,
             slowd,
             slowj,
@@ -739,7 +739,7 @@ impl IndicatorsRepository {
           let w3 = Decimal::from_f64(out_ubands[out_size-1] - out_lbands[out_size-1]).unwrap() / Decimal::from_f64(out_mbands[out_size-3]).unwrap();
 
           result = format!(
-            "{}{}{}{}{}{}{}{}",
+            "{},{},{},{},{},{},{},{}",
             b1,
             b2,
             b3,
@@ -917,7 +917,7 @@ impl IndicatorsRepository {
     let chikou_span = (chikou_span / tick_size).floor() * tick_size;
     let first_avg_price = (first_avg_price / tick_size).floor() * tick_size;
     let result = format!(
-      "{}{}{}{}{}{}{}{}",
+      "{},{},{},{},{},{},{},{}",
       signal,
       conversion_line,
       base_line,

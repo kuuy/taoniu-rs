@@ -15,9 +15,3 @@ where
     }
   }
 }
-
-#[derive(Deserialize, Serialize)]
-pub struct KlinesUpdatePayload {
-  symbol: String,
-  interval: String,
-}

@@ -104,7 +104,7 @@ impl PositionsCommand {
 
     loop {
       let capital;
-      let _ = match PositionsRepository::capital(
+      match PositionsRepository::capital(
         max_capital.to_f64().unwrap(),
         entry_amount.to_f64().unwrap(),
         places,

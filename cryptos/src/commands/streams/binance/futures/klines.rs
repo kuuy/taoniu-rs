@@ -154,7 +154,7 @@ impl KlinesCommand {
     let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
-    tokio::spawn(Box::pin({
+    let handle = tokio::spawn(Box::pin({
       let ctx = ctx.clone();
       let mut read = read.lock_owned().await;
       async move {
@@ -174,6 +174,7 @@ impl KlinesCommand {
         }
       }
     }));
+    handle.await.expect("The read task failed.");
 
     Ok(())
   }

@@ -29,7 +29,7 @@ impl SpotCommand {
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     let scheduler = Scheduler::local();
 
-    let _ = SpotScheduler::new(ctx.clone(), scheduler).dispatch().await;
+    SpotScheduler::new(ctx.clone(), scheduler).dispatch().await?;
 
     loop {
       tokio::time::sleep(std::time::Duration::from_secs(3)).await;

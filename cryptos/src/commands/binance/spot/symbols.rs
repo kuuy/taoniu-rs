@@ -45,7 +45,9 @@ impl SymbolsCommand {
     if !mutex.lock(Duration::from_secs(600)).await.unwrap() {
       panic!("mutex failed {}", Config::LOCKS_SYMBOLS_FLUSH);
     }
-    let _ = SymbolsRepository::flush(ctx.clone()).await.unwrap();
+
+    SymbolsRepository::flush(ctx.clone()).await?;
+
     mutex.unlock().await.unwrap();
     Ok(())
   }

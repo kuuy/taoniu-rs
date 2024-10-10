@@ -20,12 +20,14 @@ impl KlinesJob {
     T: AsRef<str>
   {
     let interval = interval.as_ref();
+
     let payload = KlinesFlushPayload::new(interval);
     let content = serde_json::to_string(&payload).unwrap();
     let message = serde_json::to_string(&[
       Config::RSMQ_JOBS_KLINES_FLUSH,
       &content,
     ]).unwrap();
+
     let rmq = self.ctx.rmq.lock().await.clone();
     let mut client = Rsmq::new(rmq.clone()).await?;
     match client.send_message(Config::RSMQ_QUEUE_KLINES, message.clone(), None).await {
@@ -33,8 +35,9 @@ impl KlinesJob {
         client.create_queue(Config::RSMQ_QUEUE_KLINES, None, None, None).await?;
         client.send_message(Config::RSMQ_QUEUE_KLINES, message.clone(), None).await?;
       }
-      _ => {}
+      _ => (),
     };
+
     Ok(())
   }
 }

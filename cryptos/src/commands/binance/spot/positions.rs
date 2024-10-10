@@ -98,15 +98,12 @@ impl PositionsCommand {
     }
 
     loop {
-      let capital;
-      let _ = match PositionsRepository::capital(
+      let capital = match PositionsRepository::capital(
         max_capital.to_f64().unwrap(),
         entry_amount.to_f64().unwrap(),
         places,
       ) {
-        Ok(result) => {
-          capital = Decimal::from_f64(result).unwrap();
-        }
+        Ok(result) => Decimal::from_f64(result).unwrap(),
         Err(_) => break
       };
       let ratio = Decimal::from_f64(
