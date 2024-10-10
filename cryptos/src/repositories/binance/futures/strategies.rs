@@ -249,7 +249,7 @@ impl StrategiesRepository {
 
     let id = xid::new().to_string();
     match Self::create(
-      ctx.clone(), 
+      ctx.clone(),
       id,
       symbol.to_string(),
       indicator.to_string(),
@@ -323,7 +323,7 @@ impl StrategiesRepository {
 
     let id = xid::new().to_string();
     let _ = match Self::create(
-      ctx.clone(), 
+      ctx.clone(),
       id,
       symbol.to_string(),
       indicator.to_string(),
@@ -396,7 +396,7 @@ impl StrategiesRepository {
 
     let id = xid::new().to_string();
     let _ = match Self::create(
-      ctx.clone(), 
+      ctx.clone(),
       id,
       symbol.to_string(),
       indicator.to_string(),
@@ -482,7 +482,7 @@ impl StrategiesRepository {
 
     let id = xid::new().to_string();
     let _ = match Self::create(
-      ctx.clone(), 
+      ctx.clone(),
       id,
       symbol.to_string(),
       indicator.to_string(),
@@ -548,7 +548,7 @@ impl StrategiesRepository {
 
     let id = xid::new().to_string();
     let _ = match Self::create(
-      ctx.clone(), 
+      ctx.clone(),
       id,
       symbol.to_string(),
       indicator.to_string(),

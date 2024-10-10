@@ -74,7 +74,7 @@ impl TickersCommand {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     rdb.hset_multiple(
-      format!("{}:{}", Config::REDIS_KEY_TICKERS, message.symbol), 
+      format!("{}:{}", Config::REDIS_KEY_TICKERS, message.symbol),
       &[
         ("symbol", message.symbol),
         ("open", message.open.to_string()),
@@ -127,7 +127,7 @@ impl TickersCommand {
     let (_, read) = stream.split();
     let read = Arc::new(tokio::sync::Mutex::new(read));
     println!("stream connected");
-    let handle = tokio::spawn(Box::pin({
+    tokio::spawn(Box::pin({
       let ctx = ctx.clone();
       let mut read = read.lock_owned().await;
       async move {
@@ -147,7 +147,6 @@ impl TickersCommand {
         }
       }
     }));
-    handle.await.expect("The read task failed.");
 
     Ok(())
   }

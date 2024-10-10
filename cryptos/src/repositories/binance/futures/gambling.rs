@@ -65,7 +65,7 @@ impl GamblingRepository {
 
   pub fn sell_price(
     side: i32,
-    entry_price: f64, 
+    entry_price: f64,
     entry_amount: f64,
   ) -> f64 {
     let mut ipart = entry_amount.floor() as i64;

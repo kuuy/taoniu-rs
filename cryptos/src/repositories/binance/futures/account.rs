@@ -169,7 +169,7 @@ impl AccountRepository {
         return;
       }
       pipe.hset_multiple(
-        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset), 
+        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset),
         &[
           ("balance", coin.balance.to_string()),
           ("free", coin.free.to_string()),
@@ -231,7 +231,7 @@ impl AccountRepository {
         }
         let id = xid::new().to_string();
         match PositionsRepository::create(
-          ctx.clone(), 
+          ctx.clone(),
           id,
           position.symbol.clone(),
           side,

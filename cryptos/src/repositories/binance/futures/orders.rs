@@ -379,7 +379,7 @@ impl OrdersRepository {
       if entity.is_none() {
         let id = xid::new().to_string();
         match Self::create(
-          ctx.clone(), 
+          ctx.clone(),
           id,
           symbol.to_owned(),
           order.order_id,

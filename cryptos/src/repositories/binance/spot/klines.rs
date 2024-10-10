@@ -198,7 +198,7 @@ impl KlinesRepository
       if kline.is_none() {
         let id = xid::new().to_string();
         success = match Self::create(
-          ctx.clone(), 
+          ctx.clone(),
           id,
           symbol.to_string(),
           interval.to_string(),

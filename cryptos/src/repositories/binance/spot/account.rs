@@ -114,7 +114,7 @@ impl AccountRepository {
         return;
       }
       pipe.hset_multiple(
-        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset), 
+        format!("{}:{}", Config::REDIS_KEY_BALANCE, coin.asset),
         &[
           ("free", coin.free.to_string()),
           ("locked", coin.locked.to_string()),
