@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub struct KlinesFlushPayload<T> {
+pub struct KlinesSyncPayload<T> {
   pub interval: T,
 }
 
-impl<T> KlinesFlushPayload<T>
+impl<T> KlinesSyncPayload<T>
 where
   T: AsRef<str>
 {

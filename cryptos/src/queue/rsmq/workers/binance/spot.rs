@@ -4,10 +4,6 @@ use crate::common::*;
 use crate::queue::rsmq::workers::binance::spot::klines::*;
 
 pub mod klines;
-pub mod account;
-pub mod indicators;
-pub mod strategies;
-pub mod plans;
 
 pub struct SpotWorkers {
   ctx: Ctx,

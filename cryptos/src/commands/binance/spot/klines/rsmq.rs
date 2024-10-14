@@ -33,7 +33,7 @@ impl RsmqCommand {
   async fn publish(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot klines rsmq publish");
     let job = KlinesJob::new(ctx.clone());
-    job.flush("15m").await?;
+    job.sync("15m").await?;
     Ok(())
   }
 

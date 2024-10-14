@@ -1,3 +1,5 @@
+use url::Url;
+use std::collections::HashMap;
 use std::ops::Sub;
 use std::time::Duration;
 
@@ -17,6 +19,58 @@ pub struct KlinesRepository {}
 
 impl KlinesRepository
 {
+  pub async fn series<T> (
+    ctx: Ctx,
+    symbol: T,
+    interval: T,
+    limit: i64,
+  ) -> Result<Vec<(f64, f64, f64, f64, i64)>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    let series = klines::table
+      .select((klines::open, klines::high, klines::low, klines::close, klines::timestamp))
+      .filter(klines::symbol.eq(symbol))
+      .filter(klines::interval.eq(interval))
+      .order(klines::timestamp.desc())
+      .limit(limit)
+      .load::<(f64, f64, f64, f64, i64)>(&mut conn)?;
+
+    Ok(series)
+  }
+
+  pub async fn values<T>(
+    ctx: Ctx,
+    symbol: T,
+    interval: T,
+    timestamp: i64,
+  ) -> Result<Vec<i64>, Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+
+    let values = klines::table
+      .select(klines::timestamp)
+      .filter(klines::symbol.eq(symbol))
+      .filter(klines::interval.eq(interval))
+      .filter(klines::timestamp.gt(timestamp))
+      .order(klines::timestamp.desc())
+      .load::<i64>(&mut conn)?;
+
+    Ok(values)
+  }
+
   pub async fn get<T>(
     ctx: Ctx,
     symbol: T,
@@ -148,7 +202,7 @@ impl KlinesRepository
   pub async fn update<V>(
     ctx: Ctx,
     id: String,
-    value: V,
+    values: V,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
     V: diesel::AsChangeset<Target = klines::table>,
@@ -156,13 +210,155 @@ impl KlinesRepository
   {
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
-    match diesel::update(klines::table.find(id)).set(value).execute(&mut conn) {
+    match diesel::update(klines::table.find(id)).set(values).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(err) => Err(err.into()),
     }
   }
 
   pub async fn flush<T>(
+    ctx: Ctx,
+    symbol: T,
+    interval: T,
+    endtime: i64,
+    limit: i64,
+  ) -> Result<(), Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+    let endtime_val = endtime.to_string();
+    let limit = limit.to_string();
+
+    let mut params = HashMap::<&str, &str>::new();
+    params.insert("symbol", symbol);
+    params.insert("interval", interval);
+    if endtime > 0 {
+      params.insert("endTime", &endtime_val);
+    }
+    params.insert("limit", &limit);
+
+    let url = Url::parse_with_params(format!("{}/api/v3/klines", Env::var("BINANCE_SPOT_API_ENDPOINT")).as_str(), &params)?;
+
+    let client = reqwest::Client::new();
+    let response = client.get(url)
+      .timeout(Duration::from_secs(5))
+      .send()
+      .await?;
+
+    let status_code = response.status();
+
+    if status_code.is_client_error() {
+      println!("response {}", response.text().await.unwrap());
+      return Err(Box::from(format!("bad request: {}", status_code)))
+    }
+
+    if !status_code.is_success() {
+      return Err(Box::from(format!("request error: {}", status_code)))
+    }
+
+    let klines = response.json::<Vec<(i64, String, String, String, String, String, i64, String, i64, String, String, String)>>().await.unwrap();
+    for (timestamp, open, high, low, close, volume, _, quota, ..) in klines.iter() {
+      let open = open.parse::<f64>().unwrap();
+      let close = close.parse::<f64>().unwrap();
+      let high = high.parse::<f64>().unwrap();
+      let low = low.parse::<f64>().unwrap();
+      let volume = volume.parse::<f64>().unwrap();
+      let quota = quota.parse::<f64>().unwrap();
+      let timestamp = *timestamp;
+
+      let kline: Option<Kline> = match Self::get(ctx.clone(), symbol, interval, timestamp).await {
+        Ok(Some(result)) => Some(result),
+        Ok(None) => None,
+        Err(err) => {
+          println!("error {:?}", err);
+          continue
+        },
+      };
+
+      if kline.is_none() {
+        let id = xid::new().to_string();
+        Self::create(
+          ctx.clone(),
+          id,
+          symbol.to_string(),
+          interval.to_string(),
+          open,
+          close,
+          high,
+          low,
+          volume,
+          quota,
+          timestamp,
+        ).await?;
+      } else {
+        Self::update(
+          ctx.clone(),
+          kline.unwrap().id,
+          (
+            klines::open.eq(open),
+            klines::close.eq(close),
+            klines::high.eq(high),
+            klines::low.eq(low),
+            klines::volume.eq(volume),
+            klines::quota.eq(quota),
+          ),
+        ).await?;
+      }
+    }
+
+    Ok(())
+  }
+
+  pub async fn fix<T>(
+    ctx: Ctx,
+    symbol: T,
+    interval: T,
+    offset: i64,
+  ) -> Result<(), Box<dyn std::error::Error>>
+  where
+    T: AsRef<str>
+  {
+    let symbol = symbol.as_ref();
+    let interval = interval.as_ref();
+
+    let timestamp = Self::timestamp(interval);
+    let timestep = Self::timestep(interval);
+
+    let values = Self::values(ctx.clone(), symbol, interval, timestamp - offset * timestep).await?;
+
+    if values.len() == offset as usize {
+      return Ok(())
+    }
+
+    let mut i = -1;
+    let mut j = -1;
+    for value in values.iter() {
+      let k = (timestamp - value) / timestep;
+      if k == j + 1 {
+        if i != -1 {
+          println!("klines fix {symbol:} {interval:} {0:} {1:}", timestamp - (j - 1) * timestep, j - i + 1);
+          Self::flush(ctx.clone(), symbol, interval, timestamp - (j - 1) * timestep, j - i + 1).await?;
+        }
+        i = -1;
+      } else {
+        if i == -1 {
+          i = k;
+        }
+      }
+      j = k;
+    }
+
+    if i != -1 {
+      println!("klines fix {symbol:} {interval:} {0:} {1:}", timestamp - (j - 1) * timestep, j - i + 1);
+      Self::flush(ctx.clone(), symbol, interval, timestamp - (j - 1) * timestep, j - i + 1).await?;
+    }
+
+    Ok(())
+  }
+
+  pub async fn sync<T>(
     ctx: Ctx,
     symbols: Vec<T>,
     interval: T,
@@ -238,6 +434,21 @@ impl KlinesRepository
     }
 
     Ok(())
+  }
+
+  pub fn timestep<T>(interval: T) -> i64
+  where
+    T: AsRef<str>
+  {
+    let interval = interval.as_ref();
+    if interval == "1m" {
+      return 60000
+    } else if interval == "15m" {
+      return 900000
+    } else if interval == "4h" {
+      return 14400000
+    }
+    return 86400000
   }
 
   pub fn timestamp<T>(interval: T) -> i64 

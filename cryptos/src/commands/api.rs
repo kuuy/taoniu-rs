@@ -18,7 +18,7 @@ enum Commands {
 impl ApiCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
-      Commands::Binance(spot) => spot.run().await,
+      Commands::Binance(binance) => binance.run().await,
     }
   }
 }

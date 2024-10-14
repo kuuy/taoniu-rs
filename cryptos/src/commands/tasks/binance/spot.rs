@@ -1,11 +1,8 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
-use crate::commands::streams::binance::spot::tickers::*;
-use crate::commands::streams::binance::spot::klines::*;
+use crate::commands::tasks::binance::spot::klines::*;
 
-mod account;
-mod tickers;
 mod klines;
 
 #[derive(Parser)]
@@ -16,7 +13,6 @@ pub struct SpotCommand {
 
 #[derive(Subcommand)]
 enum Commands {
-  Tickers(TickersCommand),
   Klines(KlinesCommand),
 }
 
@@ -28,7 +24,6 @@ impl SpotCommand {
     let nats = Nats::new().await.expect("bad nats connection");
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
-      Commands::Tickers(tickers) => tickers.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,
     }
   }

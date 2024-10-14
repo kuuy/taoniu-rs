@@ -19,10 +19,10 @@ impl KlinesScheduler {
     }
   }
 
-  pub async fn flush(ctx: Ctx, interval: &str) -> Result<(), Box<dyn std::error::Error>> {
+  pub async fn sync(ctx: Ctx, interval: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures klines scheduler flush {}", interval);
     let job = KlinesJob::new(ctx.clone());
-    job.flush(interval).await?;
+    job.sync(interval).await?;
     Ok(())
   }
 
@@ -34,10 +34,10 @@ impl KlinesScheduler {
       Box::pin({
         let ctx = ctx.clone();
         async move {
-          let _ = Self::flush(ctx.clone(), "1m").await;
-          let _ = Self::flush(ctx.clone(), "15m").await;
-          let _ = Self::flush(ctx.clone(), "4h").await;
-          let _ = Self::flush(ctx.clone(), "1d").await;
+          let _ = Self::sync(ctx.clone(), "1m").await;
+          let _ = Self::sync(ctx.clone(), "15m").await;
+          let _ = Self::sync(ctx.clone(), "4h").await;
+          let _ = Self::sync(ctx.clone(), "1d").await;
         }
       })
     }));

@@ -20,7 +20,7 @@ impl KlinesWorker {
     }
   }
 
-  pub async fn flush<T>(ctx: Ctx, interval: T) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn sync<T>(ctx: Ctx, interval: T) -> Result<(), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
@@ -28,7 +28,7 @@ impl KlinesWorker {
   
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
-    let redis_key = format!("{}:{}", Config::LOCKS_KLINES_FLUSH, interval);
+    let redis_key = format!("{}:{}", Config::LOCKS_KLINES_SYNC, interval);
     let mut mutex = Mutex::new(
       rdb,
       &redis_key,
@@ -40,7 +40,7 @@ impl KlinesWorker {
  
     let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
     let timestamp = KlinesRepository::timestamp(interval);
-    let _ = KlinesRepository::flush(
+    let _ = KlinesRepository::sync(
       ctx.clone(),
       symbols.iter().map(String::as_ref).collect(),
       interval,
@@ -65,9 +65,9 @@ impl KlinesWorker {
             Ok(Some(message)) => {
               let (action, content) = serde_json::from_slice::<(String, String)>(message.message.as_bytes()).unwrap();
               match action.as_str() {
-                Config::RSMQ_JOBS_KLINES_FLUSH => {
-                  let payload = serde_json::from_slice::<KlinesFlushPayload<&str>>(content.as_bytes()).unwrap();
-                  if let Err(err) = Self::flush(ctx.clone(), payload.interval).await {
+                Config::RSMQ_JOBS_KLINES_SYNC => {
+                  let payload = serde_json::from_slice::<KlinesSyncPayload<&str>>(content.as_bytes()).unwrap();
+                  if let Err(err) = Self::sync(ctx.clone(), payload.interval).await {
                     println!("{err:?}");
                   }
                 }

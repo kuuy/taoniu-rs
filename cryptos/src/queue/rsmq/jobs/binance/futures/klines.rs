@@ -15,16 +15,16 @@ impl KlinesJob {
     }
   }
 
-  pub async fn flush<T>(&self, interval: T) -> Result<(), Box<dyn std::error::Error>> 
+  pub async fn sync<T>(&self, interval: T) -> Result<(), Box<dyn std::error::Error>> 
   where
     T: AsRef<str>
   {
     let interval = interval.as_ref();
 
-    let payload = KlinesFlushPayload::new(interval);
+    let payload = KlinesSyncPayload::new(interval);
     let content = serde_json::to_string(&payload).unwrap();
     let message = serde_json::to_string(&[
-      Config::RSMQ_JOBS_KLINES_FLUSH,
+      Config::RSMQ_JOBS_KLINES_SYNC,
       &content,
     ]).unwrap();
 

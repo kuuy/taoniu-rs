@@ -1,11 +1,11 @@
 use clap::{Parser, Subcommand};
 
-use crate::commands::streams::binance::*;
+use crate::commands::tasks::binance::*;
 
 pub mod binance;
 
 #[derive(Parser)]
-pub struct StreamsCommand {
+pub struct TasksCommand {
   #[command(subcommand)]
   commands: Commands,
 }
@@ -15,7 +15,7 @@ enum Commands {
   Binance(BinanceCommand),
 }
 
-impl StreamsCommand {
+impl TasksCommand {
   pub async fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Binance(binance) => binance.run().await,

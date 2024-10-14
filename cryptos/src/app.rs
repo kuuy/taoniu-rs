@@ -4,6 +4,7 @@ use crate::commands::api::*;
 use crate::commands::queue::*;
 use crate::commands::cron::*;
 use crate::commands::streams::*;
+use crate::commands::tasks::*;
 use crate::commands::binance::*;
 
 #[derive(Parser)]
@@ -18,6 +19,7 @@ enum Commands {
   Queue(QueueCommand),
   Cron(CronCommand),
   Streams(StreamsCommand),
+  Tasks(TasksCommand),
   Binance(BinanceCommand),
 }
 
@@ -28,6 +30,7 @@ impl App {
       Commands::Queue(queue) => queue.run().await,
       Commands::Cron(cron) => cron.run().await,
       Commands::Streams(streams) => streams.run().await,
+      Commands::Tasks(tasks) => tasks.run().await,
       Commands::Binance(binance) => binance.run().await,
     }
   }

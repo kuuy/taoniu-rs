@@ -6,16 +6,7 @@ use chrono::offset::Local;
 use crate::common::*;
 use crate::cron::binance::futures::klines::*;
 
-pub mod account;
-pub mod analysis;
-pub mod tickers;
 pub mod klines;
-pub mod depth;
-pub mod orders;
-pub mod positions;
-pub mod scalping;
-pub mod triggers;
-pub mod tradings;
 
 #[derive(Clone)]
 pub struct FuturesScheduler {

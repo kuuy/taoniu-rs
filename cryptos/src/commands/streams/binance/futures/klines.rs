@@ -125,7 +125,7 @@ impl KlinesCommand {
       return Err(Box::from("current less then 1"))
     }
 
-    let size = Env::usize("BINANCE_FUTURES_STREAMS_KLINES_SIZE".to_string());
+    let size = Env::usize("BINANCE_FUTURES_SYMBOLS_SIZE".to_string());
     let offset = (usize::from(self.current) - 1) * size;
     if offset >= symbols.len() {
       return Err(Box::from("symbols out of range"))

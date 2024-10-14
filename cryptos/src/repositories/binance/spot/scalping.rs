@@ -37,8 +37,8 @@ impl ScalpingRepository {
     let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
     let symbols = scalping::table
-      .filter(scalping::status.eq_any([1, 2]))
       .select(scalping::symbol)
+      .filter(scalping::status.eq_any([1, 2]))
       .load::<String>(&mut conn)?;
     Ok(symbols)
   }

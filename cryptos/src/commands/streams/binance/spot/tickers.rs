@@ -98,7 +98,7 @@ impl TickersCommand {
       return Err(Box::from("current less then 1"))
     }
 
-    let size = Env::usize("BINANCE_SPOT_STREAMS_TICKERS_SIZE");
+    let size = Env::usize("BINANCE_SPOT_SYMBOLS_SIZE");
     let offset = (usize::from(self.current) - 1) * size;
     if offset >= symbols.len() {
       return Err(Box::from("symbols out of range"))
