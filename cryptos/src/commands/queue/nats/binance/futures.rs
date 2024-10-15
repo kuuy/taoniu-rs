@@ -43,14 +43,20 @@ impl FuturesCommand {
     }
 
     let mut messages = stream::select_all(subscribers);
-    while let Some(message) = messages.next().await {
-      if let Some(methods) = callbacks.get(&message.subject[..]) {
-        for method in methods {
-          let payload = std::str::from_utf8(&message.payload).unwrap();
-          let _ = method(ctx.clone(), payload.into()).await;
+    let handle = tokio::spawn(Box::pin({
+      let ctx = ctx.clone();
+      async move {
+        while let Some(message) = messages.next().await {
+          if let Some(methods) = callbacks.get(&message.subject[..]) {
+            for method in methods {
+              let payload = std::str::from_utf8(&message.payload).unwrap();
+              let _ = method(ctx.clone(), payload.into()).await;
+            }
+          }
         }
       }
-    }
+    }));
+    handle.await.expect("queue nats binance futures process failed.");
 
     Ok(())
   }
