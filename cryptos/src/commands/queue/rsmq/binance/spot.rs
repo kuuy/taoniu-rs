@@ -1,6 +1,6 @@
 use tokio::task::JoinSet;
 
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 use crate::queue::rsmq::workers::binance::spot::*;

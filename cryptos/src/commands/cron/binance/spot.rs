@@ -1,5 +1,5 @@
 use tokio_cron::Scheduler;
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 use crate::cron::binance::spot::*;

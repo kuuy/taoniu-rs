@@ -3,10 +3,13 @@ use std::pin::Pin;
 use std::task::{Context, Poll};
 
 use axum::{
-  http::Request,
+  body::Body,
+  http::{Request, StatusCode},
+  response::Response,
 };
 use tower::{Layer, Service};
 
+use crate::api::response::*;
 use crate::repositories::auth::token::*;
 
 #[derive(Clone)]
@@ -33,7 +36,7 @@ pub struct JwtMiddleware<S> {
   inner: S,
 }
 
-impl<S, Body, Response> Service<Request<Body>> for JwtMiddleware<S>
+impl<S> Service<Request<Body>> for JwtMiddleware<S>
 where
   S: Service<Request<Body>, Response = Response>,
   S::Future: Send + 'static,
@@ -49,27 +52,35 @@ where
 
   #[inline]
   fn call(&mut self, request: Request<Body>) -> Self::Future {
-    match request.headers().get("Authorization")
+    let uid = match request.headers().get("Authorization")
       .and_then(|header| header.to_str().ok()) {
       Some(bearer) => {
         if bearer.starts_with("Taoniu") {
           match TokenRepository::uid(&bearer[7..]) {
-            Ok(uid) => {
-              println!("Hi jwt middleware uid {uid:}");
-            }
-            Err(err) => {
-              println!("jwt middleware error {err:?}");
-            }
+            Ok(result) => Some(result),
+            Err(_) => None
           }
+        } else {
+          None
         }
-        false
       }
-      None => false,
+      None => None,
     };
+
     let future = self.inner.call(request);
+
     Box::pin({
       async move {
-        let response: Response = future.await?;
+        let response = match uid {
+          Some(uid) => {
+            if uid == "" {
+              ErrorResponse::json(StatusCode::UNAUTHORIZED, "401", "access not authorized")
+            } else {
+              future.await?
+            }
+          },
+          None => ErrorResponse::json(StatusCode::FORBIDDEN, "403", "access not allowed")
+        };
         Ok(response)
       }
     })

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use async_nats::Subscriber;
 use futures_util::{stream, StreamExt};
 
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 use crate::queue::nats::workers::binance::futures::*;
@@ -56,7 +56,7 @@ impl FuturesCommand {
         }
       }
     }));
-    handle.await.expect("queue nats binance futures process failed.");
+    handle.await.expect("nats message process failed.");
 
     Ok(())
   }

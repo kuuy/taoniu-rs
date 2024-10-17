@@ -6,7 +6,7 @@ use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use serde::{Deserialize, Deserializer};
 use tokio_tungstenite::{tungstenite::Message, connect_async};
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;

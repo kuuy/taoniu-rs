@@ -1,3 +1,8 @@
+use axum::{
+  http::StatusCode,
+  Json,
+  response::{IntoResponse, Response},
+};
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -7,22 +12,40 @@ pub struct SuccessResponse {
 }
 
 #[derive(Serialize)]
-pub struct ErrorResponse<T> {
+pub struct ErrorMessage<T> {
   pub success: bool,
   pub code: T,
   pub message: T,
+}
+
+impl<T> ErrorMessage<T>
+where
+  T: AsRef<str>
+{
+  pub fn new(success: bool, code: T, message: T) -> Self {
+    Self {
+      success,
+      code,
+      message,
+    }
+  }
+}
+
+#[derive(Serialize)]
+pub struct ErrorResponse<T> {
+  pub success: bool,
+  pub message: ErrorMessage<T>,
 }
 
 impl<T> ErrorResponse<T>
 where
   T: AsRef<str>
 {
-  pub fn new(success: bool, code: T, message: T) -> Self {
-    Self {
-      success: success,
-      code: code,
-      message: message,
-    }
+  pub fn json(status: StatusCode, code: T, message: T) -> Response {
+    let code = code.as_ref();
+    let message = message.as_ref();
+    let message = ErrorMessage::new(false, code, message);
+    (status, Json(serde_json::json!(message))).into_response()
   }
 }
 

@@ -24,7 +24,7 @@ impl V1Router {
     return Router::new()
       .nest("/tickers", TickersRouter::new(self.ctx.clone()).routes())
       .nest("/positions", PositionsRouter::new(self.ctx.clone()).routes())
-      .layer(EncryptionLayer::new())
-      .layer(AuthenticatorLayer::new());
+      .layer(AuthenticatorLayer::new())
+      .layer(EncryptionLayer::new());
   }
 }

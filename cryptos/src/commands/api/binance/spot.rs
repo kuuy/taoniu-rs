@@ -2,7 +2,7 @@ use axum::{
   routing::get,
   Router,
 };
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 use crate::api::binance::spot::v1::*;

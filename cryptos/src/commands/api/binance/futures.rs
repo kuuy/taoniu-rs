@@ -1,5 +1,5 @@
 use axum::Router;
-use clap::{Parser};
+use clap::Parser;
 
 use crate::common::*;
 
