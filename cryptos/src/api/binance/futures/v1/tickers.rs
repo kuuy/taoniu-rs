@@ -9,8 +9,8 @@ use serde::Deserialize;
 
 use crate::common::*;
 use crate::api::response::*;
-use crate::repositories::binance::spot::scalping::*;
-use crate::repositories::binance::spot::tickers::*;
+use crate::repositories::binance::futures::scalping::*;
+use crate::repositories::binance::futures::tickers::*;
 
 #[derive(Deserialize)]
 struct GetsRequest {

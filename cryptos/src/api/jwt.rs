@@ -38,7 +38,7 @@ pub struct JwtMiddleware<S> {
 
 impl<S> Service<Request<Body>> for JwtMiddleware<S>
 where
-  S: Service<Request<Body>, Response = Response>,
+  S: Service<Request<Body>, Response = Response> + Clone + Send + 'static,
   S::Future: Send + 'static,
 {
   type Response = S::Response;
@@ -67,16 +67,15 @@ where
       None => None,
     };
 
-    let future = self.inner.call(request);
-
     Box::pin({
+      let mut inner = self.inner.clone();
       async move {
         let response = match uid {
           Some(uid) => {
             if uid == "" {
               ErrorResponse::json(StatusCode::UNAUTHORIZED, "401", "access not authorized")
             } else {
-              future.await?
+              inner.call(request).await?
             }
           },
           None => ErrorResponse::json(StatusCode::FORBIDDEN, "403", "access not allowed")
