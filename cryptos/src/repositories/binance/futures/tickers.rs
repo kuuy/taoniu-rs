@@ -112,13 +112,13 @@ impl TickersRepository {
       scores = Vec::from(head);
     }
 
-    let mut tickers: Vec<String> = Vec::new();
+    let mut ranking: Vec<String> = Vec::new();
     for v in scores.iter() {
       let symbol = symbols[v.0].to_string();
-      tickers.push(format!("{},{}", &symbol[..], &values[v.0][..]));
+      ranking.push(format!("{},{}", &symbol[..], &values[v.0][..]));
     }
 
-    tickers
+    ranking
   }
 
   pub async fn price<T>(

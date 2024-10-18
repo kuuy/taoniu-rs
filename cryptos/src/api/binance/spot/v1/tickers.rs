@@ -65,16 +65,25 @@ impl TickersRouter {
       return Err((StatusCode::FORBIDDEN, Json(serde_json::json!(message))))
     }
 
-    let symbols = match &request.symbols {
-      Some(value) => value.split(',').map(|s|s.into()).collect(),
-      None => match ScalpingRepository::scan(ctx.clone()).await {
+    let mut symbols = match &request.symbols {
+      Some(value) => {
+        if value != "" {
+          value.split(',').map(|s|s.into()).collect()
+        } else {
+          vec![]
+        }
+      }
+      None => vec![],
+    };
+    if symbols.is_empty() {
+      symbols = match ScalpingRepository::scan(ctx.clone()).await {
         Ok(values) => values,
         Err(_) => {
           let message = ErrorMessage::new(false, "1004", "symbols is empty");
           return Err((StatusCode::FORBIDDEN, Json(serde_json::json!(message))))
         },
-      }
-    };
+      };
+    }
     let symbols = symbols.iter().map(|s|&s[..]).collect();
 
     let fields: Vec<&str> = request.fields.split(',').collect();

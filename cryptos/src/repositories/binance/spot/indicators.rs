@@ -44,6 +44,130 @@ impl VolumeSegment {
 }
 
 impl IndicatorsRepository {
+  pub async fn gets<T>(
+    ctx: Ctx,
+    symbols: Vec<T>,
+    interval: T,
+    fields: Vec<T>,
+  ) -> Vec<String>
+  where
+    T: AsRef<str>
+  {
+    let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let interval = interval.as_ref();
+    let fields = fields.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let script = redis::Script::new(r"
+      local hmget = function (key)
+        local hash = {}
+        local data = redis.call('HMGET', key, unpack(ARGV))
+        for i = 1, #ARGV do
+          hash[i] = data[i]
+        end
+        return hash
+      end
+      local data = {}
+      for i = 1, #KEYS do
+        local key = 'binance:spot:indicators:' .. KEYS[i]
+        if redis.call('EXISTS', key) == 0 then
+          data[i] = false
+        else
+          data[i] = hmget(key)
+        end
+      end
+      return data
+    ");
+
+    let day = Local::now().format("%m%d").to_string();
+    let keys = symbols.iter().map(|&s| format!("{}:{}:{}", interval, s, day)).collect::<Vec<String>>();
+    let keys = keys.iter().map(|k| k.as_ref()).collect::<Vec<&str>>();
+
+    let mut rdb = ctx.rdb.lock().await.clone();
+    let mut vars = Vec::new();
+    match script
+      .key(keys.as_slice())
+      .arg(fields.as_slice())
+      .invoke_async::<_, Vec<redis::Value>>(&mut rdb).await {
+      Ok(values) => {
+        values.iter().enumerate().for_each(|(_, value)| {
+          if let redis::Value::Bulk(bulk) = value {
+            let mut var = Vec::new();
+            bulk.iter().for_each(|item| {
+              if let redis::Value::Data(v) = item {
+                let v = std::str::from_utf8(v).unwrap();
+                var.push(v);
+              } else {
+                var.push("0.0");
+              }
+            });
+            vars.push(var.join(","));
+          }
+        })
+      }
+      _ => (),
+    }
+    vars
+  }
+
+  pub async fn ranking<T>(
+    ctx: Ctx,
+    symbols: Vec<T>,
+    interval: T,
+    fields: Vec<T>,
+    sort_field: T,
+    sort_type: i32,
+    current: u32,
+    page_size: u32,
+  ) -> Vec<String>
+  where
+    T: AsRef<str>
+  {
+    let symbols = symbols.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let interval = interval.as_ref();
+    let fields = fields.iter().map(|s| s.as_ref()).collect::<Vec<&str>>();
+    let sort_field = sort_field.as_ref();
+    let sort_position: usize = fields.iter().position(|&v| v == sort_field).unwrap();
+
+    let values = Self::gets(ctx.clone(), symbols.clone(), interval, fields.clone()).await;
+    let mut scores = Vec::new();
+    for (i, v) in values.iter().enumerate() {
+      let v: Vec<&str> = v.split(",").collect();
+      let v = v[sort_position].parse::<f64>().unwrap();
+      scores.push((i, v));
+    }
+    scores.sort_by(|a, b| {
+      if sort_type == -1 {
+        b.1.partial_cmp(&a.1).unwrap()
+      } else {
+        a.1.partial_cmp(&b.1).unwrap()
+      }
+    });
+
+    let total = symbols.len();
+    let current = current as usize;
+    let page_size = page_size as usize;
+    let offset = (current - 1) * page_size;
+
+    if offset >= total {
+      return vec![]
+    }
+
+    let (_, tail) = scores.split_at(offset);
+    scores = Vec::from(tail);
+
+    if page_size < scores.len() {
+      let (head, _) = scores.split_at(offset + page_size);
+      scores = Vec::from(head);
+    }
+
+    let mut ranking: Vec<String> = Vec::new();
+    for v in scores.iter() {
+      let symbol = symbols[v.0].to_string();
+      ranking.push(format!("{},{}", &symbol[..], &values[v.0][..]));
+    }
+
+    ranking
+  }
+
   pub async fn pivot<T>(
     ctx: Ctx,
     symbol: T,

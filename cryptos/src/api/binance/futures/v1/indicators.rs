@@ -10,28 +10,30 @@ use serde::Deserialize;
 use crate::common::*;
 use crate::api::response::*;
 use crate::repositories::binance::futures::scalping::*;
-use crate::repositories::binance::futures::tickers::*;
+use crate::repositories::binance::futures::indicators::*;
 
 #[derive(Deserialize)]
 struct GetsRequest {
   symbols: String,
+  interval: String,
   fields: String,
 }
 
 #[derive(Deserialize)]
 struct RankingRequest {
   symbols: Option<String>,
+  interval: String,
   fields: String,
   sort: String,
   current: u32,
   page_size: u32,
 }
 
-pub struct TickersRouter {
+pub struct IndicatorsRouter {
   ctx: Ctx,
 }
 
-impl TickersRouter {
+impl IndicatorsRouter {
   pub fn new(ctx: Ctx) -> Self {
     Self {
       ctx: ctx,
@@ -43,11 +45,12 @@ impl TickersRouter {
     request: Query<GetsRequest>,
   ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
     let symbols = request.symbols.split(',').collect();
+    let interval = request.interval.as_ref();
     let fields = request.fields.split(',').collect();
-    let tickers = TickersRepository::gets(ctx.clone(), symbols, fields).await;
+    let indicators = IndicatorsRepository::gets(ctx.clone(), symbols, interval, fields).await;
     let response = RankingResponse{
       success: true,
-      data: tickers.into_iter().map(|x| -> Box<dyn erased_serde::Serialize> { Box::new(x) }).collect(),
+      data: indicators.into_iter().map(|x| -> Box<dyn erased_serde::Serialize> { Box::new(x) }).collect(),
     };
     Ok(Json(serde_json::json!(response)))
   }
@@ -56,6 +59,10 @@ impl TickersRouter {
     State(ctx): State<Ctx>,
     request: Query<RankingRequest>,
   ) -> Result<Json<serde_json::Value>, (StatusCode, Json<serde_json::Value>)> {
+    if request.interval == "" {
+      let message = ErrorMessage::new(false, "1004", "interval is empty");
+      return Err((StatusCode::FORBIDDEN, Json(serde_json::json!(message))))
+    }
     if request.fields == "" {
       let message = ErrorMessage::new(false, "1004", "fields is empty");
       return Err((StatusCode::FORBIDDEN, Json(serde_json::json!(message))))
@@ -85,6 +92,7 @@ impl TickersRouter {
       };
     }
     let symbols = symbols.iter().map(|s|&s[..]).collect();
+    let interval = request.interval.as_ref();
 
     let fields: Vec<&str> = request.fields.split(',').collect();
 
@@ -113,10 +121,19 @@ impl TickersRouter {
       return Err((StatusCode::FORBIDDEN, Json(serde_json::json!(message))))
     }
 
-    let tickers = TickersRepository::ranking(ctx.clone(), symbols, fields, sort_field, sort_type, current, page_size).await;
+    let indicators = IndicatorsRepository::ranking(
+      ctx.clone(),
+      symbols,
+      interval,
+      fields,
+      sort_field,
+      sort_type,
+      current,
+      page_size,
+    ).await;
     let response = RankingResponse{
       success: true,
-      data: tickers.into_iter().map(|x| -> Box<dyn erased_serde::Serialize> { Box::new(x) }).collect(),
+      data: indicators.into_iter().map(|x| -> Box<dyn erased_serde::Serialize> { Box::new(x) }).collect(),
     };
     Ok(Json(serde_json::json!(response)))
   }

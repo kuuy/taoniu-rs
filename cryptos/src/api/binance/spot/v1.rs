@@ -4,9 +4,11 @@ use crate::common::*;
 use crate::api::jwt::*;
 use crate::api::jwe::*;
 use crate::api::binance::spot::v1::tickers::*;
+use crate::api::binance::spot::v1::indicators::*;
 use crate::api::binance::spot::v1::positions::*;
 
 pub mod tickers;
+pub mod indicators;
 pub mod positions;
 
 pub struct V1Router {
@@ -23,6 +25,7 @@ impl V1Router {
   pub fn routes(&self) -> Router {
     return Router::new()
       .nest("/tickers", TickersRouter::new(self.ctx.clone()).routes())
+      .nest("/indicators", IndicatorsRouter::new(self.ctx.clone()).routes())
       .nest("/positions", PositionsRouter::new(self.ctx.clone()).routes())
       .layer(AuthenticatorLayer::new())
       .layer(EncryptionLayer::new());
