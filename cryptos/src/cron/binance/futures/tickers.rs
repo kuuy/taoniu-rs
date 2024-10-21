@@ -7,11 +7,11 @@ use crate::common::*;
 
 pub struct TickersScheduler {
   ctx: Ctx,
-  scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
+  scheduler: Arc<Mutex<Scheduler<Local>>>,
 }
 
 impl TickersScheduler {
-  pub fn new(ctx: Ctx, scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
+  pub fn new(ctx: Ctx, scheduler: Arc<Mutex<Scheduler<Local>>>) -> Self {
     Self {
       ctx: ctx,
       scheduler: scheduler,

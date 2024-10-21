@@ -5,6 +5,7 @@ use chrono::prelude::Utc;
 use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use serde::{Deserialize, Deserializer};
+use tokio::sync::Mutex;
 use tokio_tungstenite::{tungstenite::Message, connect_async};
 use clap::Parser;
 
@@ -125,7 +126,7 @@ impl TickersCommand {
 
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
     let (_, read) = stream.split();
-    let read = Arc::new(tokio::sync::Mutex::new(read));
+    let read = Arc::new(Mutex::new(read));
     println!("stream connected");
     let handle = tokio::spawn(Box::pin({
       let ctx = ctx.clone();

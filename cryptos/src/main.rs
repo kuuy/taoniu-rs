@@ -10,6 +10,7 @@ pub mod schema;
 pub mod repositories;
 pub mod cron;
 pub mod queue;
+pub mod streams;
 
 use app::App;
 use common::Env;

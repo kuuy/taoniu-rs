@@ -9,11 +9,11 @@ use crate::repositories::binance::spot::scalping::*;
 
 pub struct PlansScheduler {
   ctx: Ctx,
-  scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
+  scheduler: Arc<Mutex<Scheduler<Local>>>,
 }
 
 impl PlansScheduler {
-  pub fn new(ctx: Ctx, scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
+  pub fn new(ctx: Ctx, scheduler: Arc<Mutex<Scheduler<Local>>>) -> Self {
     Self {
       ctx: ctx,
       scheduler: scheduler,

@@ -31,7 +31,7 @@ impl ScalpingWorker {
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
     let redis_lock_key = format!("{}:{}", Config::LOCKS_TRADINGS_SCALPING_PLACE, plan_id);
-    let mut mutex = Mutex::new(
+    let mut mutex = RedisMutex::new(
       rdb,
       &redis_lock_key,
       &mutex_id,

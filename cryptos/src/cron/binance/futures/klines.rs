@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use tokio::sync::Mutex;
 use tokio_cron::{Scheduler, Job};
 use chrono::offset::Local;
 
@@ -8,11 +9,11 @@ use crate::queue::rsmq::jobs::binance::futures::klines::*;
 
 pub struct KlinesScheduler {
   ctx: Ctx,
-  scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
+  scheduler: Arc<Mutex<Scheduler<Local>>>,
 }
 
 impl KlinesScheduler {
-  pub fn new(ctx: Ctx, scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
+  pub fn new(ctx: Ctx, scheduler: Arc<Mutex<Scheduler<Local>>>) -> Self {
     Self {
       ctx: ctx,
       scheduler: scheduler,

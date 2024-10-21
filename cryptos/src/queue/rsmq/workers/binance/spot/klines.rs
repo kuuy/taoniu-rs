@@ -29,7 +29,7 @@ impl KlinesWorker {
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
     let redis_key = format!("{}:{}", Config::LOCKS_KLINES_SYNC, interval);
-    let mut mutex = Mutex::new(
+    let mut mutex = RedisMutex::new(
       rdb,
       &redis_key,
       &mutex_id,

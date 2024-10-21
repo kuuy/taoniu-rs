@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use tokio::sync::Mutex;
 use tokio_cron::Scheduler;
 use chrono::offset::Local;
 
@@ -11,14 +12,14 @@ pub mod klines;
 #[derive(Clone)]
 pub struct FuturesScheduler {
   ctx: Ctx,
-  scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
+  scheduler: Arc<Mutex<Scheduler<Local>>>,
 }
 
 impl FuturesScheduler {
   pub fn new(ctx: Ctx, scheduler: Scheduler<Local>) -> Self {
     Self {
       ctx: ctx,
-      scheduler: Arc::new(tokio::sync::Mutex::new(scheduler)),
+      scheduler: Arc::new(Mutex::new(scheduler)),
     }
   }
 

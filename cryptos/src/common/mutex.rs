@@ -3,13 +3,13 @@ use std::time::Duration;
 use redis::RedisError;
 use redis::aio::MultiplexedConnection;
 
-pub struct Mutex<T> {
+pub struct RedisMutex<T> {
   rdb: MultiplexedConnection,
   key: T,
   id: T,
 }
 
-impl<T> Mutex<T>
+impl<T> RedisMutex<T>
 where
   T: AsRef<str>
 {

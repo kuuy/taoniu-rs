@@ -119,7 +119,7 @@ impl StrategiesWorker {
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
     let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_STRATEGIES_FLUSH, interval, symbol);
-    let mut mutex = Mutex::new(
+    let mut mutex = RedisMutex::new(
       rdb,
       &redis_lock_key,
       &mutex_id,

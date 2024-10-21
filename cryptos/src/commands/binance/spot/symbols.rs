@@ -37,7 +37,7 @@ impl SymbolsCommand {
     println!("symbols flush");
     let rdb = ctx.rdb.lock().await.clone();
     let mutex_id = xid::new().to_string();
-    let mut mutex = Mutex::new(
+    let mut mutex = RedisMutex::new(
       rdb,
       Config::LOCKS_SYMBOLS_FLUSH,
       &mutex_id,

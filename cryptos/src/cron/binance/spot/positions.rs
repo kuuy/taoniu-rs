@@ -6,11 +6,11 @@ use chrono::offset::Local;
 use crate::common::*;
 
 pub struct PositionsScheduler {
-  scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>,
+  scheduler: Arc<Mutex<Scheduler<Local>>>,
 }
 
 impl PositionsScheduler {
-  pub fn new(scheduler: Arc<tokio::sync::Mutex<Scheduler<Local>>>) -> Self {
+  pub fn new(scheduler: Arc<Mutex<Scheduler<Local>>>) -> Self {
     Self {
       scheduler: scheduler,
     }
