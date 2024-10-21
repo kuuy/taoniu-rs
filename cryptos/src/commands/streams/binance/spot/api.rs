@@ -1,20 +1,15 @@
 use std::collections::HashMap;
-use std::time::Duration;
 use std::sync::Arc;
 
 use async_nats::Subscriber;
-use chrono::prelude::Utc;
-use futures_util::{stream, SinkExt, StreamExt};
-use rust_decimal::prelude::*;
-use redis::AsyncCommands;
-use serde::{Deserialize, Deserializer};
+use futures_util::{stream, StreamExt};
+use serde::Deserialize;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tokio_tungstenite::{tungstenite::Message, connect_async};
 use clap::Parser;
 
 use crate::common::*;
-use crate::config::binance::spot::config as Config;
 use crate::streams::api::requests::workers::binance::spot::SpotWorker as SpotRequest;
 use crate::streams::api::responses::workers::binance::spot::SpotWorker as SpotResponse;
 
@@ -26,19 +21,6 @@ impl Default for ApiCommand {
     Self::new()
   }
 }
-
-#[derive(Deserialize)]
-struct ApiParams {}
-
-#[derive(Deserialize)]
-struct ApiResponse {
-  id: String,
-  status: i32,
-  result: ApiResult,
-}
-
-#[derive(Deserialize)]
-struct ApiResult {}
 
 impl ApiCommand {
   pub fn new() -> Self {
@@ -90,13 +72,8 @@ impl ApiCommand {
         while let Some(message) = reader.next().await {
           match message.unwrap() {
             Message::Text(content) => {
-              println!("response {content:}");
-              match serde_json::from_str::<ApiResponse>(&content) {
-                Ok(response) => {
-                  // let _ = Self::response(ctx.clone(), response).await;
-                }
-                Err(err) => println!("error: {}", err)
-              }
+              let payload = std::str::from_utf8(&content.as_bytes()).unwrap();
+              println!("response {payload:}");
             }
             Message::Close(_) => break,
             _ => continue,

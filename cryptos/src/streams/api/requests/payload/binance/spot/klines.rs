@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct KlinesFlushPayload<T> {
   pub symbol: T,
   pub interval: T,
-  #[serde(alias = "endTime")]
+  #[serde(rename = "endTime")]
   pub endtime: i64,
   pub limit: i64,
 }

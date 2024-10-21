@@ -35,6 +35,8 @@ impl KlinesWorker {
       Err(err) => return Err(err.into()),
     };
 
+    println!("klines flush {symbol:} {interval:} {endtime:} {limit:}");
+
     let request_id = xid::new().to_string();
     let api_request = ApiRequest{
       id: request_id,
@@ -42,20 +44,21 @@ impl KlinesWorker {
       params: Box::new(KlinesFlushPayload::<String>::new(symbol.to_owned(), interval.to_owned(), endtime, limit)),
     };
 
-    let rdb = ctx.rdb.lock().await.clone();
-    let mutex_id = xid::new().to_string();
-    let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_STREAMS_API_KLINES_FLUSH, interval.to_owned(), symbol.to_owned());
-    let mut mutex = RedisMutex::new(
-      rdb,
-      &redis_lock_key,
-      &mutex_id,
-    );
-    if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
-      return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
-    }
+    // let rdb = ctx.rdb.lock().await.clone();
+    // let mutex_id = xid::new().to_string();
+    // let redis_lock_key = format!("{}:{}:{}", Config::LOCKS_STREAMS_API_KLINES_FLUSH, interval.to_owned(), symbol.to_owned());
+    // let mut mutex = RedisMutex::new(
+    //   rdb,
+    //   &redis_lock_key,
+    //   &mutex_id,
+    // );
+    // if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+    //   return Err(Box::from(format!("mutex failed {}", redis_lock_key)));
+    // }
 
     let mut writer = writer.lock_owned().await;
     let message = serde_json::to_string(&api_request).unwrap();
+    println!("message {message:}");
     writer.send(Message::Text(message)).await?;
 
     Ok(())
