@@ -3,15 +3,17 @@ use std::sync::Arc;
 
 use async_nats::Subscriber;
 use futures_util::{stream, StreamExt};
-use serde::Deserialize;
+use redis::AsyncCommands;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;
 use tokio_tungstenite::{tungstenite::Message, connect_async};
 use clap::Parser;
 
 use crate::common::*;
+use crate::config::binance::spot::config as Config;
 use crate::streams::api::requests::workers::binance::spot::SpotWorker as SpotRequest;
 use crate::streams::api::responses::workers::binance::spot::SpotWorker as SpotResponse;
+use crate::streams::api::ApiResponse;
 
 #[derive(Parser)]
 pub struct ApiCommand {}
@@ -39,7 +41,7 @@ impl ApiCommand {
     let reader = Arc::new(Mutex::new(reader));
     println!("stream connected");
 
-    let mut requests = HashMap::<&str, StreamFn>::new();
+    let mut requests = HashMap::<&str, RequestFn>::new();
     SpotRequest::new(ctx.clone()).subscribe(&mut requests).await?;
     let client = ctx.nats.clone();
 
@@ -50,7 +52,7 @@ impl ApiCommand {
 
     let mut messages = stream::select_all(subscribers);
 
-    let mut responses = HashMap::<&str, EventFn>::new();
+    let mut responses = HashMap::<&str, ResponseFn>::new();
     SpotResponse::new(ctx.clone()).subscribe(&mut responses).await?;
 
     let mut workers = JoinSet::new();
@@ -68,12 +70,40 @@ impl ApiCommand {
     workers.spawn(Box::pin({
       let ctx = ctx.clone();
       let mut reader = reader.lock_owned().await;
+      let mut rdb = ctx.rdb.lock().await.clone();
       async move {
         while let Some(message) = reader.next().await {
           match message.unwrap() {
-            Message::Text(content) => {
-              let payload = std::str::from_utf8(&content.as_bytes()).unwrap();
-              println!("response {payload:}");
+            Message::Text(payload) => {
+              let payload = std::str::from_utf8(&payload.as_bytes()).unwrap();
+              match serde_json::from_str::<ApiResponse>(payload.as_ref()) {
+                Ok(response) => {
+                  if response.status == 200 {
+                    let request: String = match rdb.hget(Config::REDIS_KEY_STREAMS_API, &response.id[..]).await {
+                      Ok(Some(request)) => request,
+                      Ok(None) => {
+                        println!("request {} not exists", response.id);
+                        "".to_string()
+                      }
+                      Err(err) => {
+                        println!("error: {}", err);
+                        "".to_string()
+                      }
+                    };
+                    if request != "" {
+                      let mut values: Vec<String> = request.split(",").map(|s|s.into()).collect();
+                      if let Some(method) = responses.get(&values[0][..]) {
+                        values.remove(0);
+                        let _ = method(ctx.clone(), values, payload.into()).await;
+                      }
+                    }
+                    println!("request {request}");
+                  }
+                  let _: bool = rdb.hdel(Config::REDIS_KEY_STREAMS_API, &response.id[..]).await.unwrap();
+                  println!("response {} {}", response.id, response.status);
+                }
+                Err(err) => println!("error: {}", err)
+              }
             }
             Message::Close(_) => break,
             _ => continue,

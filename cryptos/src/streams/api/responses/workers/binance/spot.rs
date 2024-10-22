@@ -18,7 +18,7 @@ impl SpotWorker {
 
   pub async fn subscribe(
     &self,
-    callbacks: &mut HashMap<&str, EventFn>,
+    callbacks: &mut HashMap<&str, ResponseFn>,
   ) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot streams api responses workers subscribe");
     KlinesWorker::new(self.ctx.clone()).subscribe(callbacks).await?;

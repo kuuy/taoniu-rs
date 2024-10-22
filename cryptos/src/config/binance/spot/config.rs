@@ -6,6 +6,7 @@ pub const REDIS_KEY_KLINES: &str = "binance:spot:klines";
 pub const REDIS_KEY_INDICATORS: &str = "binance:spot:indicators";
 pub const REDIS_KEY_TRADINGS_LAST_PRICE: &str = "binance:spot:tradings:last:price";
 // pub const REDIS_KEY_TRADINGS_TRIGGERS_PLACE: &str = "binance:spot:tradings:triggers:place";
+pub const REDIS_KEY_STREAMS_API: &str = "binance:spot:streams:api";
 pub const SCALPING_MIN_BINANCE: f64 = 50.0;
 // pub const TRIGGERS_MIN_BINANCE: f64 = 50.0;
 pub const RSMQ_QUEUE_TICKERS: &str  = "binance.spot.tickers";

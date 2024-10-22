@@ -1,13 +1,14 @@
 use std::time::Duration;
 use std::sync::Arc;
-use futures_util::stream::StreamExt;
 
 use chrono::prelude::Utc;
+use futures_util::stream::StreamExt;
 use rust_decimal::prelude::*;
 use redis::AsyncCommands;
 use serde::{Deserialize, Deserializer};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{tungstenite::Message, connect_async};
+
 use clap::Parser;
 
 use crate::common::*;
