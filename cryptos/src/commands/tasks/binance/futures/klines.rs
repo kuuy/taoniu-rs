@@ -91,7 +91,7 @@ impl KlinesCommand {
         &redis_lock_key,
         &mutex_id,
       );
-      if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
         println!("mutex failed {}", redis_lock_key);
         continue
       }
@@ -100,7 +100,6 @@ impl KlinesCommand {
         Ok(_) => (),
         Err(err) => println!("error: {}", err),
       }
-      mutex.unlock().await.unwrap();
     }
 
     Ok(())
@@ -151,7 +150,7 @@ impl KlinesCommand {
         &redis_lock_key,
         &mutex_id,
       );
-      if !mutex.lock(Duration::from_secs(5)).await.unwrap() {
+      if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
         println!("mutex failed {}", redis_lock_key);
         continue
       }
@@ -160,7 +159,6 @@ impl KlinesCommand {
         Ok(_) => (),
         Err(err) => println!("error: {}", err),
       }
-      mutex.unlock().await.unwrap();
     }
 
     Ok(())

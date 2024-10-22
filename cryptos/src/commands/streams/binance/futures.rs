@@ -1,9 +1,11 @@
 use clap::{Parser, Subcommand};
 
 use crate::common::*;
+use crate::commands::streams::binance::futures::api::*;
 use crate::commands::streams::binance::futures::tickers::*;
 use crate::commands::streams::binance::futures::klines::*;
 
+mod api;
 mod account;
 mod tickers;
 mod klines;
@@ -16,6 +18,7 @@ pub struct FuturesCommand {
 
 #[derive(Subcommand)]
 enum Commands {
+  Api(ApiCommand),
   Tickers(TickersCommand),
   Klines(KlinesCommand),
 }
@@ -28,6 +31,7 @@ impl FuturesCommand {
     let nats = Nats::new().await.expect("bad nats connection");
     let ctx = Ctx::new(rdb, rmq, pool, nats);
     match &self.commands {
+      Commands::Api(api) => api.run(ctx).await,
       Commands::Tickers(tickers) => tickers.run(ctx).await,
       Commands::Klines(klines) => klines.run(ctx).await,
     }

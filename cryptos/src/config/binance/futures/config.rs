@@ -46,6 +46,7 @@ pub const NATS_EVENTS_PLANS_UPDATE: &str = "binance.futures.plans.update";
 pub const NATS_EVENTS_ORDERS_UPDATE: &str = "binance.futures.orders.update";
 pub const NATS_EVENTS_TRADINGS_SCALPING_PLACE: &str = "binance.futures.tradings.scalping.place";
 pub const NATS_EVENTS_API_KLINES_FLUSH: &str = "binance.futures.api.klines.flush";
+pub const STREAMS_API_KLINES_FLUSH: &str = "klines";
 pub const LOCKS_ACCOUNT_FLUSH: &str = "locks:binance:futures:account:flush";
 pub const LOCKS_SYMBOLS_FLUSH: &str = "locks:binance:futures:symbols:flush";
 pub const LOCKS_KLINES_FLUSH: &str = "locks:binance:futures:klines:flush";
