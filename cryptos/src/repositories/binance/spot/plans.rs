@@ -109,7 +109,7 @@ impl PlansRepository {
   pub async fn update<V>(
     ctx: Ctx,
     id: String,
-    value: V,
+    values: V,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
     V: diesel::AsChangeset<Target = plans::table>,
@@ -117,7 +117,7 @@ impl PlansRepository {
   {
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
-    match diesel::update(plans::table.find(id)).set(value).execute(&mut conn) {
+    match diesel::update(plans::table.find(id)).set(values).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(err) => Err(err.into()),
     }

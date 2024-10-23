@@ -53,7 +53,7 @@ where
 pub struct PagenateResponse {
   pub success: bool,
   pub data: Vec<Box<dyn erased_serde::Serialize>>,
-  pub total: u64,
+  pub total: i64,
   pub current: u32,
   pub page_size: u32,
 }

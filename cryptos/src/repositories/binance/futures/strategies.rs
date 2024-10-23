@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{prelude::Utc, Local};
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
@@ -78,6 +80,48 @@ impl StrategiesRepository {
       }
   }
 
+  pub async fn count(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>) -> Result<i64, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = strategies::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(strategies::symbol.eq(&symbol[..]));
+    }
+    if let Some(MixValue::Int(signal)) = conditions.get("signal") {
+      query = query.filter(strategies::signal.eq(signal));
+    }
+    let count = query
+      .count()
+      .get_result(&mut conn)?;
+    Ok(count)
+  }
+
+  pub async fn listings(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>, current: i64, page_size: i64) -> Result<Vec<(String, String, String, i32, f64, i64)>, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = strategies::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(strategies::symbol.eq(&symbol[..]));
+    }
+    if let Some(MixValue::Int(signal)) = conditions.get("signal") {
+      query = query.filter(strategies::signal.eq(signal));
+    }
+    let strategies = query
+      .select((
+        strategies::id,
+        strategies::symbol,
+        strategies::indicator,
+        strategies::signal,
+        strategies::price,
+        strategies::timestamp,
+      ))
+      .order(strategies::timestamp.desc())
+      .offset((current - 1) * page_size)
+      .limit(page_size)
+      .load::<(String, String, String, i32, f64, i64)>(&mut conn)?;
+    Ok(strategies)
+  }
+
   pub async fn create(
     ctx: Ctx,
     id: String,
@@ -116,7 +160,7 @@ impl StrategiesRepository {
   pub async fn update<V>(
     ctx: Ctx,
     id: String,
-    value: V,
+    values: V,
   ) -> Result<bool, Box<dyn std::error::Error>> 
   where
     V: diesel::AsChangeset<Target = strategies::table>,
@@ -124,7 +168,7 @@ impl StrategiesRepository {
   {
     let pool = ctx.pool.write().await;
     let mut conn = pool.get().unwrap();
-    match diesel::update(strategies::table.find(id)).set(value).execute(&mut conn) {
+    match diesel::update(strategies::table.find(id)).set(values).execute(&mut conn) {
       Ok(effective_rows) => Ok(effective_rows > 0),
       Err(err) => Err(err.into()),
     }

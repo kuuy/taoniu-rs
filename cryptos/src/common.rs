@@ -8,6 +8,7 @@ pub mod rsmq;
 pub mod ctx;
 pub mod mutex;
 pub mod func;
+pub mod value;
 
 pub use env::*;
 pub use rdb::*;
@@ -19,3 +20,4 @@ pub use rsmq::*;
 pub use ctx::*;
 pub use mutex::*;
 pub use func::*;
+pub use value::*;

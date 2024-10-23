@@ -125,14 +125,14 @@ impl TickersCommand {
     println!("endpoint {endpoint:}");
 
     let (stream, _) = connect_async(&endpoint).await.expect("Failed to connect");
-    let (_, read) = stream.split();
-    let read = Arc::new(Mutex::new(read));
+    let (_, reader) = stream.split();
+    let reader = Arc::new(Mutex::new(reader));
     println!("stream connected");
     let handle = tokio::spawn(Box::pin({
       let ctx = ctx.clone();
-      let mut read = read.lock_owned().await;
+      let mut reader = reader.lock_owned().await;
       async move {
-        while let Some(message) = read.next().await {
+        while let Some(message) = reader.next().await {
           match message.unwrap() {
             Message::Text(content) => {
               match serde_json::from_str::<TickerEvent>(&content) {
@@ -148,7 +148,7 @@ impl TickersCommand {
         }
       }
     }));
-    handle.await.expect("The read task failed.");
+    handle.await.expect("stream failed");
 
     Ok(())
   }
