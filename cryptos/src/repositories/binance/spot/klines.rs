@@ -339,12 +339,11 @@ impl KlinesRepository
       let k = (timestamp - *value) / timestep;
       if k == j + 1 {
         if i != -1 {
-          let limit  = j - i + 1;
+          let limit  = std::cmp::max(j - i + 1, 100);
           let endtime = timestamp - (j - limit) * timestep;
           println!("klines fix {symbol:} {interval:} {endtime:} {limit:}");
           Self::flush(ctx.clone(), symbol, interval, endtime, limit).await?;
-          i = -1;
-          break
+          return Ok(())
         }
       } else {
         if i == -1 {
