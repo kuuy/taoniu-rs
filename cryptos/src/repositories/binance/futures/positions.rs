@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
 use rust_decimal::prelude::*;
@@ -36,6 +38,29 @@ impl PositionsRepository
       Err(diesel::result::Error::NotFound) => Ok(None),
       Err(err) => Err(err.into()),
     }
+  }
+
+  pub async fn gets(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>) -> Result<Vec<(String, String, i32, i32, f64, f64, f64, f64, i64)>, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = positions::table.into_boxed();
+    if let Some(MixValue::Int(side)) = conditions.get("side") {
+      query = query.filter(positions::side.eq(side));
+    }
+    let positions = query
+      .select((
+        positions::id,
+        positions::symbol,
+        positions::side,
+        positions::leverage,
+        positions::capital,
+        positions::notional,
+        positions::entry_price,
+        positions::entry_quantity,
+        positions::timestamp,
+      ))
+      .load::<(String, String, i32, i32, f64, f64, f64, f64, i64)>(&mut conn)?;
+    Ok(positions)
   }
 
   pub async fn create(

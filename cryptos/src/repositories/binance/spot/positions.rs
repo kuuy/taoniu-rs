@@ -34,6 +34,23 @@ impl PositionsRepository {
       }
   }
 
+  pub async fn gets(ctx: Ctx) -> Result<Vec<(String, String, f64, f64, f64, f64, i64)>, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let positions = positions::table
+      .select((
+        positions::id,
+        positions::symbol,
+        positions::notional,
+        positions::entry_price,
+        positions::entry_quantity,
+        positions::entry_amount,
+        positions::timestamp,
+      ))
+      .load::<(String, String, f64, f64, f64, f64, i64)>(&mut conn)?;
+    Ok(positions)
+  }
+
   pub fn capital(
     capital: f64,
     entry_amount: f64,

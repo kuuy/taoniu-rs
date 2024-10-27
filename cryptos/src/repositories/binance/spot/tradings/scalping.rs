@@ -1,9 +1,9 @@
 use chrono::prelude::Utc;
 use diesel::prelude::*;
 use diesel::query_builder::QueryFragment;
+use redis::AsyncCommands;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
-use redis::AsyncCommands;
 
 use crate::common::*;
 use crate::config::binance::spot::config as Config;

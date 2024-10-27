@@ -22,9 +22,18 @@ impl Default for KlinesCommand {
 enum Commands {
   /// klines gets
   Gets,
+  /// klines fix
+  Fix(FixArgs),
   /// klines timestamp
   Timestamp(TimestampArgs),
   Rsmq(RsmqCommand),
+}
+
+#[derive(Args)]
+struct FixArgs {
+  symbol: String,
+  /// interval 1m 15m 4h 1d
+  interval: String,
 }
 
 #[derive(Args)]
@@ -53,6 +62,26 @@ impl KlinesCommand {
     Ok(())
   }
 
+  async fn fix(&self, ctx: Ctx, symbol: String, interval: String) -> Result<(), Box<dyn std::error::Error>> {
+    println!("klines fix {symbol:} {interval:}");
+    let limit: i64;
+    if &interval == "1m" {
+      limit = 1440;
+    } else if &interval == "15m" {
+      limit = 672;
+    } else if &interval == "4h" {
+      limit = 126;
+    } else {
+      limit = 100;
+    }
+    println!("binance spot klines fix {} {} {}", symbol, interval, limit);
+    match KlinesRepository::fix(ctx.clone(), &symbol[..], &interval, limit).await {
+      Ok(_) => (),
+      Err(err) => println!("error: {}", err),
+    }
+    Ok(())
+  }
+
   async fn timestamp(&self, interval: String) -> Result<(), Box<dyn std::error::Error>> {
     println!("klines timestamp");
     if !["1m", "15m", "4h", "1d"].iter().any(|&s| s == interval) {
@@ -66,6 +95,7 @@ impl KlinesCommand {
   pub async fn run(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
     match &self.commands {
       Commands::Gets => self.gets(ctx.clone()).await,
+      Commands::Fix(args) => self.fix(ctx.clone(), args.symbol.clone(), args.interval.clone()).await,
       Commands::Timestamp(args) => self.timestamp(args.interval.clone()).await,
       Commands::Rsmq(nats) => nats.run(ctx.clone()).await,
     }

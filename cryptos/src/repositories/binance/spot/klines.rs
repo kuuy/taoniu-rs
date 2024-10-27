@@ -45,7 +45,7 @@ impl KlinesRepository
     Ok(series)
   }
 
-  pub async fn values<T>(
+  pub async fn timelines<T>(
     ctx: Ctx,
     symbol: T,
     interval: T,
@@ -60,7 +60,7 @@ impl KlinesRepository
     let pool = ctx.pool.read().await;
     let mut conn = pool.get().unwrap();
 
-    let values = klines::table
+    let timelines = klines::table
       .select(klines::timestamp)
       .filter(klines::symbol.eq(symbol))
       .filter(klines::interval.eq(interval))
@@ -68,7 +68,7 @@ impl KlinesRepository
       .order(klines::timestamp.desc())
       .load::<i64>(&mut conn)?;
 
-    Ok(values)
+    Ok(timelines)
   }
 
   pub async fn get<T>(
@@ -326,8 +326,9 @@ impl KlinesRepository
     let timestamp = Self::timestamp(interval);
     let timestep = Self::timestep(interval);
 
-    let values = Self::values(ctx.clone(), symbol, interval, timestamp - offset * timestep).await?;
+    let values = Self::timelines(ctx.clone(), symbol, interval, timestamp - offset * timestep).await?;
 
+    println!("len {}, {}", values.len(), offset);
     if values.len() == offset as usize {
       return Ok(())
     }
@@ -335,13 +336,16 @@ impl KlinesRepository
     let mut i = -1;
     let mut j = -1;
     for value in values.iter() {
-      let k = (timestamp - value) / timestep;
+      let k = (timestamp - *value) / timestep;
       if k == j + 1 {
         if i != -1 {
-          println!("klines fix {symbol:} {interval:} {0:} {1:}", timestamp - (j - 1) * timestep, j - i + 1);
-          Self::flush(ctx.clone(), symbol, interval, timestamp - (j - 1) * timestep, j - i + 1).await?;
+          let limit  = j - i + 1;
+          let endtime = timestamp - (j - limit) * timestep;
+          println!("klines fix {symbol:} {interval:} {endtime:} {limit:}");
+          Self::flush(ctx.clone(), symbol, interval, endtime, limit).await?;
+          i = -1;
+          break
         }
-        i = -1;
       } else {
         if i == -1 {
           i = k;
@@ -350,9 +354,18 @@ impl KlinesRepository
       j = k;
     }
 
-    if i != -1 {
-      println!("klines fix {symbol:} {interval:} {0:} {1:}", timestamp - (j - 1) * timestep, j - i + 1);
-      Self::flush(ctx.clone(), symbol, interval, timestamp - (j - 1) * timestep, j - i + 1).await?;
+    if i != -1 && j != -1 {
+      let limit  = j - i + 1;
+      let endtime = timestamp - (j - limit) * timestep;
+      println!("klines fix {symbol:} {interval:} {endtime:} {limit:}");
+      Self::flush(ctx.clone(), symbol, interval, endtime, limit).await?;
+    }
+
+    if j < offset - 1 {
+      let limit  = offset - j - 1;
+      let endtime = timestamp - (offset - limit) * timestep;
+      println!("klines fix {symbol:} {interval:} {endtime:} {limit:}");
+      Self::flush(ctx.clone(), symbol, interval, endtime, limit).await?;
     }
 
     Ok(())

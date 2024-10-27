@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use std::ops::Sub;
 use std::time::Duration;
 
@@ -7,7 +9,7 @@ use diesel::query_builder::QueryFragment;
 use rust_decimal::prelude::*;
 use rust_decimal_macros::dec;
 
-use crate::common::Ctx;
+use crate::common::*;
 use crate::repositories::binance::futures::symbols::*;
 use crate::repositories::binance::futures::strategies::*;
 use crate::models::binance::futures::plan::*;
@@ -65,6 +67,51 @@ impl PlansRepository {
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(err) => Err(err.into()),
       }
+  }
+
+  pub async fn count(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>) -> Result<i64, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = plans::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(plans::symbol.eq(&symbol[..]));
+    }
+    if let Some(MixValue::Int(side)) = conditions.get("side") {
+      query = query.filter(plans::side.eq(side));
+    }
+    let count = query
+      .count()
+      .get_result(&mut conn)?;
+    Ok(count)
+  }
+
+  pub async fn listings(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>, current: i64, page_size: i64) -> Result<Vec<(String, String, i32, String, f64, f64, f64, i32, i64)>, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = plans::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(plans::symbol.eq(&symbol[..]));
+    }
+    if let Some(MixValue::Int(side)) = conditions.get("side") {
+      query = query.filter(plans::side.eq(side));
+    }
+    let plans = query
+      .select((
+        plans::id,
+        plans::symbol,
+        plans::side,
+        plans::interval,
+        plans::price,
+        plans::quantity,
+        plans::amount,
+        plans::status,
+        plans::timestamp,
+      ))
+      .order(plans::timestamp.desc())
+      .offset((current - 1) * page_size)
+      .limit(page_size)
+      .load::<(String, String, i32, String, f64, f64, f64, i32, i64)>(&mut conn)?;
+    Ok(plans)
   }
 
   pub async fn create(
