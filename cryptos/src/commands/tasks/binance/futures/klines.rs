@@ -53,7 +53,7 @@ impl KlinesCommand {
   async fn flush(&self, ctx: Ctx, interval: String, current: u8) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance futures tasks klines flush {} {}", interval, current);
 
-    let mut symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
+    let mut symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
 
     if current < 1 {
       return Err(Box::from("current less then 1"))
@@ -108,7 +108,7 @@ impl KlinesCommand {
   async fn fix(&self, ctx: Ctx, interval: String, current: u8) -> Result<(), Box<dyn std::error::Error>> {
     println!("binance spot tasks klines fix {} {}", interval, current);
 
-    let mut symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
+    let mut symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
 
     if current < 1 {
       return Err(Box::from("current less then 1"))

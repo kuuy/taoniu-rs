@@ -120,7 +120,7 @@ impl KlinesCommand {
     }
 
     println!("streams tickres current {}", self.current);
-    let mut symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
+    let mut symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
 
     if self.current < 1 {
       return Err(Box::from("current less then 1"))

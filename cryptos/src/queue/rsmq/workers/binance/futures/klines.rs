@@ -37,8 +37,8 @@ impl KlinesWorker {
     if !mutex.lock(Duration::from_secs(30)).await.unwrap() {
       return Err(Box::from(format!("mutex failed {}", redis_key)));
     }
- 
-    let symbols = ScalpingRepository::scan(ctx.clone()).await.unwrap();
+
+    let symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
     let timestamp = KlinesRepository::timestamp(interval);
     let _ = KlinesRepository::sync(
       ctx.clone(),

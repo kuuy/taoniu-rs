@@ -76,7 +76,7 @@ impl TickersRouter {
       None => vec![],
     };
     if symbols.is_empty() {
-      symbols = match ScalpingRepository::scan(ctx.clone()).await {
+      symbols = match ScalpingRepository::scan(ctx.clone(), 2).await {
         Ok(values) => values,
         Err(_) => {
           let message = ErrorMessage::new(false, "1004", "symbols is empty");

@@ -3,8 +3,8 @@ diesel::table! {
   scalping (id) {
     id -> Varchar,
     day -> Date,
-    buys_count -> Double,
-    sells_count -> Double,
+    buys_count -> Integer,
+    sells_count -> Integer,
     buys_amount -> Double,
     sells_amount -> Double,
     profit -> Double,

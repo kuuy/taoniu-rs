@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use diesel::prelude::*;
 
 use crate::common::*;
@@ -31,6 +33,47 @@ impl ScalpingRepository {
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(err) => Err(err.into()),
       }
+  }
+
+  pub async fn count(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>) -> Result<i64, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = scalping::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(scalping::symbol.eq(&symbol[..]));
+    }
+    let count = query
+      .count()
+      .get_result(&mut conn)?;
+    Ok(count)
+  }
+
+  pub async fn listings(ctx: Ctx, conditions: &mut HashMap<&str, MixValue>, current: i64, page_size: i64) -> Result<Vec<(String, String, f64, f64, f64, f64, i64, i64, f64, i64, i32)>, Box<dyn std::error::Error>> {
+    let pool = ctx.pool.read().await;
+    let mut conn = pool.get().unwrap();
+    let mut query = scalping::table.into_boxed();
+    if let Some(MixValue::String(symbol)) = conditions.get("symbol") {
+      query = query.filter(scalping::symbol.eq(&symbol[..]));
+    }
+    let scalping = query
+      .select((
+        scalping::id,
+        scalping::symbol,
+        scalping::capital,
+        scalping::price,
+        scalping::take_price,
+        scalping::stop_price,
+        scalping::take_order_id,
+        scalping::stop_order_id,
+        scalping::profit,
+        scalping::timestamp,
+        scalping::status,
+      ))
+      .order(scalping::timestamp.desc())
+      .offset((current - 1) * page_size)
+      .limit(page_size)
+      .load::<(String, String, f64, f64, f64, f64, i64, i64, f64, i64, i32)>(&mut conn)?;
+    Ok(scalping)
   }
 
   pub async fn scan(ctx: Ctx) -> Result<Vec<String>, Box<dyn std::error::Error>> {

@@ -1,2 +1,1 @@
-pub mod scalping;
-pub mod triggers;
+pub mod tradings;
