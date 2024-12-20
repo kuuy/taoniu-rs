@@ -70,7 +70,7 @@ impl TickersCommand {
     println!("process message {} {}", message.symbol, message.timestamp);
     let open = Decimal::from_f64(message.open).unwrap();
     let price = Decimal::from_f64(message.price).unwrap();
-    let change = ((open - price) / open).round_dp(4).to_f32().unwrap();
+    let change = ((price - open) / open).round_dp(4).to_f32().unwrap();
     let timestamp = Utc::now().timestamp_millis();
 
     let mut rdb = ctx.rdb.lock().await.clone();
