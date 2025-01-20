@@ -10,7 +10,6 @@ use crate::api::binance::futures::v1::strategies::*;
 use crate::api::binance::futures::v1::plans::*;
 use crate::api::binance::futures::v1::positions::*;
 use crate::api::binance::futures::v1::scalping::*;
-use crate::api::binance::futures::v1::triggers::*;
 
 mod analysis;
 mod tickers;
@@ -19,7 +18,6 @@ mod strategies;
 mod plans;
 mod positions;
 mod scalping;
-mod triggers;
 mod tradings;
 
 pub struct V1Router {
@@ -42,7 +40,6 @@ impl V1Router {
       .nest("/plans", PlansRouter::new(self.ctx.clone()).routes())
       .nest("/positions", PositionsRouter::new(self.ctx.clone()).routes())
       .nest("/scalping", ScalpingRouter::new(self.ctx.clone()).routes())
-      .nest("/triggers", TriggersRouter::new(self.ctx.clone()).routes())
       .layer(AuthenticatorLayer::new())
       .layer(EncryptionLayer::new());
   }
