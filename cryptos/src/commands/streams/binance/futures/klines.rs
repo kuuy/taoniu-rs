@@ -119,7 +119,7 @@ impl KlinesCommand {
       return Err(Box::from("interval not valid"))
     }
 
-    println!("streams tickres current {}", self.current);
+    println!("streams tickers current {}", self.current);
     let mut symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
 
     if self.current < 1 {
