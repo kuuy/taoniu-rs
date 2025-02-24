@@ -423,9 +423,19 @@ impl KlinesRepository
           Err(err) => return Err(err.into()),
         }
       } else {
+        let kline = kline.unwrap();
+        if open == kline.open
+          && close == kline.close
+          && high == kline.high
+          && low == kline.low
+          && volume == kline.volume
+          && quota == kline.quota {
+            continue;
+          }
+
         success = match Self::update(
           ctx.clone(),
-          kline.unwrap().id,
+          kline.id,
           (
             klines::open.eq(open),
             klines::close.eq(close),

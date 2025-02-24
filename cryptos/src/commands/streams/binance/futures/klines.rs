@@ -77,13 +77,13 @@ impl KlinesCommand {
   }
 
   async fn process(ctx: Ctx, message: KlineMessage) -> Result<(), Box<dyn std::error::Error>> {
-    println!("process message {} {}", message.symbol, message.timestamp);
+    //println!("process message {} {}", message.symbol, message.timestamp);
     let open = Decimal::from_f64(message.open).unwrap();
     let close = Decimal::from_f64(message.close).unwrap();
-    let change = ((open - close) / open).round_dp(4).to_f32().unwrap();
+    let change = ((close - open) / open).round_dp(4).to_f32().unwrap();
     let timestamp = Utc::now().timestamp_millis();
 
-    let ttl: Duration = match message.interval.as_str() {
+    let duration: Duration = match message.interval.as_str() {
       "1m" => Duration::from_secs(30+60),
       "15m" => Duration::from_secs(30+900),
       "4h" => Duration::from_secs(30+14400),
@@ -93,7 +93,6 @@ impl KlinesCommand {
 
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
-    let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
     rdb.hset_multiple(
       &redis_key,
       &[
@@ -108,9 +107,12 @@ impl KlinesCommand {
         ("timestamp", timestamp.to_string()),
       ],
     ).await?;
-    if !is_exists {
-      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
+
+    let ttl: i64 = rdb.ttl(&redis_key).await.unwrap();
+    if ttl == -1 {
+      rdb.expire(&redis_key, duration.as_secs().try_into().unwrap()).await?;
     }
+
     Ok(())
   }
 

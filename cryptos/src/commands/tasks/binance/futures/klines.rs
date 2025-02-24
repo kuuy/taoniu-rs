@@ -106,7 +106,7 @@ impl KlinesCommand {
   }
 
   async fn fix(&self, ctx: Ctx, interval: String, current: u8) -> Result<(), Box<dyn std::error::Error>> {
-    println!("binance spot tasks klines fix {} {}", interval, current);
+    println!("binance futures tasks klines fix {} {}", interval, current);
 
     let mut symbols = ScalpingRepository::scan(ctx.clone(), 2).await.unwrap();
 
@@ -154,7 +154,7 @@ impl KlinesCommand {
         println!("mutex failed {}", redis_lock_key);
         continue
       }
-      println!("binance spot klines fix {} {} {}", symbol, interval, current);
+      println!("binance futures klines fix {} {} {}", symbol, interval, current);
       match KlinesRepository::fix(ctx.clone(), &symbol[..], &interval, offset).await {
         Ok(_) => (),
         Err(err) => println!("error: {}", err),
