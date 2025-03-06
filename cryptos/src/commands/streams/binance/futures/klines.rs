@@ -162,17 +162,17 @@ impl KlinesCommand {
       let mut reader = reader.lock_owned().await;
       async move {
         while let Some(message) = reader.next().await {
-          match message.unwrap() {
-            Message::Text(content) => {
+          match message {
+            Ok(Message::Ping(_) | Message::Pong(_)) => continue,
+            Ok(Message::Text(content)) => {
               match serde_json::from_str::<KlineEvent>(&content) {
                 Ok(event) => {
                   let _ = Self::process(ctx.clone(), event.data.message).await;
                 }
                 Err(err) => println!("error: {}", err)
               }
-            }
-            Message::Close(_) => break,
-            _ => continue,
+            },
+            _ => break,
           }
         }
       }

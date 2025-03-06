@@ -73,9 +73,10 @@ impl ApiCommand {
       let mut rdb = ctx.rdb.lock().await.clone();
       async move {
         while let Some(message) = reader.next().await {
-          match message.unwrap() {
-            Message::Text(payload) => {
-              let payload = std::str::from_utf8(&payload.as_bytes()).unwrap();
+          match message {
+            Ok(Message::Ping(_) | Message::Pong(_)) => continue,
+            Ok(Message::Text(content)) => {
+              let payload = std::str::from_utf8(&content.as_bytes()).unwrap();
               match serde_json::from_str::<ApiResponse>(payload.as_ref()) {
                 Ok(response) => {
                   if response.status == 200 {
@@ -104,9 +105,8 @@ impl ApiCommand {
                 }
                 Err(err) => println!("error: {}", err)
               }
-            }
-            Message::Close(_) => break,
-            _ => continue,
+            },
+            _ => break,
           }
         }
       }

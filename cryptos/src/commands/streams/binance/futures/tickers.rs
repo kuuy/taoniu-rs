@@ -47,8 +47,8 @@ struct TickerMessage {
   volume: f64,
   #[serde(alias = "q", deserialize_with = "to_f64")]
   quota: f64,
-  #[serde(alias = "E")]
-  timestamp: i64,
+  //#[serde(alias = "E")]
+  //timestamp: i64,
 }
 
 fn to_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
@@ -67,7 +67,7 @@ impl TickersCommand {
   }
 
   async fn process(ctx: Ctx, message: TickerMessage) {
-    println!("process message {} {}", message.symbol, message.timestamp);
+    //println!("process message {} {}", message.symbol, message.timestamp);
     let open = Decimal::from_f64(message.open).unwrap();
     let price = Decimal::from_f64(message.price).unwrap();
     let change = ((price - open) / open).round_dp(4).to_f32().unwrap();
@@ -133,17 +133,17 @@ impl TickersCommand {
       let mut reader = reader.lock_owned().await;
       async move {
         while let Some(message) = reader.next().await {
-          match message.unwrap() {
-            Message::Text(content) => {
+          match message {
+            Ok(Message::Ping(_) | Message::Pong(_)) => continue,
+            Ok(Message::Text(content)) => {
               match serde_json::from_str::<TickerEvent>(&content) {
                 Ok(event) => {
                   let _ = Self::process(ctx.clone(), event.message).await;
                 }
                 Err(err) => println!("error: {}", err)
               }
-            }
-            Message::Close(_) => break,
-            _ => continue,
+            },
+            _ => break,
           }
         }
       }
