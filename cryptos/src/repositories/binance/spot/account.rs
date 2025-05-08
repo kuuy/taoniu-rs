@@ -134,7 +134,7 @@ impl AccountRepository {
       println!("coin balance remove {}", last_asset);
     });
 
-    pipe.query_async(&mut rdb).await?;
+    () = pipe.query_async(&mut rdb).await?;
 
     println!("account flush");
     Ok(())

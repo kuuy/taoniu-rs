@@ -6,36 +6,36 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-async-nats = "0.37.0"
-axum = "0.7.7"
-axum-extra = "0.9.4"
+async-nats = "0.40.0"
+axum = "0.8.4"
+axum-extra = "0.10.1"
 base64 = "0.22.1"
-chrono = { version = "0.4.38", features = ["serde"] }
-clap = { version = "4.5.20", features = ["derive"] }
-diesel = { version = "2.2.4", features = ["postgres", "chrono", "r2d2"] }
+chrono = { version = "0.4.41", features = ["serde"] }
+clap = { version = "4.5.37", features = ["derive"] }
+diesel = { version = "2.2.10", features = ["postgres", "chrono", "r2d2"] }
 diesel_as_jsonb = "1.0.1"
 dotenv = "0.15.0"
-erased-serde = "0.4.5"
+erased-serde = "0.4.6"
 futures-util = "0.3.31"
 hex = "0.4.3"
 hmac = "0.12.1"
-home = "0.5.9"
-http-body-util = "0.1.2"
-josekit = "0.10.0"
-log = "0.4.22"
-redis = { version = "0.25.4", features = ["tokio-comp"] }
-reqwest = { version = "0.12.8", features = ["json"] }
-rsa = { version = "0.9.6", features = ["sha2"] }
-rsmq_async = { version = "12.0.0", features = ["tokio-comp"] }
-rust_decimal = { version = "1.36.0", features = ["maths"] }
-rust_decimal_macros = "1.36.0"
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"
-sha2 = "0.10.8"
+home = "0.5.11"
+http-body-util = "0.1.3"
+josekit = "0.10.1"
+log = "0.4.27"
+redis = { version = "0.28.2", features = ["tokio-comp"] }
+reqwest = { version = "0.12.15", features = ["json"] }
+rsa = { version = "0.9.8", features = ["sha2"] }
+rsmq_async = { version = "15.0.0", features = ["tokio-comp"] }
+rust_decimal = { version = "1.37.1", features = ["maths"] }
+rust_decimal_macros = "1.37.1"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+sha2 = "0.10.9"
 talib-sys = "0.1.0"
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 tokio-cron = "0.1.3"
-tokio-tungstenite = { version = "0.24.0", features = ["native-tls"] }
-tower = "0.5.1"
-url = "2.5.2"
+tokio-tungstenite = { version = "0.26.2", features = ["native-tls"] }
+tower = "0.5.2"
+url = "2.5.4"
 xid = "1.1.1"

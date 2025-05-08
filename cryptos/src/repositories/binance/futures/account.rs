@@ -193,7 +193,7 @@ impl AccountRepository {
       println!("coin balance remove {}", last_asset);
     });
 
-    pipe.query_async(&mut rdb).await?;
+    () = pipe.query_async(&mut rdb).await?;
 
     for position in account_info.positions.iter() {
       if position.isolated || position.update_time == 0 {

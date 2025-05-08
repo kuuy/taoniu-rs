@@ -138,13 +138,13 @@ impl KlinesRepository
       .arg(interval)
       .arg(timestamp)
       .arg(fields.as_slice())
-      .invoke_async::<_, Vec<redis::Value>>(&mut rdb).await {
+      .invoke_async::<Vec<redis::Value>>(&mut rdb).await {
       Ok(values) => {
         values.iter().enumerate().for_each(|(_, value)| {
-          if let redis::Value::Bulk(bulk) = value {
+          if let redis::Value::Array(bulk) = value {
             let mut var = Vec::new();
             bulk.iter().for_each(|item| {
-              if let redis::Value::Data(v) = item {
+              if let redis::Value::BulkString(v) = item {
                 let v = std::str::from_utf8(v).unwrap();
                 var.push(v.to_string());
               }

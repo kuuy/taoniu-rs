@@ -43,13 +43,13 @@ impl TickersRepository {
     match script
       .key(symbols.as_slice())
       .arg(fields.as_slice())
-      .invoke_async::<_, Vec<redis::Value>>(&mut rdb).await {
+      .invoke_async::<Vec<redis::Value>>(&mut rdb).await {
       Ok(values) => {
         values.iter().enumerate().for_each(|(_, value)| {
-          if let redis::Value::Bulk(bulk) = value {
+          if let redis::Value::Array(bulk) = value {
             let mut var = Vec::new();
             bulk.iter().for_each(|item| {
-              if let redis::Value::Data(v) = item {
+              if let redis::Value::BulkString(v) = item {
                 let v = std::str::from_utf8(v).unwrap();
                 var.push(v);
               }
@@ -151,7 +151,7 @@ impl TickersRepository {
     let lasttime = lasttime.unwrap();
 
     if timestamp-lasttime > 30000 {
-      rdb.zadd(Config::REDIS_KEY_TICKERS_FLUSH, symbol, timestamp).await?;
+      () = rdb.zadd(Config::REDIS_KEY_TICKERS_FLUSH, symbol, timestamp).await?;
       return Err(Box::from(format!("ticker of {symbol:} has been expired")))
     }
 

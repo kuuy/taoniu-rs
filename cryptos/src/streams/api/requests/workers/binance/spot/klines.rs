@@ -57,10 +57,10 @@ impl KlinesWorker {
 
     let mut writer = writer.lock_owned().await;
     let message = serde_json::to_string(&api_request).unwrap();
-    writer.send(Message::Text(message)).await?;
+    writer.send(Message::Text(message.into())).await?;
 
     let mut rdb = ctx.clone().rdb.lock().await.clone();
-    rdb.hset(
+    () = rdb.hset(
       Config::REDIS_KEY_STREAMS_API,
       api_request.id,
       format!("{},{},{},{},{}", Config::STREAMS_API_KLINES_FLUSH, symbol, interval, endtime, limit),

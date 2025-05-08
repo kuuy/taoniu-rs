@@ -94,7 +94,7 @@ impl KlinesCommand {
     let mut rdb = ctx.rdb.lock().await.clone();
     let redis_key = format!("{}:{}:{}:{}", Config::REDIS_KEY_KLINES, message.interval, message.symbol, message.timestamp);
     let is_exists: bool = rdb.exists(&redis_key).await.unwrap();
-    rdb.hset_multiple(
+    () = rdb.hset_multiple(
       &redis_key,
       &[
         ("symbol", message.symbol),
@@ -109,7 +109,7 @@ impl KlinesCommand {
       ],
     ).await?;
     if !is_exists {
-      rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
+      () = rdb.expire(&redis_key, ttl.as_secs().try_into().unwrap()).await?;
     }
     Ok(())
   }

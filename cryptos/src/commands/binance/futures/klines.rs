@@ -41,13 +41,15 @@ impl KlinesCommand {
   }
 
   async fn gets(&self, ctx: Ctx) -> Result<(), Box<dyn std::error::Error>> {
-    println!("klines gets");
+    let interval = "4h";
+    let timestamp = KlinesRepository::timestamp(interval);
+    println!("klines gets {} {}", interval, timestamp);
     let values = KlinesRepository::gets(
       ctx.clone(),
-      ["BTCUSDT", "ETHUSDT", "BNBUSDT", "ADAUSDT", "AUD"].to_vec(),
+      ["ACEUSDT", "ACHUSDT", "ADAUSDT"].to_vec(),
       ["open", "close", "high", "low", "volume", "quota", "timestamp"].to_vec(),
-      "1m",
-      1724947020000,
+      interval,
+      timestamp,
     ).await;
     println!("klines gets {:?}", values);
     Ok(())

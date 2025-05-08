@@ -222,7 +222,7 @@ impl StrategiesRepository {
     let risk_reward_ratio = ((price - stop_loss_point) / (profit_target - price)).round_dp(4).to_f32().unwrap();
     let take_profit_ratio = (price / take_profit_price).round_dp(4).to_f32().unwrap();
 
-    rdb.hset_multiple(
+    () = rdb.hset_multiple(
       &redis_key,
       &[
         ("profit_target", profit_target.to_string()),
